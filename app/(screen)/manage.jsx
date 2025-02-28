@@ -6,7 +6,7 @@ import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
 import { useAuth } from "../../context/AuthContext";
 
-const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const ManageAccount = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -96,7 +96,7 @@ const ManageAccount = () => {
         // Show loading indicator
         setIsLoading(true);
 
-        const response = await fetch(`${API_URL}/change-password`, {
+        const response = await fetch(`${API_URL}/credentials/change-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -147,7 +147,7 @@ const ManageAccount = () => {
 
     try {
         setIsLoading(true);
-        const response = await fetch(`${API_URL}/verify-email-change`, {
+        const response = await fetch(`${API_URL}/credentials/verify-email-change`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -182,7 +182,7 @@ const handleVerifyOtp = async () => {
 
     try {
         setIsLoading(true);
-        const response = await fetch(`${API_URL}/confirm-email-change`, {
+        const response = await fetch(`${API_URL}/credentials/confirm-email-change`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

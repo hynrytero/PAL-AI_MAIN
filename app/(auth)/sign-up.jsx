@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  ScrollView,
   Image,
   ImageBackground,
   Alert,
@@ -15,9 +14,8 @@ import { Checkbox, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
-import CustomDropdown from "../../components/CustomDropDown";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FormField from "../../components/FormField";
+
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -178,8 +176,7 @@ const SignUp = () => {
   const handleSignUp = async () => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        "https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app/pre-signup",
+      const response = await axios.post(`${API_URL}/signup/pre-signup`,
         {
           username: form.username,
           email: form.email,

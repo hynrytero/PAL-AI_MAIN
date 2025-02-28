@@ -16,6 +16,9 @@ import CustomButton from "../../components/CustomButton";
 import { useLocalSearchParams } from 'expo-router';
 import axios from "axios";
 
+
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+
 const SignUpOTP = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -38,8 +41,7 @@ const SignUpOTP = () => {
   const handleResend = async () => {
     if (!canResend) return;
     try {
-      await axios.post(
-        "https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app/resend-verification-code",
+      await axios.post(`${API_URL}/signup/resend-verification-code`,
         { 
           email: email,
         }
@@ -91,8 +93,7 @@ const SignUpOTP = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        "https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app/complete-signup",
+      const response = await axios.post(`${API_URL}/signup/complete-signup`,
         {
           email: email,
           verificationCode: verificationCode

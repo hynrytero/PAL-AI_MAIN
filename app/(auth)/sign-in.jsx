@@ -1,34 +1,29 @@
 import {
   View,
   Text,
-  ScrollView,
   Image,
   ImageBackground,
   Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, router } from "expo-router";
 import axios from "axios";
 import { TextInput, Checkbox } from "react-native-paper";
 import * as SecureStore from 'expo-secure-store';
-
 import { images } from "../../constants";
-import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { useAuth } from "../../context/AuthContext";
+import { useNotification } from "../../context/NotificationContext";
+
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const SignIn = () => {
   const { login } = useAuth();
-  const [form, setForm] = useState({
-    identifier: "",  
-    password: "",
-  });
+  const [form, setForm] = useState({ identifier: "", password: ""});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
-  const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
+  const {expoPushToken} = useNotification();
 
   useEffect(() => {
     loadSavedCredentials();
@@ -65,23 +60,38 @@ const SignIn = () => {
     }
   };
 
+  const registerPushToken = async (userId, token) => {
+    if (!userId || !token) return;
+    
+    try {
+      const response = await axios.post(`${API_URL}/auth/pushToken`, {
+        user_id: userId,
+        token: token
+      });
+      return response.data;
+    } catch (error) {
+      console.log('Error in registerPushToken:', error.response?.data || error.message);
+      throw error;
+    }
+  };
+
   const handleLogin = async () => {
     if (!form.identifier || !form.password) { 
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-
+  
     setIsSubmitting(true);
-
+  
     try {
-      const response = await axios.post(`${API_URL}/login`,
+      const response = await axios.post(`${API_URL}/auth/login`,
         {
           identifier: form.identifier, 
           password: form.password,
         }
       );
       console.log("Response data:", response.data.message);
-
+  
       if (response.data.user) {
         await login({
           id: response.data.user.id,
@@ -90,6 +100,18 @@ const SignIn = () => {
           roleId: response.data.user.roleId
         });
         await saveCredentials();
+        
+        // Register push token if available
+        if (expoPushToken) {
+          try {
+            await registerPushToken(response.data.user.id, expoPushToken);
+            console.log('Push token registered successfully');
+          } catch (tokenError) {
+            console.log('Error registering push token:', tokenError);
+          }
+        }
+        console.log('User ID : ', response.data.user.id);
+        console.log('Push token: ', expoPushToken);
         router.push("home");
       }
     } catch (error) {
@@ -99,7 +121,7 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <ImageBackground
       source={images.background_signin}

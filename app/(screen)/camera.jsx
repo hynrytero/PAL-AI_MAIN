@@ -9,11 +9,9 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../context/AuthContext";
 
-// endpoints
-const API_URL = "https://pal-ai-model-87197497418.asia-southeast1.run.app/predict";
-const API_DB = "https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app/save";
-const API_UPLOAD = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app/upload';
-const API_INFO = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app/disease-info';
+// URL
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL_PREDICT = "https://pal-ai-model-87197497418.asia-southeast1.run.app";
 
 export default function App() {
   // Permissions hooks
@@ -67,7 +65,7 @@ export default function App() {
         name: 'image.jpg'
       });
   
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL_PREDICT}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
@@ -102,7 +100,7 @@ export default function App() {
     });
   
     try {
-      const response = await fetch(API_UPLOAD, {
+      const response = await fetch(`${API_URL}/scan/upload`, {
         method: 'POST',
         body: formData
       });
@@ -166,7 +164,7 @@ export default function App() {
   // Save Prediction to database
   async function savePredictionToDB(predictionsResult, uploadImage) {
     try {
-      const response = await fetch(API_DB, {
+      const response = await fetch(`${API_URL}/scan/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -195,7 +193,7 @@ export default function App() {
   // Get disease Information
   const getDiseaseInfo = async (classNumber) => {
     try {
-      const response = await fetch(`${API_INFO}/${classNumber}`);
+      const response = await fetch(`${API_URL}/scan/disease-info/${classNumber}`);
       
       if (!response.ok) {
         if (response.status === 404) {

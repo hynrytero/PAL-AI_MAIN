@@ -6,7 +6,7 @@ import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
 import axios from 'axios';
 
-const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -34,7 +34,7 @@ const Profile = () => {
     try {
       setError(null);
       
-      const response = await axios.get(`${API_URL}/api/profile/${user.id}`, {
+      const response = await axios.get(`${API_URL}/profile/fetch-profile/${user.id}`, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -84,16 +84,17 @@ const Profile = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not provided';
-    
+  
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Invalid date';
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
+  
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+  
     return `${year}-${month}-${day}`;
-};
+  };
+  
 
   if (!user?.isAuthenticated) {
     return null;

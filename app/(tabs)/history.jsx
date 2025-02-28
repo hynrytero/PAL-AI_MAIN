@@ -11,12 +11,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import Card from "../../components/Card";
 import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
 
-const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const History = () => {
   const [scans, setScans] = useState([]);
@@ -36,7 +35,7 @@ const History = () => {
         throw new Error('User not authenticated');
       }
 
-      const response = await fetch(`${API_URL}/api/scan-history/${user.id}`);
+      const response = await fetch(`${API_URL}/history/scan-history/${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch scan history');
       }

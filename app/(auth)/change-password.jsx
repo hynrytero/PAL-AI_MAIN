@@ -7,6 +7,8 @@ import CustomButton from "../../components/CustomButton";
 import { TextInput } from "react-native-paper";
 import axios from "axios";
 
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+
 const ChangePassword = () => {
   const router = useRouter();
   const { email = "" } = useLocalSearchParams();
@@ -16,8 +18,6 @@ const ChangePassword = () => {
     confirmpassword: ""
   });
   
-  const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
-
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +59,7 @@ const handleSubmit = async () => {
   setIsSubmitting(true);
 
   try {  
-      const response = await axios.post(`${API_URL}/reset-password`, { 
+      const response = await axios.post(`${API_URL}/forgotpassword/reset-password`, { 
           email: email,
           newPassword: form.password
       }, {

@@ -24,7 +24,7 @@ const SignInOTP = () => {
   const otpRefs = useRef([]);
   const router = useRouter();
   const { email } = useLocalSearchParams();
-  const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
+  const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -39,7 +39,7 @@ const SignInOTP = () => {
   const handleResend = async () => {
     if (!canResend) return;
     try {
-      await axios.post(`${API_URL}/resend-password-otp`,
+      await axios.post(`${API_URL}/forgotpassword/resend-password-otp`,
         {
           email: email,
         }
@@ -89,7 +89,7 @@ const SignInOTP = () => {
 
     setIsSubmitting(true);
     try {
-        const response = await axios.post(`${API_URL}/verify-otp`, {
+        const response = await axios.post(`${API_URL}/forgotpassword/verify-otp`, {
             email: email,
             otp: verificationCode
         });

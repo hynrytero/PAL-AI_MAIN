@@ -18,7 +18,7 @@ import Feather from "react-native-vector-icons/Feather";
 import { Button } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
 
-const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const Profile = () => {
    const { user } = useAuth();
@@ -43,7 +43,7 @@ const Profile = () => {
     try {
       setError(null);
       
-      const response = await axios.get(`${API_URL}/api/profile/${user.id}`, {
+      const response = await axios.get(`${API_URL}/profile/fetch-profile/${user.id}`, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -111,7 +111,7 @@ const Profile = () => {
                   name: 'profile.jpg'
                 });
   
-                const uploadResponse = await fetch(`${API_URL}/upload-profile`, {
+                const uploadResponse = await fetch(`${API_URL}/profile/upload-profile`, {
                   method: 'POST',
                   body: formData,
                 });
@@ -136,7 +136,7 @@ const Profile = () => {
   
               // Send update request
               const updateResponse = await axios.put(
-                `${API_URL}/api/profile/update`,
+                `${API_URL}/profile/update`,
                 updatedProfile,
                 {
                   headers: {

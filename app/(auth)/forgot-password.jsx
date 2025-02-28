@@ -6,11 +6,12 @@ import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { TextInput } from "react-native-paper";
 
+const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+
 const SignUpOTP = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const API_URL = 'https://pal-ai-database-api-sea-87197497418.asia-southeast1.run.app';
 
   // State variables
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +33,7 @@ const SignUpOTP = () => {
   const handleVerification = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/forgot-password/`, {
+      const response = await fetch(`${API_URL}/forgotpassword/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
