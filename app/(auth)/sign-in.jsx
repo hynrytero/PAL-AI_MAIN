@@ -1,29 +1,23 @@
-import {
-  View,
-  Text,
-  Image,
-  ImageBackground,
-  Alert,
-} from "react-native";
+import { View, Text, Image, ImageBackground, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Link, router } from "expo-router";
 import axios from "axios";
 import { TextInput, Checkbox } from "react-native-paper";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = "https://pal-ai-backend-87197497418.asia-southeast1.run.app";
 
 const SignIn = () => {
   const { login } = useAuth();
-  const [form, setForm] = useState({ identifier: "", password: ""});
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const {expoPushToken} = useNotification();
+  const { expoPushToken } = useNotification();
 
   useEffect(() => {
     loadSavedCredentials();
@@ -31,14 +25,14 @@ const SignIn = () => {
 
   const loadSavedCredentials = async () => {
     try {
-      const savedCredentials = await SecureStore.getItemAsync('credentials');
+      const savedCredentials = await SecureStore.getItemAsync("credentials");
       if (savedCredentials) {
-        const { identifier, password } = JSON.parse(savedCredentials);  
+        const { identifier, password } = JSON.parse(savedCredentials);
         setForm({ identifier, password });
         setRememberMe(true);
       }
     } catch (error) {
-      console.log('Error loading saved credentials:', error);
+      console.log("Error loading saved credentials:", error);
     }
   };
 
@@ -46,72 +40,73 @@ const SignIn = () => {
     try {
       if (rememberMe) {
         await SecureStore.setItemAsync(
-          'credentials',
+          "credentials",
           JSON.stringify({
-            identifier: form.identifier,  
+            identifier: form.identifier,
             password: form.password,
           })
         );
       } else {
-        await SecureStore.deleteItemAsync('credentials');
+        await SecureStore.deleteItemAsync("credentials");
       }
     } catch (error) {
-      console.log('Error saving credentials:', error);
+      console.log("Error saving credentials:", error);
     }
   };
 
   const registerPushToken = async (userId, token) => {
     if (!userId || !token) return;
-    
+
     try {
       const response = await axios.post(`${API_URL}/auth/pushToken`, {
         user_id: userId,
-        token: token
+        token: token,
       });
       return response.data;
     } catch (error) {
-      console.log('Error in registerPushToken:', error.response?.data || error.message);
+      console.log(
+        "Error in registerPushToken:",
+        error.response?.data || error.message
+      );
       throw error;
     }
   };
 
   const handleLogin = async () => {
-    if (!form.identifier || !form.password) { 
+    if (!form.identifier || !form.password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
-      const response = await axios.post(`${API_URL}/auth/login`,
-        {
-          identifier: form.identifier, 
-          password: form.password,
-        }
-      );
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        identifier: form.identifier,
+        password: form.password,
+      });
       console.log("Response data:", response.data.message);
-  
+
       if (response.data.user) {
         await login({
           id: response.data.user.id,
           username: response.data.user.username,
           email: response.data.user.email,
-          roleId: response.data.user.roleId
+          roleId: response.data.user.roleId,
         });
         await saveCredentials();
-        
+
         // Register push token if available
         if (expoPushToken) {
           try {
             await registerPushToken(response.data.user.id, expoPushToken);
-            console.log('Push token registered successfully');
+            console.log("Push token registered successfully");
           } catch (tokenError) {
-            console.log('Error registering push token:', tokenError);
+            console.log("Error registering push token:", tokenError);
           }
         }
-        console.log('User ID : ', response.data.user.id);
-        console.log('Push token: ', expoPushToken);
+        console.log("User ID : ", response.data.user.id);
+        console.log("Push token: ", expoPushToken);
         router.push("home");
       }
     } catch (error) {
@@ -121,7 +116,7 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <ImageBackground
       source={images.background_signin}
@@ -142,8 +137,8 @@ const SignIn = () => {
           <Text className="text-lg">Welcome! Please enter your details.</Text>
           <TextInput
             label="Username / Email"
-            value={form.identifier}  
-            onChangeText={(text) => setForm({ ...form, identifier: text })}  
+            value={form.identifier}
+            onChangeText={(text) => setForm({ ...form, identifier: text })}
             className="w-full mt-3"
             mode="outlined"
             activeOutlineColor="#006400"
@@ -171,7 +166,7 @@ const SignIn = () => {
           <View className="flex-row justify-between items-center mt-4">
             <View className="flex-row items-center">
               <Checkbox
-                status={rememberMe ? 'checked' : 'unchecked'}
+                status={rememberMe ? "checked" : "unchecked"}
                 onPress={() => setRememberMe(!rememberMe)}
                 color="#006400"
               />
@@ -183,7 +178,8 @@ const SignIn = () => {
           </View>
           <CustomButton
             title="Log in"
-            handlePress={handleLogin}
+            // handlePress={handleLogin}
+            handlePress={() => router.push("report")}
             containerStyles="w-full mt-5"
             isLoading={isSubmitting}
           />

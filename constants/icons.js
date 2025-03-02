@@ -18,6 +18,8 @@ import pin from "../assets/icons/pin.png";
 import eye1 from "../assets/icons/eye1.png";
 import drop from "../assets/icons/drop.png";
 import wind from "../assets/icons/wind.png";
+import report from "../assets/icons/report.png";
+import treatment from "../assets/icons/treatment.png";
 
 export default {
   home,
@@ -40,4 +42,6 @@ export default {
   eye1,
   drop,
   wind,
+  report,
+  treatment,
 };
