@@ -1,4 +1,5 @@
 import { View, Text, Image } from "react-native";
+import images from "../constants/images";
 import React from "react";
 
 const ReportCard = ({ disease, user, date, percent, color, image }) => {

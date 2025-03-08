@@ -1,7 +1,7 @@
 import { View, Text, SafeAreaView, ScrollView } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import ReportCard from "../../components/ReportCard";
-
+import images from "../../constants/images";
 const ReportScreen = () => {
   const data = [
     { value: 694, color: "#000064", disease: "Tungro" },
@@ -74,7 +74,7 @@ const ReportScreen = () => {
             date="3/2/2025"
             percent={87}
             color="bg-[#ADD8E6]"
-            image={require("../../assets/images/tungrodisease.jpg")}
+            image={images.tungro}
           />
           <ReportCard
             disease="Rice Blast"
@@ -82,7 +82,7 @@ const ReportScreen = () => {
             date="3/1/2025"
             percent={97}
             color="bg-[#ADD8E6]"
-            image="../../assets/images/blastdisease.jpg"
+            image={images.blast}
           />
         </View>
       </SafeAreaView>

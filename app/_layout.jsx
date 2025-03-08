@@ -43,6 +43,7 @@ const RootLayout = () => {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(admin-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(screen)" options={{ headerShown: false }} />
+        <Stack.Screen name="(admin-screen)" options={{ headerShown: false }} />
       </Stack>
     </NotificationProvider>
   );

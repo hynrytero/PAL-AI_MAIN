@@ -24,6 +24,12 @@ import backgroundweather from "../assets/images/weatherbg.png";
 import angelo from "../assets/images/angelo.jpg";
 import map from "../assets/images/map.png";
 import Default_Profile from "../assets/images/Default_Profile.jpeg";
+import treatment1 from "../assets/images/treatment 1.png";
+import treatment2 from "../assets/images/treatment 2.png";
+import treatment3 from "../assets/images/treatment 3.png";
+import treatment4 from "../assets/images/treatment 4.png";
+import treatment5 from "../assets/images/treatment 5.png";
+import treatment6 from "../assets/images/treatment 6.png";
 
 export default {
   profile,
@@ -52,4 +58,10 @@ export default {
   angelo,
   map,
   Default_Profile,
+  treatment1,
+  treatment2,
+  treatment3,
+  treatment4,
+  treatment5,
+  treatment6,
 };
