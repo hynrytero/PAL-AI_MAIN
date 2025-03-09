@@ -16,7 +16,7 @@ const CustomButtonOutline = ({
       }`}
       disabled={isLoading}
     >
-      <Text className={`text-black font-psemibold text-xl ${textStyles}`}>
+      <Text className={`text-secondary font-psemibold text-xl ${textStyles}`}>
         {title}
       </Text>
 

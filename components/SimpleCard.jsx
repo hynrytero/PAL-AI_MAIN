@@ -3,6 +3,9 @@ import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 
 export default function SmallCard({ disease, num, color }) {
+  // Check if num is a number
+  const isNumber = typeof num === "number";
+
   return (
     <View
       style={{
@@ -11,7 +14,6 @@ export default function SmallCard({ disease, num, color }) {
         justifyContent: "space-between",
         backgroundColor: "#E6F7F0", // Light mint green background matching image
         borderRadius: 10,
-
         paddingHorizontal: 20,
         shadowColor: "#000",
         shadowOpacity: 0.05,
@@ -55,7 +57,9 @@ export default function SmallCard({ disease, num, color }) {
         >
           {disease}
         </Text>
-        <Text style={{ fontSize: 14, color: "#666" }}>{num} Treatments</Text>
+        <Text style={{ fontSize: 14, color: "#666" }}>
+          {isNumber ? `${num} Treatments` : num}
+        </Text>
       </View>
 
       {/* Ellipsis Icon */}

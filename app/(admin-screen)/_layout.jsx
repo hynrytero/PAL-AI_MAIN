@@ -12,17 +12,21 @@ const AdminScreenLayout = () => {
         <>
           <Stack>
             <Stack.Screen
-              name="index"
+              name="treatment-details"
               options={{
                 headerShown: false,
               }}
             />
             <Stack.Screen
-              name="treatment-details"
+              name="edit-treatment"
               options={{
-                headerShown: true,
-                headerTitle: "Treatment Details",
-                presentation: "card",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="farmers-treatment"
+              options={{
+                headerShown: false,
               }}
             />
           </Stack>
