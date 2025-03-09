@@ -1,10 +1,19 @@
 // treatment-details.jsx in (admin-screen) folder
-import { View, Text, Image, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  ImageBackground,
+  SafeAreaView,
+} from "react-native";
 import React from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import images from "../../constants/images";
+import CustomButton from "../../components/CustomButton";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
-const TreatmentDetailsScreen = () => {
+const TreatmentDetailsScreen = ({ isReview = false, farmerName = "" }) => {
   const { treatment } = useLocalSearchParams();
   const router = useRouter();
 
@@ -36,61 +45,113 @@ const TreatmentDetailsScreen = () => {
     return "#CCCCE0";
   };
 
+  const handleApprove = () => {
+    // Implement approve logic here
+    console.log("Treatment approved");
+    router.back();
+  };
+
+  const handleDeny = () => {
+    // Implement deny logic here
+    console.log("Treatment denied");
+    router.back();
+  };
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={{ padding: 20 }}>
-        <View
-          style={{
-            backgroundColor: getTreatmentColor(treatment),
-            borderRadius: 16,
-            padding: 24,
-            alignItems: "center",
-            marginBottom: 24,
+    <ImageBackground
+      source={images.background_result}
+      className="flex-1 h-full"
+      resizeMode="cover"
+      imageStyle={{ opacity: 0.5 }}
+    >
+      <SafeAreaView className="flex-1 pt-8">
+        <ScrollView
+          className="flex-1 p-5"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: 50,
+            justifyContent: "space-between",
           }}
+          showsVerticalScrollIndicator={false}
         >
+          {/* Back navigation */}
+          <View className="flex-row items-center w-full mb-7">
+            <Icon
+              name="chevron-left"
+              size={40}
+              color="black"
+              onPress={() => router.back()}
+            />
+            <Text className="font-pmedium text-[30px]">Treatment Detail</Text>
+          </View>
+
+          {/* Dynamic Image */}
           <Image
-            source={getTreatmentImage(treatment)}
-            style={{ width: 120, height: 120, marginBottom: 16 }}
-            resizeMode="contain"
+            source={images.logo} // Replace with your fallback image path
+            resizeMode="cover"
+            className="w-full h-[275px] mb-5 border bg-slate-400"
+            borderRadius={10}
+            onError={(e) =>
+              console.error("Image load error:", e.nativeEvent.error)
+            }
+            onLoad={() => console.log("Image loaded successfully")}
           />
-          <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 8 }}>
+
+          {/* Treatments Description */}
+          <Text className="font-pregular text-md leading-6 mb-2">
             {treatment}
           </Text>
-        </View>
 
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>
-            Description
-          </Text>
-          <Text style={{ fontSize: 16, lineHeight: 24, color: "#333" }}>
-            {treatment} is a common treatment used for rice diseases. It's
-            effective against various pests and diseases that affect rice
-            plants. Proper application is necessary for optimal results.
-          </Text>
-        </View>
+          {/* Submitted By section */}
+          {isReview && (
+            <Text className="font-pregular text-md leading-6 mb-5 text-gray-600">
+              Submitted By: {farmerName}
+            </Text>
+          )}
 
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>
-            Dosage
+          <Text className="font-psemibold text-md mb-5 mt-3">Description</Text>
+          <Text className="font-pregular text-md leading-6 mb-5">
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Cum sequi
+            at molestias vitae vel autem eum maiores, ipsum libero doloremque
+            maxime aut inventore vero sapiente distinctio similique beatae
+            veritatis natus.
           </Text>
-          <Text style={{ fontSize: 16, lineHeight: 24, color: "#333" }}>
-            The recommended dosage is 2-3ml per liter of water. Apply evenly
-            across affected areas for best results.
-          </Text>
-        </View>
 
-        <View>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>
-            Application Method
+          {/* Instructions section */}
+          <Text className="font-psemibold text-md mb-5">Instructions</Text>
+          <Text className="font-pregular text-md leading-6 mb-5">
+            {/* You can customize or dynamically populate these instructions */}
+            1. Consult with a healthcare professional or agricultural expert.{" "}
+            {"\n"}
+            2. Follow recommended treatment protocols. {"\n"}
+            3. Monitor progress and adjust treatment as necessary.
           </Text>
-          <Text style={{ fontSize: 16, lineHeight: 24, color: "#333" }}>
-            Apply using a backpack sprayer early in the morning or late
-            afternoon for best absorption. Avoid application before rain or in
-            strong wind conditions.
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
+
+          {/* Conditional rendering for buttons */}
+          {isReview ? (
+            <View className="flex-row justify-between w-full my-6">
+              <CustomButton
+                title="Deny"
+                containerStyles="w-[48%]"
+                buttonColor="#FF5252"
+                onPress={handleDeny}
+              />
+              <CustomButton
+                title="Approve"
+                containerStyles="w-[48%]"
+                buttonColor="#4CAF50"
+                onPress={handleApprove}
+              />
+            </View>
+          ) : (
+            <CustomButton
+              title="Edit Treatment"
+              containerStyles="w-full my-6"
+            />
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 };
 
