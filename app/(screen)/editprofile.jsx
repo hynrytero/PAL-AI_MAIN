@@ -17,20 +17,21 @@ import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
 import { Button } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const Profile = () => {
-   const { user } = useAuth();
-   const [userData, setUserData] = useState({
-      firstname: '',
-      lastname: '',
-      email: '',
-      contactNumber: '',
-      birthdate: '',
-      gender: '',
-      image: '',
-    });
+  const { user } = useAuth();
+  const [userData, setUserData] = useState({
+    firstname: '',
+    lastname: '',
+    email: '',
+    contactNumber: '',
+    birthdate: '',
+    gender: '',
+    image: '',
+  });
   const [profileImage, setProfileImage] = useState(null);
   const [error, setError] = useState(null);
   const [firstName, setFirstName] = useState("");
@@ -38,13 +39,14 @@ const Profile = () => {
   const [birthDate, setBirthDate] = useState(new Date());
   const [contactNumber, setContactNumber] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
- 
+
   const fetchUserProfile = async () => {
     try {
       setError(null);
-      
+
       const response = await axios.get(`${API_URL}/profile/fetch-profile/${user.id}`, {
         headers: {
+          'X-API-Key': AUTH_KEY,
           'Content-Type': 'application/json'
         }
       });
@@ -61,7 +63,7 @@ const Profile = () => {
         error.message,
         [{ text: 'OK', onPress: () => setError(null) }]
       );
-    } 
+    }
   };
 
   useEffect(() => {
@@ -74,17 +76,23 @@ const Profile = () => {
     setFirstName(userData.firstname);
     setLastName(userData.lastname);
     setContactNumber(userData.contactNumber);
-    
+
     if (userData.birthdate) {
       setBirthDate(new Date(userData.birthdate));
     }
   }, [userData]);
 
   const formatDateForServer = (date) => {
-    const timezoneOffset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - timezoneOffset);
-    return localDate.toISOString().split('T')[0];
+    const d = new Date(date);
+    const timezoneOffset = d.getTimezoneOffset();
+    d.setMinutes(d.getMinutes() + timezoneOffset);
+    
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
+  
 
 
   const handleApplyChanges = () => {
@@ -101,7 +109,7 @@ const Profile = () => {
           onPress: async () => {
             try {
               let imageUrl = userData.image; // Default to existing image
-  
+
               // If there's a new profile image, upload it first
               if (profileImage && profileImage !== userData.image) {
                 const formData = new FormData();
@@ -110,20 +118,24 @@ const Profile = () => {
                   type: 'image/jpeg',
                   name: 'profile.jpg'
                 });
-  
+
                 const uploadResponse = await fetch(`${API_URL}/profile/upload-profile`, {
                   method: 'POST',
+                  headers: {
+                    'X-API-Key': AUTH_KEY,
+                    'Content-Type': 'application/json'
+                  },
                   body: formData,
                 });
-  
+
                 if (!uploadResponse.ok) {
                   throw new Error('Failed to upload image');
                 }
-  
+
                 const uploadResult = await uploadResponse.json();
                 imageUrl = uploadResult.imageUrl;
               }
-  
+
               // Prepare updated profile data
               const updatedProfile = {
                 userId: user.id,
@@ -133,18 +145,19 @@ const Profile = () => {
                 contactNumber: contactNumber,
                 image: imageUrl
               };
-  
+
               // Send update request
               const updateResponse = await axios.put(
                 `${API_URL}/profile/update`,
                 updatedProfile,
                 {
                   headers: {
+                    'X-API-Key': AUTH_KEY,
                     'Content-Type': 'application/json'
                   }
                 }
               );
-  
+
               if (updateResponse.data.success) {
                 Alert.alert(
                   "Success",
@@ -193,7 +206,7 @@ const Profile = () => {
   };
 
   const handleBack = () => {
-      router.back();
+    router.back();
   };
 
   return (
@@ -217,8 +230,8 @@ const Profile = () => {
                   profileImage
                     ? { uri: profileImage }
                     : userData.image
-                    ? { uri: userData.image }
-                    : images.Default_Profile
+                      ? { uri: userData.image }
+                      : images.Default_Profile
                 }
                 resizeMode="cover"
                 className="w-[140px] h-[140px] rounded-full border-4 border-gray-300 shadow-md"
@@ -268,7 +281,7 @@ const Profile = () => {
                   className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800"
                   placeholder="Birth Date"
                   placeholderTextColor="#9ca3af"
-                  value={birthDate ? birthDate.toDateString() : ""}
+                  value={birthDate ? birthDate.toISOString().split('T')[0] : ""}
                   editable={false}
                 />
               </TouchableOpacity>
@@ -277,6 +290,7 @@ const Profile = () => {
                   value={birthDate || new Date()}
                   mode="date"
                   display="default"
+                  timeZoneOffsetInMinutes={0} 
                   onChange={handleDateChange}
                 />
               )}

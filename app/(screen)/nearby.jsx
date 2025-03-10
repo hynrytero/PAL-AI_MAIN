@@ -8,8 +8,9 @@ import CustomButton from "../../components/CustomButton";
 import { storeRecommenderApi } from "../api/nearby-api";  
 import * as Location from "expo-location"; 
 import * as Linking from "expo-linking";
+import { API_MAPS } from '@env';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCMeNsZsejyD2YYtTtUyycbUdD2l8ZG3-g'; // e butang pani sa environment variable must not be exposed
+const GOOGLE_MAPS_API_KEY = API_MAPS; 
 
 const Nearby = () => {
   const [region, setRegion] = useState(null);

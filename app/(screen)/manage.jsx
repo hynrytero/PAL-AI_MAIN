@@ -5,8 +5,9 @@ import { Button } from "react-native-paper";
 import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
 import { useAuth } from "../../context/AuthContext";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const ManageAccount = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -78,140 +79,143 @@ const ManageAccount = () => {
 
   const handleChangePassword = async () => {
     if (!currentPassword) {
-        Alert.alert("Error", "Please enter your current password.");
-        return;
+      Alert.alert("Error", "Please enter your current password.");
+      return;
     }
 
     if (passwordErrors.newPassword || passwordErrors.confirmPassword) {
-        Alert.alert("Error", "Please fix password errors before proceeding.");
-        return;
+      Alert.alert("Error", "Please fix password errors before proceeding.");
+      return;
     }
 
     if (newPassword !== reEnterNewPassword) {
-        Alert.alert("Error", "New passwords do not match.");
-        return;
+      Alert.alert("Error", "New passwords do not match.");
+      return;
     }
 
     try {
-        // Show loading indicator
-        setIsLoading(true);
+      // Show loading indicator
+      setIsLoading(true);
 
-        const response = await fetch(`${API_URL}/credentials/change-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: user.id, 
-                currentPassword,
-                newPassword
-            })
-        });
+      const response = await fetch(`${API_URL}/credentials/change-password`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          currentPassword,
+          newPassword
+        })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to change password');
-        }
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to change password');
+      }
 
-        // Success case
-        Alert.alert("Success", "Your password has been changed successfully.");
-        setShowPasswordForm(false);
-        setCurrentPassword("");
-        setNewPassword("");
-        setReEnterNewPassword("");
+      // Success case
+      Alert.alert("Success", "Your password has been changed successfully.");
+      setShowPasswordForm(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setReEnterNewPassword("");
 
     } catch (error) {
-        Alert.alert("Error", error.message || "Failed to change password. Please try again.");
+      Alert.alert("Error", error.message || "Failed to change password. Please try again.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
   const handleEmailChange = async () => {
     if (!emailVerificationPassword) {
-        Alert.alert("Error", "Please enter your current password.");
-        return;
+      Alert.alert("Error", "Please enter your current password.");
+      return;
     }
 
     if (!newEmail) {
-        Alert.alert("Error", "Please enter a new email address.");
-        return;
+      Alert.alert("Error", "Please enter a new email address.");
+      return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
-        Alert.alert("Error", "Please enter a valid email address.");
-        return;
+      Alert.alert("Error", "Please enter a valid email address.");
+      return;
     }
 
     try {
-        setIsLoading(true);
-        const response = await fetch(`${API_URL}/credentials/verify-email-change`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: user.id,
-                password: emailVerificationPassword,
-                newEmail
-            })
-        });
+      setIsLoading(true);
+      const response = await fetch(`${API_URL}/credentials/verify-email-change`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          password: emailVerificationPassword,
+          newEmail
+        })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to initiate email change');
-        }
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to initiate email change');
+      }
 
-        setOtpModalVisible(true);
+      setOtpModalVisible(true);
 
     } catch (error) {
-        Alert.alert("Error", error.message || "Failed to initiate email change. Please try again.");
+      Alert.alert("Error", error.message || "Failed to initiate email change. Please try again.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
-const handleVerifyOtp = async () => {
+  const handleVerifyOtp = async () => {
     if (!otpCode) {
-        Alert.alert("Error", "Please enter the OTP code.");
-        return;
+      Alert.alert("Error", "Please enter the OTP code.");
+      return;
     }
 
     try {
-        setIsLoading(true);
-        const response = await fetch(`${API_URL}/credentials/confirm-email-change`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: user.id,
-                otp: otpCode
-            })
-        });
+      setIsLoading(true);
+      const response = await fetch(`${API_URL}/credentials/confirm-email-change`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          otp: otpCode
+        })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to verify OTP');
-        }
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to verify OTP');
+      }
 
-        Alert.alert("Success", "Your email has been changed successfully.");
-        setOtpModalVisible(false);
-        setShowEmailForm(false);
-        setNewEmail("");
-        setOtpCode("");
-        setEmailVerificationPassword("");
+      Alert.alert("Success", "Your email has been changed successfully.");
+      setOtpModalVisible(false);
+      setShowEmailForm(false);
+      setNewEmail("");
+      setOtpCode("");
+      setEmailVerificationPassword("");
 
     } catch (error) {
-        Alert.alert("Error", error.message || "Failed to verify OTP. Please try again.");
+      Alert.alert("Error", error.message || "Failed to verify OTP. Please try again.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
   const commonInputStyle = {
     borderWidth: 1,
@@ -295,14 +299,14 @@ const handleVerifyOtp = async () => {
 
   return (
     <ImageBackground
-    source={images.background_profile}
-    className="flex-1 h-full w-full bg-white"
+      source={images.background_profile}
+      className="flex-1 h-full w-full bg-white"
     >
       <ScrollView className="mt-12">
         <SafeAreaView className="px-7 w-full h-full mb-10">
           {/* New Header */}
           <View className="flex-row items-center w-full mb-7">
-           <Feather
+            <Feather
               name="chevron-left"
               size={40}
               color="black"
@@ -352,7 +356,7 @@ const handleVerifyOtp = async () => {
                 </Button>
               </View>
             )}
-            
+
             <View className="flex-row justify-between mb-3 mx-3">
               <Text className="text-lg">Password</Text>
               <TouchableOpacity onPress={() => setShowPasswordForm(!showPasswordForm)}>

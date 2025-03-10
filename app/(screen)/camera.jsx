@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import {StyleSheet, Text, View, Image, Alert, TouchableOpacity, ActivityIndicator} from "react-native";
+import { StyleSheet, Text, View, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as ImagePicker from "expo-image-picker";
@@ -8,10 +8,10 @@ import Button from "../../components/CameraButton";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../context/AuthContext";
+import { AUTH_KEY, API_URL_AI, API_URL_BCNKEND } from '@env';
 
-// URL
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
-const API_URL_PREDICT = "https://pal-ai-model-87197497418.asia-southeast1.run.app";
+const API_URL = API_URL_BCNKEND;
+const API_URL_PREDICT = API_URL_AI;
 
 export default function App() {
   // Permissions hooks
@@ -53,18 +53,18 @@ export default function App() {
   const sendImageToAPI = async (imageUri) => {
     try {
       setIsProcessing(true);
-  
+
       if (!imageUri) {
         throw new Error("Invalid image URI");
       }
-  
+
       const formData = new FormData();
       formData.append('file', {
         uri: imageUri,
-        type: 'image/jpeg', 
+        type: 'image/jpeg',
         name: 'image.jpg'
       });
-  
+
       const response = await fetch(`${API_URL_PREDICT}/predict`, {
         method: "POST",
         headers: {
@@ -76,7 +76,7 @@ export default function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       setPredictions(data.predictions);
       return data.predictions;
@@ -98,10 +98,14 @@ export default function App() {
       type: 'image/jpeg',
       name: 'photo.jpg'
     });
-  
+
     try {
       const response = await fetch(`${API_URL}/scan/upload`, {
         method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          "Content-Type": "application/json",
+        },
         body: formData
       });
       const data = await response.json();
@@ -160,13 +164,14 @@ export default function App() {
       Alert.alert("Error", "Failed to select image");
     }
   };
-  
+
   // Save Prediction to database
   async function savePredictionToDB(predictionsResult, uploadImage) {
     try {
       const response = await fetch(`${API_URL}/scan/save`, {
         method: "POST",
         headers: {
+          'X-API-Key': AUTH_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -176,9 +181,9 @@ export default function App() {
           scan_image: uploadImage,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Data saved to the database successfully");
       } else {
@@ -193,8 +198,11 @@ export default function App() {
   // Get disease Information
   const getDiseaseInfo = async (classNumber) => {
     try {
-      const response = await fetch(`${API_URL}/scan/disease-info/${classNumber}`);
-      
+      const response = await fetch(`${API_URL}/scan/disease-info/${classNumber}`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Disease information not found');
@@ -209,15 +217,15 @@ export default function App() {
     }
   };
 
-    /* 
-          change the title of the medicine in order to do that must add it to the json file
-          implement environtment variables
-          transfer endpoint code from local to main - change pool methods
-    */
+  /* 
+        change the title of the medicine in order to do that must add it to the json file
+        implement environtment variables
+        transfer endpoint code from local to main - change pool methods
+  */
 
   // Save Picture
   const savePicture = async () => {
-    
+
     if (image) {
       try {
 
@@ -226,10 +234,10 @@ export default function App() {
 
         // Send image to cloud storage
         const uploadImage = await uploadImageToCloud(image);
-        
+
         // Get Disease Info
         const result = await getDiseaseInfo(predictionsResult[0].class_number);
-         
+
         // Send prediction to database
         savePredictionToDB(predictionsResult, uploadImage);
 

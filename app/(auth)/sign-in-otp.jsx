@@ -15,6 +15,9 @@ import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { useLocalSearchParams } from "expo-router";
 import axios from "axios";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+
+const API_URL = API_URL_BCNKEND;
 
 const SignInOTP = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -24,7 +27,6 @@ const SignInOTP = () => {
   const otpRefs = useRef([]);
   const router = useRouter();
   const { email } = useLocalSearchParams();
-  const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -42,6 +44,11 @@ const SignInOTP = () => {
       await axios.post(`${API_URL}/forgotpassword/resend-password-otp`,
         {
           email: email,
+        },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
       );
       Alert.alert("Success", "Verification code resent successfully");
@@ -83,40 +90,46 @@ const SignInOTP = () => {
   const handleVerification = async () => {
     const verificationCode = otp.join("");
     if (verificationCode.length !== 6 || !email) {
-        Alert.alert("Error", "Please enter the complete verification code");
-        return;
+      Alert.alert("Error", "Please enter the complete verification code");
+      return;
     }
 
     setIsSubmitting(true);
     try {
-        const response = await axios.post(`${API_URL}/forgotpassword/verify-otp`, {
-            email: email,
-            otp: verificationCode
-        });
-
-        if (response.status === 200) {
-            Alert.alert("Success", "OTP verified successfully", [
-                {
-                    text: "OK",
-                    onPress: () => {
-                        router.push({
-                            pathname: "/change-password",
-                            params: { email: email }
-                        });
-                    },
-                },
-            ]);
+      const response = await axios.post(`${API_URL}/forgotpassword/verify-otp`, {
+        email: email,
+        otp: verificationCode
+      },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
+      );
+
+      if (response.status === 200) {
+        Alert.alert("Success", "OTP verified successfully", [
+          {
+            text: "OK",
+            onPress: () => {
+              router.push({
+                pathname: "/change-password",
+                params: { email: email }
+              });
+            },
+          },
+        ]);
+      }
     } catch (error) {
-        Alert.alert(
-            "Error",
-            error.response?.data?.message ||
-            "Verification failed. Please try again."
-        );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+        "Verification failed. Please try again."
+      );
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
-};
+  };
 
   return (
     <ImageBackground

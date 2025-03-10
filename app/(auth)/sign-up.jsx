@@ -14,8 +14,9 @@ import { Checkbox, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -118,9 +119,9 @@ const SignUp = () => {
       let formatted = e;
       if (e.length === 2 && form.birthdate.length === 1) formatted += '/';
       if (e.length === 5 && form.birthdate.length === 4) formatted += '/';
-      
+
       setForm({ ...form, birthdate: formatted });
-      
+
       if (formatted.length === 10) {
         if (!validateBirthdate(formatted)) {
           setBirthdateError("Invalid birthdate. Must be at least 18 years old.");
@@ -186,6 +187,11 @@ const SignUp = () => {
           birthdate: form.birthdate,
           gender: selectedGender,
           mobilenumber: form.mobilenumber,
+        },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
       );
       router.push({

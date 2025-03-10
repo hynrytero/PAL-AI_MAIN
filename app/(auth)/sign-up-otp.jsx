@@ -10,14 +10,13 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { useLocalSearchParams } from 'expo-router';
 import axios from "axios";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const SignUpOTP = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -42,8 +41,13 @@ const SignUpOTP = () => {
     if (!canResend) return;
     try {
       await axios.post(`${API_URL}/signup/resend-verification-code`,
-        { 
+        {
           email: email,
+        },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
       );
       Alert.alert("Success", "Verification code resent successfully");
@@ -54,7 +58,7 @@ const SignUpOTP = () => {
         error.response?.data?.message || "Resend failed"
       );
     }
-    
+
     setTimeLeft(60);
     setCanResend(false);
 
@@ -97,9 +101,14 @@ const SignUpOTP = () => {
         {
           email: email,
           verificationCode: verificationCode
+        },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
       );
-    
+
       if (response.status === 201) {
         Alert.alert(
           "Success",
@@ -117,7 +126,7 @@ const SignUpOTP = () => {
     } catch (error) {
       Alert.alert(
         "Error",
-        error.response?.data?.message || 
+        error.response?.data?.message ||
         "Verification failed. Please try again."
       );
     } finally {
@@ -176,7 +185,7 @@ const SignUpOTP = () => {
           </View>
 
           {/* Resend OTP */}
-          <TouchableOpacity 
+          <TouchableOpacity
             className={`mt-3 ${!canResend ? 'opacity-50' : ''}`}
             onPress={handleResend}
             disabled={!canResend}
@@ -197,7 +206,7 @@ const SignUpOTP = () => {
           </TouchableOpacity>
 
           {/* Verify Button */}
-          <CustomButton 
+          <CustomButton
             title={isSubmitting ? "Verifying..." : "Verify"}
             containerStyles="w-full mt-6"
             handlePress={handleVerification}

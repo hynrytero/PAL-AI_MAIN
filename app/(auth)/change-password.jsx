@@ -6,8 +6,8 @@ import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { TextInput } from "react-native-paper";
 import axios from "axios";
-
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+const API_URL = API_URL_BCNKEND;
 
 const ChangePassword = () => {
   const router = useRouter();
@@ -17,7 +17,7 @@ const ChangePassword = () => {
     password: "",
     confirmpassword: ""
   });
-  
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +32,7 @@ const ChangePassword = () => {
 
   const validateConfirmPassword = (confirmpassword) => {
     return confirmpassword === form.password;
-};
+  };
 
   const handleChangePassword = (e) => {
     setForm({ ...form, password: e });
@@ -47,69 +47,70 @@ const ChangePassword = () => {
 
   const handleConfirmPassword = (e) => {
     setForm({ ...form, confirmpassword: e });
-    if (!validateConfirmPassword(e)) {  
-        setConfirmPasswordError("Password doesn't match.");
+    if (!validateConfirmPassword(e)) {
+      setConfirmPasswordError("Password doesn't match.");
     } else {
-        setConfirmPasswordError("");
+      setConfirmPasswordError("");
     }
-};
+  };
 
-const handleSubmit = async () => {
-  setApiError("");
-  setIsSubmitting(true);
+  const handleSubmit = async () => {
+    setApiError("");
+    setIsSubmitting(true);
 
-  try {  
-      const response = await axios.post(`${API_URL}/forgotpassword/reset-password`, { 
-          email: email,
-          newPassword: form.password
+    try {
+      const response = await axios.post(`${API_URL}/forgotpassword/reset-password`, {
+        email: email,
+        newPassword: form.password
       }, {
-          headers: {
-              'Content-Type': 'application/json'
-          }
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.data.message) {
-          Alert.alert(
-              "Success",
-              "Password changed successfully",
-              [
-                  {
-                      text: "OK",
-                      onPress: () => router.push("/sign-in")
-                  }
-              ]
-          );
+        Alert.alert(
+          "Success",
+          "Password changed successfully",
+          [
+            {
+              text: "OK",
+              onPress: () => router.push("/sign-in")
+            }
+          ]
+        );
       }
-  } catch (error) {
+    } catch (error) {
       console.error('Full error:', error);
       console.error('Error response:', error.response?.data);
-      
+
       let errorMessage = "An error occurred while changing password";
-      
+
       if (error.response) {
-          switch (error.response.status) {
-              case 400:
-                  errorMessage = "Email and new password are required";
-                  break;
-              case 404:
-                  errorMessage = "User not found";
-                  break;
-              case 500:
-                  errorMessage = "Server error. Please try again later.";
-                  console.error('Server Error Details:', error.response.data);
-                  break;
-              default:
-                  errorMessage = error.response.data.error || errorMessage;
-          }
+        switch (error.response.status) {
+          case 400:
+            errorMessage = "Email and new password are required";
+            break;
+          case 404:
+            errorMessage = "User not found";
+            break;
+          case 500:
+            errorMessage = "Server error. Please try again later.";
+            console.error('Server Error Details:', error.response.data);
+            break;
+          default:
+            errorMessage = error.response.data.error || errorMessage;
+        }
       } else if (error.request) {
-          errorMessage = "Unable to connect to server. Please check your internet connection.";
+        errorMessage = "Unable to connect to server. Please check your internet connection.";
       }
-      
+
       setApiError(errorMessage);
-  } finally {
+    } finally {
       setIsSubmitting(false);
-  }
-};
+    }
+  };
   return (
     <ImageBackground
       source={images.background_signup}

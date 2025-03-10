@@ -5,8 +5,9 @@ import { Button } from "react-native-paper";
 import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
 import axios from 'axios';
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -33,9 +34,10 @@ const Profile = () => {
   const fetchUserProfile = async () => {
     try {
       setError(null);
-      
+
       const response = await axios.get(`${API_URL}/profile/fetch-profile/${user.id}`, {
         headers: {
+          'X-API-Key': AUTH_KEY,
           'Content-Type': 'application/json'
         }
       });
@@ -84,17 +86,17 @@ const Profile = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not provided';
-  
+
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Invalid date';
-  
+
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
-  
+
     return `${year}-${month}-${day}`;
   };
-  
+
 
   if (!user?.isAuthenticated) {
     return null;
@@ -119,84 +121,84 @@ const Profile = () => {
     );
   }
 
-  const displayName = userData.firstname && userData.lastname 
+  const displayName = userData.firstname && userData.lastname
     ? `${userData.firstname} ${userData.lastname}`
     : 'No name provided';
 
-    return (
-      <ImageBackground
-        source={images.background_profile}
-        className="flex-1 h-full w-full bg-white"
+  return (
+    <ImageBackground
+      source={images.background_profile}
+      className="flex-1 h-full w-full bg-white"
+    >
+      <ScrollView
+        className="mt-12"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <ScrollView
-          className="mt-12"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          <SafeAreaView className="px-6 w-full h-full mb-10">
-            <View className="flex-row items-center justify-between w-full mb-6">
-              <Text className="font-bold text-[32px] text-gray-800">Profile</Text>
-            </View>
-  
-            <View className="w-full items-center mb-8">
-              <Image
-                source={userData.image ? { uri: userData.image } : images.Default_Profile}
-                resizeMode="cover"
-                className="w-[140px] h-[140px] rounded-full border-4 border-gray-300 shadow-md"
-              />
-              <Text className="text-2xl font-semibold text-gray-900 mt-4">
-                {userData.firstname}
-              </Text>
-            </View>
-  
-            <View className="w-full bg-white rounded-lg shadow-lg p-4 mb-8 border border-gray-200">
-              <Text className="text-xl font-semibold text-gray-800 mb-3">About</Text>
-  
-              {[
-                { label: "Name", value: displayName },
-                { label: "Email", value: userData.email || "Not provided" },
-                { label: "Contact Number", value: userData.contactNumber || "Not provided" },
-                { label: "Birthdate", value: formatDate(userData.birthdate) || "Not provided" },
-                { label: "Gender", value: userData.gender || "Not provided" },
-              ].map((item, index) => (
-                <View
-                  key={index}
-                  className={`flex-row justify-between py-3 border-b ${index === 4 ? "border-0" : "border-gray-200"}`}
-                >
-                  <Text className="text-base text-gray-600">{item.label}</Text>
-                  <Text className="text-base font-medium text-gray-800">{item.value}</Text>
-                </View>
-              ))}
-            </View>
-  
-            {[ 
-              { label: "Edit Profile", route: "/editprofile" },
-              { label: "Manage Account", route: "/manage" }
+        <SafeAreaView className="px-6 w-full h-full mb-10">
+          <View className="flex-row items-center justify-between w-full mb-6">
+            <Text className="font-bold text-[32px] text-gray-800">Profile</Text>
+          </View>
+
+          <View className="w-full items-center mb-8">
+            <Image
+              source={userData.image ? { uri: userData.image } : images.Default_Profile}
+              resizeMode="cover"
+              className="w-[140px] h-[140px] rounded-full border-4 border-gray-300 shadow-md"
+            />
+            <Text className="text-2xl font-semibold text-gray-900 mt-4">
+              {userData.firstname}
+            </Text>
+          </View>
+
+          <View className="w-full bg-white rounded-lg shadow-lg p-4 mb-8 border border-gray-200">
+            <Text className="text-xl font-semibold text-gray-800 mb-3">About</Text>
+
+            {[
+              { label: "Name", value: displayName },
+              { label: "Email", value: userData.email || "Not provided" },
+              { label: "Contact Number", value: userData.contactNumber || "Not provided" },
+              { label: "Birthdate", value: formatDate(userData.birthdate) || "Not provided" },
+              { label: "Gender", value: userData.gender || "Not provided" },
             ].map((item, index) => (
-              <Button
+              <View
                 key={index}
-                mode="outlined"
-                style={{ borderRadius: 8, marginVertical: 6 }}
-                contentStyle={{ justifyContent: "center", paddingVertical: 8 }}
-                labelStyle={{ fontSize: 16, color: "#1f2937" }}
-                onPress={() => router.push(item.route)}
+                className={`flex-row justify-between py-3 border-b ${index === 4 ? "border-0" : "border-gray-200"}`}
               >
-                {item.label}
-              </Button>
+                <Text className="text-base text-gray-600">{item.label}</Text>
+                <Text className="text-base font-medium text-gray-800">{item.value}</Text>
+              </View>
             ))}
-  
+          </View>
+
+          {[
+            { label: "Edit Profile", route: "/editprofile" },
+            { label: "Manage Account", route: "/manage" }
+          ].map((item, index) => (
             <Button
+              key={index}
               mode="outlined"
-              style={{ borderRadius: 8, marginTop: 12 }}
+              style={{ borderRadius: 8, marginVertical: 6 }}
               contentStyle={{ justifyContent: "center", paddingVertical: 8 }}
-              labelStyle={{ fontSize: 16, color: "#dc2626" }}
-              onPress={handleLogout}
+              labelStyle={{ fontSize: 16, color: "#1f2937" }}
+              onPress={() => router.push(item.route)}
             >
-              Log-out
+              {item.label}
             </Button>
-          </SafeAreaView>
-        </ScrollView>
-      </ImageBackground>
-    );
-  };
+          ))}
+
+          <Button
+            mode="outlined"
+            style={{ borderRadius: 8, marginTop: 12 }}
+            contentStyle={{ justifyContent: "center", paddingVertical: 8 }}
+            labelStyle={{ fontSize: 16, color: "#dc2626" }}
+            onPress={handleLogout}
+          >
+            Log-out
+          </Button>
+        </SafeAreaView>
+      </ScrollView>
+    </ImageBackground>
+  );
+};
 
 export default Profile;

@@ -14,15 +14,16 @@ import { Stack, useRouter } from "expo-router";
 import Card from "../../components/Card";
 import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const History = () => {
   const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +36,12 @@ const History = () => {
         throw new Error('User not authenticated');
       }
 
-      const response = await fetch(`${API_URL}/history/scan-history/${user.id}`);
+      const response = await fetch(`${API_URL}/history/scan-history/${user.id}`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       if (!response.ok) {
         throw new Error('Failed to fetch scan history');
       }
@@ -69,9 +75,9 @@ const History = () => {
 
   const handleCardPress = useCallback(async (scan) => {
     if (isNavigating) return;
-    
+
     setIsNavigating(true);
-    
+
     router.push({
       pathname: "/result",
       params: {
@@ -100,7 +106,7 @@ const History = () => {
           headerShown: false,
         }}
       />
-      <ScrollView 
+      <ScrollView
         className="mt-12"
         refreshControl={
           <RefreshControl
@@ -113,7 +119,7 @@ const History = () => {
           <View className="flex-row items-center w-full mb-3">
             <Text className="font-pmedium text-[30px]">History</Text>
           </View>
-          
+
           {loading ? (
             <ActivityIndicator size="large" color="#ADD8E6" />
           ) : scans.length > 0 ? (

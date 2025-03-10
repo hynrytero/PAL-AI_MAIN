@@ -5,8 +5,9 @@ import { useRouter, useLocalSearchParams, Link } from "expo-router";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { TextInput } from "react-native-paper";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const SignUpOTP = () => {
   const router = useRouter();
@@ -36,20 +37,21 @@ const SignUpOTP = () => {
       const response = await fetch(`${API_URL}/forgotpassword/verify-email`, {
         method: 'POST',
         headers: {
+          'X-API-Key': AUTH_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: email 
+          email: email
         })
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         // Success - email was found and OTP sent
         router.push({
-            pathname: "/sign-in-otp",
-            params: { email: email },
+          pathname: "/sign-in-otp",
+          params: { email: email },
         });
 
       } else {

@@ -18,8 +18,10 @@ import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { format } from "date-fns";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
+
 const { width, height } = Dimensions.get('window');
 
 const Notification = () => {
@@ -34,26 +36,31 @@ const Notification = () => {
   // Group notifications by date
   const groupNotificationsByDate = () => {
     const groups = {};
-    
+
     notifications.forEach(notification => {
       const date = new Date(notification.timestamp);
       const dateKey = format(date, "MMMM d, yyyy");
-      
+
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }
-      
+
       groups[dateKey].push(notification);
     });
-    
+
     return groups;
   };
 
   const fetchNotifications = async () => {
     if (!user || !user.id) return;
-    
+
     try {
-      const response = await axios.get(`${API_URL}/notifications/${user.id}`);
+      const response = await axios.get(`${API_URL}/notifications/${user.id}`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       setNotifications(response.data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -66,10 +73,15 @@ const Notification = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/read`);
+      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/read`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       // Update local state to mark notification as read
-      setNotifications(notifications.map(note => 
-        note.id === notificationId ? {...note, read: true} : note
+      setNotifications(notifications.map(note =>
+        note.id === notificationId ? { ...note, read: true } : note
       ));
     } catch (error) {
       console.error("Error marking notification as read:", error);
@@ -78,10 +90,15 @@ const Notification = () => {
 
   const markAsUnread = async (notificationId) => {
     try {
-      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/unread`);
+      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/unread`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       // Update local state to mark notification as unread
-      setNotifications(notifications.map(note => 
-        note.id === notificationId ? {...note, read: false} : note
+      setNotifications(notifications.map(note =>
+        note.id === notificationId ? { ...note, read: false } : note
       ));
     } catch (error) {
       console.error("Error marking notification as unread:", error);
@@ -90,11 +107,16 @@ const Notification = () => {
 
   const markAllAsRead = async () => {
     if (!user || !user.id) return;
-    
+
     try {
-      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/read-all`);
+      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/read-all`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       // Update local state
-      setNotifications(notifications.map(note => ({...note, read: true})));
+      setNotifications(notifications.map(note => ({ ...note, read: true })));
       Alert.alert("Success", "All notifications marked as read");
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
@@ -104,11 +126,16 @@ const Notification = () => {
 
   const markAllAsUnread = async () => {
     if (!user || !user.id) return;
-    
+
     try {
-      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/unread-all`);
+      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/unread-all`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       // Update local state
-      setNotifications(notifications.map(note => ({...note, read: false})));
+      setNotifications(notifications.map(note => ({ ...note, read: false })));
       Alert.alert("Success", "All notifications marked as unread");
     } catch (error) {
       console.error("Error marking all notifications as unread:", error);
@@ -118,7 +145,12 @@ const Notification = () => {
 
   const deleteNotification = async (notificationId) => {
     try {
-      await axios.delete(`${API_URL}/notifications/delete/${notificationId}`);
+      await axios.delete(`${API_URL}/notifications/delete/${notificationId}`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       // Remove from local state
       setNotifications(notifications.filter(note => note.id !== notificationId));
     } catch (error) {
@@ -129,9 +161,14 @@ const Notification = () => {
 
   const clearAllNotifications = async () => {
     if (!user || !user.id) return;
-    
+
     try {
-      await axios.delete(`${API_URL}/notifications/delete-all/${user.id}/clear`);
+      await axios.delete(`${API_URL}/notifications/delete-all/${user.id}/clear`, {
+        headers: {
+          'X-API-Key': AUTH_KEY
+        }
+      });
+
       setNotifications([]);
       Alert.alert("Success", "All notifications cleared");
     } catch (error) {
@@ -163,7 +200,7 @@ const Notification = () => {
     if (!notification.read) {
       markAsRead(notification.id);
     }
-    
+
     // Set the selected notification and show modal
     setSelectedNotification(notification);
     setModalVisible(true);
@@ -181,10 +218,10 @@ const Notification = () => {
 
   const renderNotificationModal = () => {
     if (!selectedNotification) return null;
-    
+
     // Format the timestamp more attractively
     const formattedTime = format(new Date(selectedNotification.timestamp), "EEEE, MMM d, yyyy 'at' h:mm a");
-    
+
     // Get a suitable background color based on notification type or category
     const getModalHeaderColor = () => {
       const iconColor = selectedNotification.iconBgColor || '#4285F4';
@@ -199,7 +236,7 @@ const Notification = () => {
         onRequestClose={closeModal}
         statusBarTranslucent={true}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
           activeOpacity={1}
           onPress={closeModal}
@@ -219,37 +256,37 @@ const Notification = () => {
                       />
                       <Text className="text-white font-psemibold text-lg ml-2">Notification</Text>
                     </View>
-                    <IconButton 
-                      icon="close" 
+                    <IconButton
+                      icon="close"
                       iconColor="white"
                       onPress={closeModal}
                     />
                   </View>
                 </View>
-                
+
                 {/* Pull handle for better UX */}
                 <View className="items-center py-2">
                   <View className="w-10 h-1 rounded-full bg-gray-300" />
                 </View>
-                
+
                 {/* Notification content section */}
                 <ScrollView className="px-5" contentContainerStyle={{ paddingBottom: 20 }}>
                   {/* Title */}
                   <Text className="font-psemibold text-xl mt-2 mb-3">{selectedNotification.title}</Text>
-                  
+
                   {/* Timestamp in nice format */}
                   <View className="flex-row items-center mb-4">
                     <IconButton icon="clock-outline" size={20} style={{ margin: 0 }} />
                     <Text className="text-gray-500 text-xs ml-1">{formattedTime}</Text>
                   </View>
-                  
+
                   <Divider className="mb-5" />
-                  
+
                   {/* Subtitle/content in a card for better visual separation */}
                   <Surface className="bg-gray-50 p-4 rounded-lg mb-5 elevation-1">
                     <Text className="text-base">{selectedNotification.subtitle}</Text>
                   </Surface>
-                  
+
                   {/* If there are any additional details */}
                   {selectedNotification.details && (
                     <View className="mb-5">
@@ -260,10 +297,10 @@ const Notification = () => {
                     </View>
                   )}
                 </ScrollView>
-                
+
                 {/* Action buttons with better styling */}
                 <Surface className="p-4 border-t border-gray-200 flex-row justify-end space-x-3 elevation-2">
-                  <Button 
+                  <Button
                     mode="outlined"
                     icon="delete-outline"
                     onPress={() => {
@@ -273,7 +310,7 @@ const Notification = () => {
                   >
                     Delete
                   </Button>
-                  <Button 
+                  <Button
                     mode="contained"
                     icon="check"
                     onPress={closeModal}
@@ -310,7 +347,7 @@ const Notification = () => {
       className="flex-1 h-full w-full bg-white"
     >
       <StatusBar translucent backgroundColor="transparent" />
-      <ScrollView 
+      <ScrollView
         className="mt-12"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -325,30 +362,30 @@ const Notification = () => {
                 visible={markAllMenuVisible}
                 onDismiss={() => setMarkAllMenuVisible(false)}
                 anchor={
-                  <IconButton 
-                    icon="check-all" 
-                    onPress={toggleMarkAllMenu} 
+                  <IconButton
+                    icon="check-all"
+                    onPress={toggleMarkAllMenu}
                   />
                 }
               >
-                <Menu.Item 
+                <Menu.Item
                   onPress={() => {
                     markAllAsRead();
                     setMarkAllMenuVisible(false);
-                  }} 
-                  title="Mark all as read" 
+                  }}
+                  title="Mark all as read"
                   leadingIcon="email-check"
                 />
-                <Menu.Item 
+                <Menu.Item
                   onPress={() => {
                     markAllAsUnread();
                     setMarkAllMenuVisible(false);
-                  }} 
-                  title="Mark all as unread" 
+                  }}
+                  title="Mark all as unread"
                   leadingIcon="email-mark-as-unread"
                 />
               </Menu>
-              
+
               <IconButton icon="delete-sweep" onPress={clearAllNotifications} />
             </View>
           </View>
@@ -358,8 +395,8 @@ const Notification = () => {
               <View key={date}>
                 <Text className="font-psemibold mt-2">{date}</Text>
                 {dateNotifications.map(notification => (
-                  <Card 
-                    key={notification.id} 
+                  <Card
+                    key={notification.id}
                     onPress={() => handleNotificationPress(notification)}
                     style={{
                       marginVertical: 4,
@@ -432,7 +469,7 @@ const Notification = () => {
           )}
         </SafeAreaView>
       </ScrollView>
-      
+
       {renderNotificationModal()}
     </ImageBackground>
   );

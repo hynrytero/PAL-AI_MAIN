@@ -14,16 +14,17 @@ import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
+const API_URL = API_URL_BCNKEND;
 
 const SignIn = () => {
   const { login } = useAuth();
-  const [form, setForm] = useState({ identifier: "", password: ""});
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const {expoPushToken} = useNotification();
+  const { expoPushToken } = useNotification();
 
   useEffect(() => {
     loadSavedCredentials();
@@ -33,7 +34,7 @@ const SignIn = () => {
     try {
       const savedCredentials = await SecureStore.getItemAsync('credentials');
       if (savedCredentials) {
-        const { identifier, password } = JSON.parse(savedCredentials);  
+        const { identifier, password } = JSON.parse(savedCredentials);
         setForm({ identifier, password });
         setRememberMe(true);
       }
@@ -48,7 +49,7 @@ const SignIn = () => {
         await SecureStore.setItemAsync(
           'credentials',
           JSON.stringify({
-            identifier: form.identifier,  
+            identifier: form.identifier,
             password: form.password,
           })
         );
@@ -62,12 +63,18 @@ const SignIn = () => {
 
   const registerPushToken = async (userId, token) => {
     if (!userId || !token) return;
-    
+
     try {
       const response = await axios.post(`${API_URL}/auth/pushToken`, {
         user_id: userId,
         token: token
-      });
+      },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        }
+      );
       return response.data;
     } catch (error) {
       console.log('Error in registerPushToken:', error.response?.data || error.message);
@@ -76,22 +83,28 @@ const SignIn = () => {
   };
 
   const handleLogin = async () => {
-    if (!form.identifier || !form.password) { 
+    if (!form.identifier || !form.password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
       const response = await axios.post(`${API_URL}/auth/login`,
         {
-          identifier: form.identifier, 
+          identifier: form.identifier,
           password: form.password,
+        },
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY,
+          },
         }
       );
+
       console.log("Response data:", response.data.message);
-  
+
       if (response.data.user) {
         await login({
           id: response.data.user.id,
@@ -100,7 +113,7 @@ const SignIn = () => {
           roleId: response.data.user.roleId
         });
         await saveCredentials();
-        
+
         // Register push token if available
         if (expoPushToken) {
           try {
@@ -115,13 +128,14 @@ const SignIn = () => {
         router.push("home");
       }
     } catch (error) {
+      console.log(error.response?.data?.message);
       const errorMsg = error.response?.data?.message || "Login failed";
       Alert.alert("Error", errorMsg);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <ImageBackground
       source={images.background_signin}
@@ -142,8 +156,8 @@ const SignIn = () => {
           <Text className="text-lg">Welcome! Please enter your details.</Text>
           <TextInput
             label="Username / Email"
-            value={form.identifier}  
-            onChangeText={(text) => setForm({ ...form, identifier: text })}  
+            value={form.identifier}
+            onChangeText={(text) => setForm({ ...form, identifier: text })}
             className="w-full mt-3"
             mode="outlined"
             activeOutlineColor="#006400"

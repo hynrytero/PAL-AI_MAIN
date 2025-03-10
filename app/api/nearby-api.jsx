@@ -1,6 +1,7 @@
+import { API_MAPS } from '@env';
 export const storeRecommenderApi = {
   fetchNearbyStores: async (latitude = 10.46, longitude = 123.9) => {
-    const apiKey = "AIzaSyCMeNsZsejyD2YYtTtUyycbUdD2l8ZG3-g"; 
+    const apiKey = API_MAPS; 
     const radius = 5000; 
     const type = "store"; 
     const keyword = "agriculture"; 

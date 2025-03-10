@@ -1,6 +1,7 @@
+import { API_WEATHER } from '@env';
 export const weatherApi = {
   fetchWeather: async (latitude = 10.46, longitude = 123.9) => {
-    const apiKey = "a764b1a399cf6aa08880d483fd94ee74";
+    const apiKey = API_WEATHER;
     const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
 
     console.log(url); // Log the URL to check
