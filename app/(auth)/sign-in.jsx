@@ -1,15 +1,9 @@
-import {
-  View,
-  Text,
-  Image,
-  ImageBackground,
-  Alert,
-} from "react-native";
+import { View, Text, Image, ImageBackground, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Link, router } from "expo-router";
 import axios from "axios";
 import { TextInput, Checkbox } from "react-native-paper";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { useAuth } from "../../context/AuthContext";
@@ -32,14 +26,14 @@ const SignIn = () => {
 
   const loadSavedCredentials = async () => {
     try {
-      const savedCredentials = await SecureStore.getItemAsync('credentials');
+      const savedCredentials = await SecureStore.getItemAsync("credentials");
       if (savedCredentials) {
         const { identifier, password } = JSON.parse(savedCredentials);
         setForm({ identifier, password });
         setRememberMe(true);
       }
     } catch (error) {
-      console.log('Error loading saved credentials:', error);
+      console.log("Error loading saved credentials:", error);
     }
   };
 
@@ -47,17 +41,17 @@ const SignIn = () => {
     try {
       if (rememberMe) {
         await SecureStore.setItemAsync(
-          'credentials',
+          "credentials",
           JSON.stringify({
             identifier: form.identifier,
             password: form.password,
           })
         );
       } else {
-        await SecureStore.deleteItemAsync('credentials');
+        await SecureStore.deleteItemAsync("credentials");
       }
     } catch (error) {
-      console.log('Error saving credentials:', error);
+      console.log("Error saving credentials:", error);
     }
   };
 
@@ -77,7 +71,10 @@ const SignIn = () => {
       );
       return response.data;
     } catch (error) {
-      console.log('Error in registerPushToken:', error.response?.data || error.message);
+      console.log(
+        "Error in registerPushToken:",
+        error.response?.data || error.message
+      );
       throw error;
     }
   };
@@ -110,7 +107,7 @@ const SignIn = () => {
           id: response.data.user.id,
           username: response.data.user.username,
           email: response.data.user.email,
-          roleId: response.data.user.roleId
+          roleId: response.data.user.roleId,
         });
         await saveCredentials();
 
@@ -118,13 +115,13 @@ const SignIn = () => {
         if (expoPushToken) {
           try {
             await registerPushToken(response.data.user.id, expoPushToken);
-            console.log('Push token registered successfully');
+            console.log("Push token registered successfully");
           } catch (tokenError) {
-            console.log('Error registering push token:', tokenError);
+            console.log("Error registering push token:", tokenError);
           }
         }
-        console.log('User ID : ', response.data.user.id);
-        console.log('Push token: ', expoPushToken);
+        console.log("User ID : ", response.data.user.id);
+        console.log("Push token: ", expoPushToken);
         router.push("home");
       }
     } catch (error) {
@@ -185,7 +182,7 @@ const SignIn = () => {
           <View className="flex-row justify-between items-center mt-4">
             <View className="flex-row items-center">
               <Checkbox
-                status={rememberMe ? 'checked' : 'unchecked'}
+                status={rememberMe ? "checked" : "unchecked"}
                 onPress={() => setRememberMe(!rememberMe)}
                 color="#006400"
               />
@@ -197,7 +194,10 @@ const SignIn = () => {
           </View>
           <CustomButton
             title="Log in"
-            handlePress={handleLogin}
+            // handlePress={handleLogin}
+            handlePress={() => router.push("report")}
+            // handlePress={() => router.push("recommend-treatments")}
+            // handlePress={() => router.push("farmers-treatment")}
             containerStyles="w-full mt-5"
             isLoading={isSubmitting}
           />
