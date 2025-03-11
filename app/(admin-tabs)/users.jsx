@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
   TextInput,
+  Image,
 } from "react-native";
 import { images } from "../../constants";
 
@@ -48,6 +49,10 @@ const Users = () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.userContainer}>
+      <Image
+        source={require('../../assets/images/angelo.jpg')}
+        style={styles.userImage}
+      />
       <Text style={styles.userName}>{item.firstname} {item.lastname}</Text>
     </View>
   );
@@ -103,6 +108,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     width: '100%',
     height: 96,
+  },
+  userImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 16,
   },
   userName: {
     fontSize: 18,
