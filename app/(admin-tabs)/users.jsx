@@ -3,7 +3,6 @@ import {
   View,
   Text,
   SafeAreaView,
-  ScrollView,
   ImageBackground,
   FlatList,
   StyleSheet,
@@ -53,30 +52,36 @@ const Users = () => {
     </View>
   );
 
+  // Header component for the FlatList
+  const ListHeaderComponent = () => (
+    <View>
+      <View className="flex-row items-center w-full mb-3">
+        <Text className="font-pmedium text-[30px]">Users</Text>
+      </View>
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search users..."
+        value={searchQuery}
+        onChangeText={handleSearch}
+      />
+    </View>
+  );
+
   return (
     <ImageBackground
       source={images.background_history}
       className="flex-1 h-full w-full bg-white"
     >
-      <ScrollView className="mt-12">
-        <SafeAreaView className="px-7 w-full h-full mb-10">
-          <View className="flex-row items-center w-full mb-3">
-            <Text className="font-pmedium text-[30px]">Users</Text>
-          </View>
-          <TextInput
-            style={styles.searchBar}
-            placeholder="Search users..."
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-          <FlatList
-            data={filteredUsers}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.list}
-          />
-        </SafeAreaView>
-      </ScrollView>
+      <SafeAreaView className="px-7 w-full h-full">
+        <FlatList
+          data={filteredUsers}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={ListHeaderComponent}
+          className="mt-12"
+        />
+      </SafeAreaView>
     </ImageBackground>
   );
 };

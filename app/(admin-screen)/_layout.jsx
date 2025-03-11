@@ -24,12 +24,19 @@ const AdminScreenLayout = () => {
               }}
             />
             <Stack.Screen
+              name="view-treatments"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
               name="farmers-treatment"
               options={{
                 headerShown: false,
               }}
             />
           </Stack>
+          
 
           <StatusBar style="dark" />
         </>
