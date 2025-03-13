@@ -179,7 +179,7 @@ const SignIn = () => {
           <CustomButton
             title="Log in"
             // handlePress={handleLogin}
-            handlePress={() => router.push("report")}
+            handlePress={() => router.push("viewuser")}
             // handlePress={() => router.push("recommend-treatments")}
             // handlePress={() => router.push("farmers-treatment")}
             containerStyles="w-full mt-5"

@@ -5,58 +5,26 @@ import {
   SafeAreaView,
   ScrollView,
   ImageBackground,
-  FlatList,
-  StyleSheet,
   TextInput,
-  Image,
+  TouchableOpacity,
 } from "react-native";
+import { Avatar, Card, IconButton } from "react-native-paper";
+import { useNavigation } from '@react-navigation/native';
 import { images } from "../../constants";
-
-const users = [
-  {
-    id: 1,
-    firstname: "John",
-    lastname: "Doe",
-  },
-  {
-    id: 2,
-    firstname: "Jane",
-    lastname: "Smith",
-  },
-  {
-    id: 3,
-    firstname: "Alice",
-    lastname: "Johnson",
-  },
-];
+import { router } from "expo-router";
 
 const Users = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigation = useNavigation();
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query) {
-      const filtered = users.filter((user) =>
-        `${user.firstname} ${user.lastname}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      );
-      setFilteredUsers(filtered);
-    } else {
-      setFilteredUsers(users);
-    }
+  const handleSearchChange = (text) => {
+    setSearchTerm(text);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.userContainer}>
-      <Image
-        source={require('../../assets/images/angelo.jpg')}
-        style={styles.userImage}
-      />
-      <Text style={styles.userName}>{item.firstname} {item.lastname}</Text>
-    </View>
-  );
+  // const handleCardPress = (userName) => {
+  //   console.log(`Card pressed for user: ${userName}`);
+  //   navigation.navigate('ViewUser', { userName });
+  // };
 
   return (
     <ImageBackground
@@ -69,59 +37,53 @@ const Users = () => {
             <Text className="font-pmedium text-[30px]">Users</Text>
           </View>
           <TextInput
-            style={styles.searchBar}
             placeholder="Search users..."
-            value={searchQuery}
-            onChangeText={handleSearch}
+            value={searchTerm}
+            onChangeText={handleSearchChange}
+            className="border border-gray-300 rounded p-2 mb-4"
           />
-          <FlatList
-            data={filteredUsers}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.list}
-          />
+          <TouchableOpacity onPress={() => router.push("viewuser")}>
+            <Card.Title
+              title="Angelo"
+              left={(props) => (
+                <Avatar.Image
+                  {...props}
+                  // source={require("assets/images/angelo.jpg")}
+                />
+              )}
+              right={(props) => (
+                <IconButton {...props} icon="dots-vertical" onPress={() => {}} />
+              )}
+            />
+          </TouchableOpacity>
+            <Card.Title
+              title="User 2"
+              left={(props) => (
+                <Avatar.Image
+                  {...props}
+                  // source={require("assets/images/angelo.jpg")}
+                />
+              )}
+              right={(props) => (
+                <IconButton {...props} icon="dots-vertical" onPress={() => {}} />
+              )}
+            />
+            <Card.Title
+              title="User 3"
+              left={(props) => (
+                <Avatar.Image
+                  {...props}
+                  // source={require("assets/images/angelo.jpg")}
+                />
+              )}
+              right={(props) => (
+                <IconButton {...props} icon="dots-vertical" onPress={() => {}} />
+              )}
+            />
         </SafeAreaView>
       </ScrollView>
     </ImageBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  list: {
-    paddingBottom: 16,
-  },
-  userContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    width: '100%',
-    height: 96,
-  },
-  userImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 16,
-  },
-  userName: {
-    fontSize: 18,
-    color: '#333',
-  },
-  searchBar: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingLeft: 8,
-    marginBottom: 16,
-  },
-});
 
 export default Users;
