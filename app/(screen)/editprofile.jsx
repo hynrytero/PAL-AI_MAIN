@@ -314,7 +314,7 @@ const Profile = () => {
           <View className="mt-6">
             <Button
               mode="contained"
-              style={{ borderRadius: 8, backgroundColor: "#1d4ed8" }}
+              style={{ borderRadius: 8, backgroundColor: "forestgreen" }}
               contentStyle={{ paddingVertical: 10 }}
               labelStyle={{ fontSize: 16, fontWeight: "bold" }}
               onPress={handleApplyChanges}

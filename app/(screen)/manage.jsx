@@ -285,7 +285,7 @@ const ManageAccount = () => {
       ) : null}
       <Button
         mode="contained"
-        style={{ borderRadius: 5, marginBottom: 10 }}
+        style={{ borderRadius: 5, marginBottom: 10, backgroundColor: "forestgreen"}}
         onPress={handleChangePassword}
       >
         Change Password
@@ -349,7 +349,7 @@ const ManageAccount = () => {
                 />
                 <Button
                   mode="contained"
-                  style={{ borderRadius: 5, marginBottom: 10 }}
+                  style={{ borderRadius: 5, marginBottom: 10, backgroundColor: "forestgreen"}}
                   onPress={handleEmailChange}
                 >
                   Send OTP

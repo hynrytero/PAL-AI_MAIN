@@ -5,7 +5,6 @@ import images from "../../constants/images";
 import { Link, router } from "expo-router";
 
 import SimpleCard from "../../components/SimpleCard";
-
 import React from "react";
 
 const TreatmentScreen = () => {
