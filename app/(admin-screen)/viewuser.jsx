@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { TouchableOpacity, Alert, Platform, StyleSheet } from 'react-native';
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -9,69 +9,32 @@ import {
   ImageBackground,
   Image,
 } from "react-native";
-import axios from 'axios';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from "react-native-vector-icons/MaterialIcons";
 import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
-import { useAuth } from "../../context/AuthContext";
-
-const API_URL = 'https://pal-ai-backend-87197497418.asia-southeast1.run.app';
 
 const viewuser = () => {
-   const { user } = useAuth();
-   const [userData, setUserData] = useState({
-      firstname: 'jane',
-      lastname: 'doe',
-      email: 'jane@gmail.com',
-      contactNumber: '1234566782',
-      birthdate: '',
-      gender: 'Female',
-      image: '',
-    });
-  const [profileImage, setProfileImage] = useState(null);
-  const [error, setError] = useState(null);
+  const params = useLocalSearchParams(); // Get URL parameters
+  
+  // Extract user data from params instead of fetching from the database
+  const [userData, setUserData] = useState({
+    firstname: params.firstname || '',
+    lastname: params.lastname || '',
+    email: params.email || '',
+    mobile_number: params.mobile_number || '',
+    birthdate: params.birthdate || '',
+    gender: params.gender || '',
+    profile_image: params.profile_image || '',
+  });
+  
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState(new Date());
   const [contactNumber, setContactNumber] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
  
-  const fetchUserProfile = async () => {
-    try {
-      setError(null);
-      
-      const response = await axios.get(`${API_URL}/profile/fetch-profile/${user.id}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.data.success) {
-        setUserData(response.data.data);
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch profile data');
-      }
-    } catch (error) {
-      setError(error.message || 'Failed to load profile data');
-      Alert.alert(
-        'Error',
-        error.message,
-        [{ text: 'OK', onPress: () => setError(null) }]
-      );
-    } 
-  };
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchUserProfile();
-    }
-  }, [user?.id]);
-
   useEffect(() => {
     setFirstName(userData.firstname);
     setLastName(userData.lastname);
-    setContactNumber(userData.contactNumber);
+    setContactNumber(userData.mobile_number);
     
     if (userData.birthdate) {
       setBirthDate(new Date(userData.birthdate));
@@ -79,7 +42,7 @@ const viewuser = () => {
   }, [userData]);
 
   const handleBack = () => {
-      router.back();
+    router.back();
   };
 
   return (
@@ -89,24 +52,27 @@ const viewuser = () => {
     >
       <ScrollView className="mt-10">
         <SafeAreaView className="px-6 w-full h-full mb-12">
-          {/* Header */}
+          {/* Header with back button */}
           <View className="flex-row items-center mb-6">
-            <Feather name="chevron-left" size={36} color="black" onPress={handleBack} />
+            <TouchableOpacity onPress={handleBack}>
+              <Feather name="chevron-left" size={36} color="black" />
+            </TouchableOpacity>
+            <Text className="text-xl font-semibold ml-4">User Profile</Text>
           </View>
 
           {/* Profile Picture */}
           <View className="items-center mb-8">
             <Image
               source={
-                userData.image
-                  ? { uri: userData.image }
+                userData.profile_image
+                  ? { uri: userData.profile_image }
                   : images.Default_Profile
               }
               resizeMode="cover"
               className="w-[140px] h-[140px] rounded-full border-4 border-gray-300 shadow-md"
             />
             <Text className="text-2xl font-semibold text-gray-900 mt-4">
-              {userData.firstname}
+              {userData.firstname} {userData.lastname}
             </Text>
           </View>
 
@@ -134,7 +100,7 @@ const viewuser = () => {
             <View className="mb-4">
               <Text className="text-base text-gray-700">Birth Date</Text>
               <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
-                {birthDate ? birthDate.toDateString() : ""}
+                {birthDate ? birthDate.toDateString() : "Not specified"}
               </Text>
             </View>
 
@@ -142,7 +108,7 @@ const viewuser = () => {
             <View className="mb-2">
               <Text className="text-base text-gray-700">Contact Number</Text>
               <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
-                {contactNumber}
+                {contactNumber || "Not provided"}
               </Text>
             </View>
 
@@ -158,7 +124,7 @@ const viewuser = () => {
             <View className="mb-2">
               <Text className="text-base text-gray-700">Gender</Text>
               <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
-                {userData.gender}
+                {userData.gender || "Not specified"}
               </Text>
             </View>
           </View>
@@ -167,45 +133,5 @@ const viewuser = () => {
     </ImageBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  profileImageContainer: {
-    position: 'relative',
-    width: 150,
-    height: 150,
-  },
-  imageWrapper: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 75,
-  },
-  editIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#2196F3',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  editOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 75,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-});
 
 export default viewuser;

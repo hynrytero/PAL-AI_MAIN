@@ -411,7 +411,7 @@ const Notification = () => {
             onPress={navigateToNotificationManager}
             style={{ backgroundColor: 'forestgreen', marginBottom: 10 }}
           >
-            Create Notification
+            Create Announcement
           </Button>
 
           {Object.keys(groupedNotifications).length > 0 ? (

@@ -9,50 +9,57 @@ import { PaperProvider } from "react-native-paper";
 const AdminScreenLayout = () => {
   return (
     <PaperProvider>
-    <NotificationProvider>
-      <AuthProvider>
-        <>
-          <Stack>
-            <Stack.Screen
-              name="treatment-details"
-              options={{
-                headerShown: false,
-              }}
-            />
+      <NotificationProvider>
+        <AuthProvider>
+          <>
+            <Stack>
+              <Stack.Screen
+                name="treatment-details"
+                options={{
+                  headerShown: false,
+                }}
+              />
 
-            <Stack.Screen
-              name="edit-treatment"
-              options={{
-                headerShown: false,
-              }}
-            />
+              <Stack.Screen
+                name="viewuser"
+                options={{
+                  headerShown: false,
+                }}
+              />
 
-            <Stack.Screen
-              name="view-treatments"
-              options={{
-                headerShown: false,
-              }}
-            />
-            
-            <Stack.Screen
-              name="notification-manager"
-              options={{
-                headerShown: false,
-              }}
-            />
+              <Stack.Screen
+                name="edit-treatment"
+                options={{
+                  headerShown: false,
+                }}
+              />
 
-            <Stack.Screen
-              name="farmers-treatment"
-              options={{
-                headerShown: false,
-              }}
-            />
-          </Stack>
-          
-          <StatusBar style="dark" />
-        </>
-      </AuthProvider>
-    </NotificationProvider>
+              <Stack.Screen
+                name="view-treatments"
+                options={{
+                  headerShown: false,
+                }}
+              />
+
+              <Stack.Screen
+                name="notification-manager"
+                options={{
+                  headerShown: false,
+                }}
+              />
+
+              <Stack.Screen
+                name="farmers-treatment"
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack>
+
+            <StatusBar style="dark" />
+          </>
+        </AuthProvider>
+      </NotificationProvider>
     </PaperProvider>
   );
 };

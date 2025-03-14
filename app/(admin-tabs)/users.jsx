@@ -4,25 +4,18 @@ import {
   Text,
   SafeAreaView,
   ImageBackground,
-<<<<<<< HEAD
   FlatList,
   TextInput,
   ActivityIndicator,
   Image,
   TouchableOpacity,
   Animated,
-=======
-  TextInput,
-  TouchableOpacity,
->>>>>>> 95371b7528ef94367b3a1e1b505082bad1b5e6f8
 } from "react-native";
-import { Avatar, Card, IconButton } from "react-native-paper";
-import { useNavigation } from '@react-navigation/native';
 import { images } from "../../constants";
-<<<<<<< HEAD
 import axios from "axios";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { router } from "expo-router"; 
 
 const API_URL = API_URL_BCNKEND;
 
@@ -221,23 +214,43 @@ const Users = () => {
     setCurrentPage(1);
   };
 
+   // Navigate to the user profile view
+   const handleUserPress = (user) => {
+    router.push({
+      pathname: '/viewuser',
+      params: {
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        mobile_number: user.mobile_number,
+        birthdate: user.birthdate,
+        gender: user.gender,
+        profile_image: user.profile_image
+      }
+    });
+  };
+
+  // Update the renderItem function to make the entire card clickable
   const renderItem = ({ item }) => {
     const defaultAvatar = images.Default_Profile;
     
     return (
-      <View style={{
-        flexDirection: 'column',
-        marginBottom: 16,
-        padding: 16,
-        borderRadius: 12,
-        backgroundColor: 'rgba(249, 249, 249, 0.95)',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 3,
-        width: '100%',
-      }}>
+      <TouchableOpacity 
+        onPress={() => handleUserPress(item)}
+        style={{
+          flexDirection: 'column',
+          marginBottom: 16,
+          padding: 16,
+          borderRadius: 12,
+          backgroundColor: 'rgba(249, 249, 249, 0.95)',
+          shadowColor: '#000',
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 3 },
+          elevation: 3,
+          width: '100%',
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Image 
             source={item.profile_image ? { uri: item.profile_image } : defaultAvatar}
@@ -311,7 +324,7 @@ const Users = () => {
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -772,79 +785,6 @@ const Users = () => {
           showsVerticalScrollIndicator={false}
         />
       </SafeAreaView>
-=======
-import { router } from "expo-router";
-
-const Users = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const navigation = useNavigation();
-
-  const handleSearchChange = (text) => {
-    setSearchTerm(text);
-  };
-
-  // const handleCardPress = (userName) => {
-  //   console.log(`Card pressed for user: ${userName}`);
-  //   navigation.navigate('ViewUser', { userName });
-  // };
-
-  return (
-    <ImageBackground
-      source={images.background_history}
-      className="flex-1 h-full w-full bg-white"
-    >
-      <ScrollView className="mt-12">
-        <SafeAreaView className="px-7 w-full h-full mb-10">
-          <View className="flex-row items-center w-full mb-3">
-            <Text className="font-pmedium text-[30px]">Users</Text>
-          </View>
-          <TextInput
-            placeholder="Search users..."
-            value={searchTerm}
-            onChangeText={handleSearchChange}
-            className="border border-gray-300 rounded p-2 mb-4"
-          />
-          <TouchableOpacity onPress={() => router.push("viewuser")}>
-            <Card.Title
-              title="Angelo"
-              left={(props) => (
-                <Avatar.Image
-                  {...props}
-                  // source={require("assets/images/angelo.jpg")}
-                />
-              )}
-              right={(props) => (
-                <IconButton {...props} icon="dots-vertical" onPress={() => {}} />
-              )}
-            />
-          </TouchableOpacity>
-            <Card.Title
-              title="User 2"
-              left={(props) => (
-                <Avatar.Image
-                  {...props}
-                  // source={require("assets/images/angelo.jpg")}
-                />
-              )}
-              right={(props) => (
-                <IconButton {...props} icon="dots-vertical" onPress={() => {}} />
-              )}
-            />
-            <Card.Title
-              title="User 3"
-              left={(props) => (
-                <Avatar.Image
-                  {...props}
-                  // source={require("assets/images/angelo.jpg")}
-                />
-              )}
-              right={(props) => (
-                <IconButton {...props} icon="dots-vertical" onPress={() => {}} />
-              )}
-            />
-        </SafeAreaView>
-      </ScrollView>
->>>>>>> 95371b7528ef94367b3a1e1b505082bad1b5e6f8
     </ImageBackground>
   );
 };
