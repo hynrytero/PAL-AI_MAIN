@@ -84,7 +84,7 @@ const SignIn = () => {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-
+  
     setIsSubmitting(true);
     console.log(AUTH_KEY);
     try {
@@ -99,9 +99,9 @@ const SignIn = () => {
           },
         }
       );
-
+  
       console.log("Response data:", response.data.message);
-
+  
       if (response.data.user) {
         await login({
           id: response.data.user.id,
@@ -110,7 +110,7 @@ const SignIn = () => {
           roleId: response.data.user.roleId,
         });
         await saveCredentials();
-
+  
         // Register push token if available
         if (expoPushToken) {
           try {
@@ -122,7 +122,13 @@ const SignIn = () => {
         }
         console.log("User ID : ", response.data.user.id);
         console.log("Push token: ", expoPushToken);
-        router.push("home");
+        
+        // Role-based routing
+        if (response.data.user.roleId === 0) {
+          router.push("report");
+        } else if (response.data.user.roleId === 1) {
+          router.push("home");
+        }
       }
     } catch (error) {
       console.log(error.response?.data?.message);
@@ -132,7 +138,7 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <ImageBackground
       source={images.background_signin}
@@ -194,8 +200,8 @@ const SignIn = () => {
           </View>
           <CustomButton
             title="Log in"
-            // handlePress={handleLogin}
-            handlePress={() => router.push("report")}
+            handlePress={handleLogin}
+            //handlePress={() => router.push("report")}
             // handlePress={() => router.push("recommend-treatments")}
             // handlePress={() => router.push("farmers-treatment")}
             containerStyles="w-full mt-5"

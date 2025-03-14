@@ -104,12 +104,11 @@ export default function App() {
         method: 'POST',
         headers: {
           'X-API-Key': AUTH_KEY,
-          "Content-Type": "application/json",
         },
         body: formData
       });
       const data = await response.json();
-      return data.imageUrl; // URL from cloud storage
+      return data.imageUrl; 
     } catch (error) {
       console.error('Upload failed:', error);
       throw error;
@@ -258,8 +257,8 @@ export default function App() {
         });
 
       } catch (err) {
-        console.log("Error while saving the picture:", err);
-        Alert.alert("Error", "Failed to save picture");
+        console.log("Error details:", err.message, err.stack);
+        Alert.alert("Error", `Upload failed: ${err.message}`);
       }
     }
   };

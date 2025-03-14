@@ -7,7 +7,10 @@ import images from "../../constants/images";
 import axios from "axios";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useAuth } from "../../context/AuthContext";
+
 const API_URL = API_URL_BCNKEND;
+
 
 const ReportScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -18,6 +21,7 @@ const ReportScreen = () => {
   const [totalScans, setTotalScans] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState("All");
   const ITEMS_PER_PAGE = 5;
 
@@ -69,7 +73,6 @@ const ReportScreen = () => {
 
     // Count occurrences of each disease type
     const diseaseCounts = data.reduce((acc, scan) => {
-      // Use rice_leaf_disease instead of rice_leaf_disease_id
       const disease = scan.rice_leaf_disease;
       acc[disease] = (acc[disease] || 0) + 1;
       return acc;
@@ -87,12 +90,8 @@ const ReportScreen = () => {
   };
 
   const applyFilters = () => {
-    // Reset to page 1 when filters change
     setCurrentPage(1);
-    
     let results = [...scanData];
-    
-    // Apply disease type filter
     if (selectedFilter !== "All") {
       results = results.filter(scan => 
         scan.rice_leaf_disease === selectedFilter
@@ -159,8 +158,9 @@ const ReportScreen = () => {
 
   // Handle navigation to result screen
   const handleViewResult = (scan) => {
+    console.log(`user id: `+user.id);
     router.push({
-      pathname: "/viewresult",
+      pathname: "/view-treatments",
       params: {
         imageUri: scan.scan_image || null,
         disease: scan.rice_leaf_disease || "Unknown Disease",

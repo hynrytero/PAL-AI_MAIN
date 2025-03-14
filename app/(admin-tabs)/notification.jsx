@@ -19,6 +19,8 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { format } from "date-fns";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
+import { router } from "expo-router"; // Correct import for expo-router
 
 const API_URL = API_URL_BCNKEND;
 
@@ -26,12 +28,19 @@ const { width, height } = Dimensions.get('window');
 
 const Notification = () => {
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(null);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Navigation handler
+  const navigateToNotificationManager = () => {
+    router.push('notification-manager'); // Correct routing syntax
+
+  };
 
   // Group notifications by date
   const groupNotificationsByDate = () => {
@@ -73,11 +82,13 @@ const Notification = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/read`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
+      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/read`, null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
-      });
+      );
 
       // Update local state to mark notification as read
       setNotifications(notifications.map(note =>
@@ -90,11 +101,12 @@ const Notification = () => {
 
   const markAsUnread = async (notificationId) => {
     try {
-      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/unread`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
-        }
-      });
+      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/unread`, null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        });
 
       // Update local state to mark notification as unread
       setNotifications(notifications.map(note =>
@@ -109,11 +121,12 @@ const Notification = () => {
     if (!user || !user.id) return;
 
     try {
-      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/read-all`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
-        }
-      });
+      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/read-all`, null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        });
 
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: true })));
@@ -128,11 +141,12 @@ const Notification = () => {
     if (!user || !user.id) return;
 
     try {
-      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/unread-all`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
-        }
-      });
+      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/unread-all`, null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        });
 
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: false })));
@@ -389,6 +403,16 @@ const Notification = () => {
               <IconButton icon="delete-sweep" onPress={clearAllNotifications} />
             </View>
           </View>
+
+          {/* Navigation Button -  Create Notification */}
+          <Button
+            mode="contained"
+            icon="bell-plus"
+            onPress={navigateToNotificationManager}
+            style={{ backgroundColor: 'forestgreen', marginBottom: 10 }}
+          >
+            Create Notification
+          </Button>
 
           {Object.keys(groupedNotifications).length > 0 ? (
             Object.entries(groupedNotifications).map(([date, dateNotifications]) => (

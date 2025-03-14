@@ -7,7 +7,6 @@ import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 
 const Treatment = () => {
-  // Get the params passed from the previous screen
   const {
     imageUri = null,
     disease = "Unknown Disease",

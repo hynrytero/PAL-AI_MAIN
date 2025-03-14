@@ -73,11 +73,15 @@ const Notification = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/read`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
+      await axios.put(
+        `${API_URL}/notifications/notifications-user/${notificationId}/read`,
+        null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
         }
-      });
+      );
 
       // Update local state to mark notification as read
       setNotifications(notifications.map(note =>
@@ -90,11 +94,13 @@ const Notification = () => {
 
   const markAsUnread = async (notificationId) => {
     try {
-      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/unread`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
-        }
-      });
+      await axios.put(`${API_URL}/notifications/notifications-user/${notificationId}/unread`,
+        null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        });
 
       // Update local state to mark notification as unread
       setNotifications(notifications.map(note =>
@@ -109,11 +115,13 @@ const Notification = () => {
     if (!user || !user.id) return;
 
     try {
-      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/read-all`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
-        }
-      });
+      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/read-all`,
+        null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        });
 
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: true })));
@@ -128,11 +136,13 @@ const Notification = () => {
     if (!user || !user.id) return;
 
     try {
-      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/unread-all`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
-        }
-      });
+      await axios.put(`${API_URL}/notifications/notifications-all/${user.id}/unread-all`,
+        null,
+        {
+          headers: {
+            'X-API-Key': AUTH_KEY
+          }
+        });
 
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: false })));

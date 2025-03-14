@@ -9,26 +9,38 @@ import {
   Alert,
   RefreshControl,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import Card from "../../components/Card";
 import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+import { Ionicons } from '@expo/vector-icons';
 
 const API_URL = API_URL_BCNKEND;
+const ITEMS_PER_PAGE = 5;
 
 const History = () => {
   const [scans, setScans] = useState([]);
+  const [filteredScans, setFilteredScans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterType, setFilterType] = useState("all"); 
   const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     fetchScanHistory();
   }, []);
+
+  // Apply filters and search whenever scans, searchQuery, or filterType changes
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [scans, searchQuery, filterType]);
 
   const fetchScanHistory = async () => {
     try {
@@ -48,6 +60,7 @@ const History = () => {
 
       const data = await response.json();
       setScans(data);
+      setCurrentPage(1); // Reset to first page when new data is loaded
     } catch (error) {
       console.error('Error:', error);
       Alert.alert(
@@ -58,6 +71,38 @@ const History = () => {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  const applyFiltersAndSearch = () => {
+    let result = [...scans];
+    
+    // Apply search filter
+    if (searchQuery) {
+      result = result.filter((scan) => 
+        scan.disease.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply sort filter
+    switch (filterType) {
+      case "recent":
+        result.sort((a, b) => new Date(b.date) - new Date(a.date));
+        break;
+      case "oldest":
+        result.sort((a, b) => new Date(a.date) - new Date(b.date));
+        break;
+      case "highest":
+        result.sort((a, b) => parseFloat(b.confidence) - parseFloat(a.confidence));
+        break;
+      case "lowest":
+        result.sort((a, b) => parseFloat(a.confidence) - parseFloat(b.confidence));
+        break;
+      default:
+        // Default is recent first
+        result.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+    
+    setFilteredScans(result);
   };
 
   const onRefresh = useCallback(() => {
@@ -96,6 +141,23 @@ const History = () => {
     }, 1000);
   }, [isNavigating]);
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredScans.length / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedScans = filteredScans.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <ImageBackground
       source={images.background_history}
@@ -120,28 +182,116 @@ const History = () => {
             <Text className="font-pmedium text-[30px]">History</Text>
           </View>
 
+          {/* Search Bar */}
+          <View className="flex flex-row items-center bg-white rounded-full px-4 mb-4 border border-gray-300">
+            <Ionicons name="search" size={20} color="gray" />
+            <TextInput
+              className="flex-1 py-2 px-2"
+              placeholder="Search by disease name"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={20} color="gray" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {/* Filter Options */}
+          <View className="flex-row mb-4 justify-between">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <TouchableOpacity
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "all" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("all")}
+              >
+                <Text className={filterType === "all" ? "text-white" : "text-gray-700"}>All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "recent" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("recent")}
+              >
+                <Text className={filterType === "recent" ? "text-white" : "text-gray-700"}>Recent First</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "oldest" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("oldest")}
+              >
+                <Text className={filterType === "oldest" ? "text-white" : "text-gray-700"}>Oldest First</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "highest" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("highest")}
+              >
+                <Text className={filterType === "highest" ? "text-white" : "text-gray-700"}>Highest Confidence</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "lowest" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("lowest")}
+              >
+                <Text className={filterType === "lowest" ? "text-white" : "text-gray-700"}>Lowest Confidence</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+
+          {/* Results Counter */}
+          {!loading && (
+            <Text className="text-gray-500 mb-2">
+              Showing {filteredScans.length > 0 ? startIdx + 1 : 0} - {Math.min(startIdx + ITEMS_PER_PAGE, filteredScans.length)} of {filteredScans.length} results
+            </Text>
+          )}
+
           {loading ? (
             <ActivityIndicator size="large" color="#ADD8E6" />
-          ) : scans.length > 0 ? (
-            scans.map((scan) => (
-              <TouchableOpacity
-                key={scan.id}
-                onPress={() => handleCardPress(scan)}
-                activeOpacity={0.7}
-                disabled={isNavigating}
-              >
-                <Card
-                  disease={scan.disease}
-                  desc={scan.diseaseDescription}
-                  date={formatDate(scan.date)}
-                  percent={scan.confidence.toString()}
-                  color="bg-[#ADD8E6]"
-                  image={{ uri: scan.image }}
-                />
-              </TouchableOpacity>
-            ))
+          ) : paginatedScans.length > 0 ? (
+            <>
+              {paginatedScans.map((scan) => (
+                <TouchableOpacity
+                  key={scan.id}
+                  onPress={() => handleCardPress(scan)}
+                  activeOpacity={0.7}
+                  disabled={isNavigating}
+                >
+                  <Card
+                    disease={scan.disease}
+                    desc={scan.diseaseDescription}
+                    date={formatDate(scan.date)}
+                    percent={scan.confidence.toString()}
+                    color="bg-[#ADD8E6]"
+                    image={{ uri: scan.image }}
+                  />
+                </TouchableOpacity>
+              ))}
+              
+              {/* Pagination Controls */}
+              {filteredScans.length > ITEMS_PER_PAGE && (
+                <View className="flex-row justify-between items-center mt-4">
+                  <TouchableOpacity 
+                    onPress={prevPage}
+                    disabled={currentPage === 1}
+                    className={`px-4 py-2 rounded-full ${currentPage === 1 ? "bg-gray-200" : "bg-[#228B22]"}`}
+                  >
+                    <Text className={currentPage === 1 ? "text-gray-400" : "text-white"}>Prev</Text>
+                  </TouchableOpacity>
+                  
+                  <Text className="text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </Text>
+                  
+                  <TouchableOpacity 
+                    onPress={nextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-4 py-2 rounded-full ${currentPage === totalPages ? "bg-gray-200" : "bg-[#228B22]"}`}
+                  >
+                    <Text className={currentPage === totalPages ? "text-gray-400" : "text-white"}>Next</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
           ) : (
-            <Text className="text-center mt-4">No scan history found</Text>
+            <Text className="text-center mt-4">
+              {searchQuery ? "No matching scans found" : "No scan history found"}
+            </Text>
           )}
         </SafeAreaView>
       </ScrollView>
