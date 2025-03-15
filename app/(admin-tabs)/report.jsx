@@ -225,8 +225,8 @@ const ReportScreen = () => {
     >
       <ScrollView className="flex-1">
         <SafeAreaView className="px-4 pt-10 pb-8">
-          <View className="flex-row items-center w-full mb-3">
-            <Text className="font-pmedium text-2xl">Reports</Text>
+          <View className="flex-row items-center w-full mb-3 mt-5">
+            <Text className="font-pmedium text-3xl">Reports</Text>
           </View>
 
           {/* Search Box */}
@@ -314,11 +314,11 @@ const ReportScreen = () => {
             <Text className="font-pbold mb-1">Disease Summary</Text>
             <Text className="text-sm" numberOfLines={1} ellipsizeMode="tail">
               <Text style={{ color: "#FED402" }}>● </Text>
-              <Text style={{ fontSize: 16 }}>Leaf Blight: {chartData.find(item => item.disease === "Leaf Blight")?.value || 0}</Text>
+              <Text style={{ fontSize: 14 }}>Leaf Blight: {chartData.find(item => item.disease === "Leaf Blight")?.value || 0}</Text>
               <Text style={{ color: "#E80D0D" }}>  ● </Text>
-              <Text style={{ fontSize: 16 }}>Rice Blast: {chartData.find(item => item.disease === "Rice Blast")?.value || 0}</Text>
+              <Text style={{ fontSize: 14 }}>Rice Blast: {chartData.find(item => item.disease === "Rice Blast")?.value || 0}</Text>
               <Text style={{ color: "#000064" }}>  ● </Text>
-              <Text style={{ fontSize: 16 }}>Tungro: {chartData.find(item => item.disease === "Tungro")?.value || 0}</Text>
+              <Text style={{ fontSize: 14 }}>Tungro: {chartData.find(item => item.disease === "Tungro")?.value || 0}</Text>
             </Text>
           </View>
 

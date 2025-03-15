@@ -6,21 +6,35 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
+  useWindowDimensions,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import * as Location from "expo-location";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import WeatherCard from "../../components/SmallCard";
 import { images, icons } from "../../constants";
 import { weatherApi } from "../api/weather-api";
 import { useFocusEffect } from "@react-navigation/native";
 
 const Home = () => {
+  const { width, height } = useWindowDimensions();
   const [weatherData, setWeatherData] = useState(null);
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [lastFetchTime, setLastFetchTime] = useState(null);
+
+  // Storage keys
+  const WEATHER_DATA_KEY = 'weather_data';
+  const LOCATION_DATA_KEY = 'location_data';
+  const LAST_FETCH_TIME_KEY = 'last_fetch_time';
+
+  // Cache expiration time (in milliseconds) - 1hr ni
+  const CACHE_EXPIRATION = 60 * 60 * 1000;
 
   // Update clock in real-time every second
   useEffect(() => {
@@ -32,16 +46,81 @@ const Home = () => {
     return () => clearInterval(clockInterval);
   }, []);
 
-  const fetchLocationAndWeather = async () => {
+  // Load cached data
+  useEffect(() => {
+    const loadCachedData = async () => {
+      try {
+        const [weatherDataJson, locationDataJson, lastFetchTimeJson] = await Promise.all([
+          AsyncStorage.getItem(WEATHER_DATA_KEY),
+          AsyncStorage.getItem(LOCATION_DATA_KEY),
+          AsyncStorage.getItem(LAST_FETCH_TIME_KEY)
+        ]);
+
+        if (weatherDataJson && locationDataJson && lastFetchTimeJson) {
+          const cachedWeatherData = JSON.parse(weatherDataJson);
+          const cachedLocation = JSON.parse(locationDataJson);
+          const cachedLastFetchTime = JSON.parse(lastFetchTimeJson);
+          const now = new Date().getTime();
+
+          // Check if cache is still valid
+          if (now - cachedLastFetchTime < CACHE_EXPIRATION) {
+            setWeatherData(cachedWeatherData);
+            setLocation(cachedLocation);
+            setLastFetchTime(cachedLastFetchTime);
+            setLoading(false);
+            console.log("Using cached weather data");
+            return true;
+          }
+        }
+        return false;
+      } catch (error) {
+        console.error("Error loading cached data:", error);
+        return false;
+      }
+    };
+
+    loadCachedData().then(hasCachedData => {
+      if (!hasCachedData) {
+        fetchLocationAndWeather();
+      }
+    });
+  }, []);
+
+  const saveDataToCache = async (weatherData, location) => {
+    const now = new Date().getTime();
+    try {
+      await Promise.all([
+        AsyncStorage.setItem(WEATHER_DATA_KEY, JSON.stringify(weatherData)),
+        AsyncStorage.setItem(LOCATION_DATA_KEY, JSON.stringify(location)),
+        AsyncStorage.setItem(LAST_FETCH_TIME_KEY, JSON.stringify(now))
+      ]);
+      setLastFetchTime(now);
+      console.log("Weather data cached successfully");
+    } catch (error) {
+      console.error("Error caching data:", error);
+    }
+  };
+
+  const fetchLocationAndWeather = async (forceRefresh = false) => {
+    // If not forcing refresh and we have recent data, use cached data
+    if (!forceRefresh && lastFetchTime) {
+      const now = new Date().getTime();
+      if (now - lastFetchTime < CACHE_EXPIRATION && weatherData) {
+        console.log("Using existing data, no need to refresh");
+        setRefreshing(false);
+        return;
+      }
+    }
+
     setLoading(true);
     setErrorMsg(null);
-    
+
     // Request permission to access location
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       setErrorMsg("Permission to access location was denied");
       Alert.alert(
-        "Location Error", 
+        "Location Error",
         "Please enable location permissions to get accurate weather data.",
         [{ text: "OK" }]
       );
@@ -61,7 +140,7 @@ const Home = () => {
         latitude: Number(locationData.coords.latitude),
         longitude: Number(locationData.coords.longitude),
       };
-      
+
       setLocation(coordinates);
 
       // Fetch weather data
@@ -69,8 +148,11 @@ const Home = () => {
         coordinates.latitude,
         coordinates.longitude
       );
-      
+
       setWeatherData(data);
+
+      // Cache the new data
+      saveDataToCache(data, coordinates);
     } catch (error) {
       console.error("Error fetching location or weather data:", error);
       setErrorMsg("Unable to fetch weather data. Please try again later.");
@@ -80,16 +162,25 @@ const Home = () => {
     }
   };
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchLocationAndWeather();
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchLocationAndWeather(true);
   }, []);
 
-  // Refresh data when screen comes into focus
+  // Refresh data when screen comes into focus, but only if cache is expired
   useFocusEffect(
     useCallback(() => {
-      fetchLocationAndWeather();
-    }, [])
+      if (lastFetchTime) {
+        const now = new Date().getTime();
+        if (now - lastFetchTime > CACHE_EXPIRATION || !weatherData) {
+          console.log("Cache expired, refreshing data");
+          fetchLocationAndWeather();
+        }
+      } else if (!weatherData) {
+        fetchLocationAndWeather();
+      }
+    }, [lastFetchTime, weatherData])
   );
 
   // Helper functions
@@ -102,8 +193,6 @@ const Home = () => {
   };
 
   const getWeatherIcon = (iconCode) => {
-    // Map icon codes to local images if needed
-    // For now, using the API icons
     return { uri: `https://openweathermap.org/img/wn/${iconCode}@2x.png` };
   };
 
@@ -112,12 +201,12 @@ const Home = () => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    
+
     // Normalize dates to midnight for comparison
     today.setHours(0, 0, 0, 0);
     tomorrow.setHours(0, 0, 0, 0);
     forecastDate.setHours(0, 0, 0, 0);
-    
+
     if (forecastDate.getTime() === today.getTime()) {
       return "Today";
     } else if (forecastDate.getTime() === tomorrow.getTime()) {
@@ -127,7 +216,7 @@ const Home = () => {
     }
   };
 
-  // Format date in a more detailed way (e.g., "Monday, March 3, 2025")
+  // Format date in a more detailed way
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
       weekday: "long",
@@ -142,12 +231,12 @@ const Home = () => {
     return (
       <ImageBackground
         source={images.backgroundmain}
-        className="flex-1 h-full justify-center items-center"
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         resizeMode="cover"
         imageStyle={{ opacity: 0.03 }}
       >
         <ActivityIndicator size="large" color="#24609B" />
-        <Text className="text-lg text-[#24609B] mt-4">
+        <Text style={{ fontSize: 18, color: '#24609B', marginTop: 16 }}>
           Loading weather data...
         </Text>
       </ImageBackground>
@@ -159,11 +248,11 @@ const Home = () => {
     return (
       <ImageBackground
         source={images.backgroundmain}
-        className="flex-1 h-full justify-center items-center"
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         resizeMode="cover"
         imageStyle={{ opacity: 0.03 }}
       >
-        <Text className="text-lg text-[#24609B] text-center px-4">
+        <Text style={{ fontSize: 18, color: '#24609B', textAlign: 'center', paddingHorizontal: 16 }}>
           {errorMsg || "Unable to load weather data. Please try again."}
         </Text>
       </ImageBackground>
@@ -171,149 +260,249 @@ const Home = () => {
   }
 
   const currentWeather = weatherData.list[0];
-  const dailyForecast = weatherData.list.slice(1, 4);
   const hourlyForecast = weatherData.list.slice(0, 24);
 
+  // Get forecasts for 3 days 
+  const dailyForecast = weatherData.list.reduce((acc, item) => {
+    const date = new Date(item.dt * 1000).toDateString();
+    // Skip today 
+    if (date !== new Date().toDateString() && !acc.some(i => new Date(i.dt * 1000).toDateString() === date)) {
+      acc.push(item);
+    }
+    return acc.slice(0, 3); // pila ka days
+  }, []);
+
+  // Calculate responsive dimensions
+  const cardWidth = width * 0.25;
+  const horizontalPadding = width * 0.05;
+  const contentWidth = width - (horizontalPadding * 2);
+
   return (
-    <ImageBackground
-      source={images.backgroundmain}
-      className="flex-1 h-full"
-      resizeMode="cover"
-      imageStyle={{ opacity: 0.03 }}
-    >
-      <ScrollView 
-        className="mb-[50px]"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ImageBackground
+        source={images.backgroundmain}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+        imageStyle={{ opacity: 0.03 }}
       >
-        <ImageBackground
-          source={images.backgroundweather}
-          className="h-auto bg-[#C4E2FF] rounded-b-[30px] overflow-hidden"
-          resizeMode="cover"
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 39 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#24609B"]}
+              tintColor="#24609B"
+              title="Pulling for fresh weather data..."
+              titleColor="#5284B7"
+            />
+          }
         >
-          <View className="w-full h-auto px-7 pt-12 pb-4 rounded-b-[30px] flex-col items-center">
-            {/* Location and time header */}
-            <View className="flex-row items-start justify-between w-full my-5">
-              <View className="flex-row w-auto items-center">
-                <Image
-                  source={icons.pin}
-                  className="h-[25px] w-[25px] mr-3"
-                  resizeMode="contain"
-                />
-                <Text className="font-psemibold text-[20px] text-[#24609B]">
-                  {weatherData.city.name}
+          <ImageBackground
+            source={images.backgroundweather}
+            style={{
+              backgroundColor: '#C4E2FF',
+              borderBottomLeftRadius: 30,
+              borderBottomRightRadius: 30,
+              overflow: 'hidden'
+            }}
+            resizeMode="cover"
+          >
+            <View style={{
+              paddingHorizontal: horizontalPadding,
+              paddingTop: height * 0.06,
+              paddingBottom: height * 0.02,
+              alignItems: 'center'
+            }}>
+              {/* Location and time header */}
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                marginVertical: height * 0.02
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Image
+                    source={icons.pin}
+                    style={{ height: 25, width: 25, marginRight: 12 }}
+                    resizeMode="contain"
+                  />
+                  <Text style={{ fontSize: 20, color: '#24609B', fontWeight: '600' }}>
+                    {weatherData.city.name}
+                  </Text>
+                </View>
+                <Text style={{ color: '#24609B' }}>
+                  Today{" "}
+                  {currentTime.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: true,
+                  })}
                 </Text>
               </View>
-              <Text className="text-[#24609B]">
-                Today{" "}
-                {currentTime.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })}
+
+              {/* Current weather */}
+              <Image
+                source={getWeatherIcon(currentWeather.weather[0].icon)}
+                style={{ height: height * 0.15, width: height * 0.15, marginBottom: height * 0.01 }}
+                resizeMode="contain"
+              />
+              <Text style={{ fontSize: 50, color: '#24609B', fontWeight: '500' }}>
+                {Math.round(currentWeather.main.temp)}°
+              </Text>
+              <Text style={{ fontSize: 18, color: '#24609B', marginBottom: height * 0.01 }}>
+                {capitalizeFirstLetter(currentWeather.weather[0].description)}
+              </Text>
+
+              {/* Weather details */}
+              <View style={{
+                flexDirection: 'row',
+                backgroundColor: '#D3E9FF',
+                width: '100%',
+                borderRadius: 5,
+                padding: 10,
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: height * 0.02
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 12 }}>
+                  <Image
+                    source={icons.eye1}
+                    style={{ height: 25, width: 25, marginRight: 8 }}
+                    resizeMode="contain"
+                  />
+                  <Text style={{ fontSize: 16, color: '#24609B' }}>
+                    {currentWeather.main.humidity}%
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Image
+                    source={icons.drop}
+                    style={{ height: 25, width: 25, marginRight: 8 }}
+                    resizeMode="contain"
+                  />
+                  <Text style={{ fontSize: 16, color: '#24609B' }}>
+                    {`${Math.round(currentWeather.pop * 100 || 0)}%`}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+                  <Image
+                    source={icons.wind}
+                    style={{ height: 25, width: 25, marginRight: 8 }}
+                    resizeMode="contain"
+                  /><Text style={{ fontSize: 16, color: '#24609B' }}>
+                    {Math.round(currentWeather.wind.speed)} m/s</Text>
+                </View>
+              </View>
+
+              {/* 3-day forecast */}
+              <View style={{
+                flexDirection: 'row',
+                backgroundColor: '#D3E9FF',
+                width: '100%',
+                borderRadius: 5,
+                padding: 10,
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: height * 0.02
+              }}>
+                {dailyForecast.map((item, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      backgroundColor: '#5284B7',
+                      width: cardWidth,
+                      borderRadius: 5,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: 12,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Image
+                      source={getWeatherIcon(item.weather[0].icon)}
+                      style={{ position: 'absolute', bottom: -20, right: -20, width: 100, height: 100, opacity: 0.6 }}
+                    />
+                    <Text style={{ color: 'white', fontWeight: '500', fontSize: 14 }}>
+                      {formatDay(item.dt)}
+                    </Text>
+                    <Text style={{ fontSize: 36, color: 'white' }}>
+                      {Math.round(item.main.temp)}°
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </ImageBackground>
+
+          {/* Hourly Forecast */}
+          <View style={{
+            paddingHorizontal: horizontalPadding,
+            marginTop: height * 0.02
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              width: '100%',
+              paddingVertical: 12
+            }}>
+              <Text style={{ fontWeight: '600' }}>Today</Text>
+              <Text style={{ fontWeight: '500' }}>
+                {formatDate(currentTime)}
               </Text>
             </View>
-            
-            {/* Current weather */}
-            <Image
-              source={getWeatherIcon(currentWeather.weather[0].icon)}
-              className="h-[150px] w-[150px]"
-              resizeMode="contain"
-            />
-            <Text className="font-pmedium text-[50px] text-[#24609B]">
-              {Math.round(currentWeather.main.temp)}°
-            </Text>
-            <Text className="text-lg text-[#24609B]">
-              {capitalizeFirstLetter(currentWeather.weather[0].description)}
-            </Text>
-
-            {/* Weather details */}
-            <View className="flex-row mx-7 mt-5 bg-[#D3E9FF] w-full rounded-[5px] p-[5px] justify-between items-center">
-              <View className="flex-row w-auto items-center">
-                <Image
-                  source={icons.eye1}
-                  className="h-[25px] w-[25px] mr-3"
-                  resizeMode="contain"
-                />
-                <Text className="text-lg text-[#24609B]">
-                  {currentWeather.main.humidity}%
-                </Text>
-              </View>
-              <View className="flex-row w-auto items-center">
-                <Image
-                  source={icons.drop}
-                  className="h-[25px] w-[25px] mr-3"
-                  resizeMode="contain"
-                />
-                <Text className="text-lg text-[#24609B]">
-                  {`${Math.round(currentWeather.pop * 100 || 0)}%`}
-                </Text>
-              </View>
-              <View className="flex-row w-auto items-center">
-                <Image
-                  source={icons.wind}
-                  className="h-[25px] w-[25px] mr-3"
-                  resizeMode="contain"
-                />
-                <Text className="text-lg text-[#24609B]">
-                  {Math.round(currentWeather.wind.speed)} m/s
-                </Text>
-              </View>
-            </View>
-
-            {/* 3-day forecast */}
-            <View className="flex-row mx-7 mt-5 bg-[#D3E9FF] w-full rounded-[5px] p-[10px] justify-between items-center">
-              {dailyForecast.map((item, index) => (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              style={{
+                backgroundColor: '#D3E9FF',
+                borderRadius: 5,
+                padding: 12,
+                marginBottom: 20
+              }}
+              contentContainerStyle={{
+                paddingRight: 12
+              }}
+            >
+              {hourlyForecast.map((item, index) => (
                 <View
                   key={index}
-                  className="bg-[#5284B7] w-[100px] rounded-[5px] justify-center items-center p-3 overflow-hidden"
+                  style={{
+                    backgroundColor: '#7BAFE3',
+                    padding: 10,
+                    borderRadius: 5,
+                    alignItems: 'center',
+                    marginRight: 10,
+                    width: 70
+                  }}
                 >
-                  <Image
-                    source={images.circlesun}
-                    className="absolute bottom-[-50] right-[-30]"
-                  />
-                  <Text className="text-white font-pmedium text-md">
-                    {formatDay(item.dt)}
+                  <Text style={{ color: 'white', marginBottom: 5 }}>
+                    {new Date(item.dt * 1000).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </Text>
-                  <Text className="font-pregular text-[40px] text-white">
+                  <Image
+                    source={{
+                      uri: `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`,
+                    }}
+                    style={{ width: 40, height: 40 }}
+                    resizeMode="contain"
+                  />
+                  <Text style={{ color: 'white', fontSize: 16 }}>
                     {Math.round(item.main.temp)}°
                   </Text>
                 </View>
               ))}
-            </View>
+            </ScrollView>
           </View>
-        </ImageBackground>
-
-        {/* Hourly Forecast */}
-        <View className="w-full h-auto pl-7">
-          <View className="flex-row justify-between w-full py-3 pr-7">
-            <Text className="font-psemibold">Today</Text>
-            <Text className="font-pmedium">
-              {formatDate(currentTime)}
-            </Text>
-          </View>
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            className="flex-row bg-blue-200 rounded-[5px] p-3 w-[370px] overflow-scroll mr-7"
-          >
-            {hourlyForecast.map((item, index) => (
-              <WeatherCard
-                key={index}
-                time={new Date(item.dt * 1000).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-                image={{
-                  uri: `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`,
-                }}
-                degrees={Math.round(item.main.temp)}
-                bgcolor="#7BAFE3"
-              />
-            ))}
-          </ScrollView>
-        </View>
-      </ScrollView>
-    </ImageBackground>
+        </ScrollView>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 

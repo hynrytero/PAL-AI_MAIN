@@ -1,18 +1,17 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { Link, Redirect, router, Router, Tabs } from "expo-router";
+import { router, Tabs, usePathname } from "expo-router";
 import { AuthProvider } from "../../context/AuthContext";
 import { icons } from "../../constants";
-import { Icon } from "react-native-paper";
 import CustomFAB from "../../components/CustomFloatingActionButton";
 import { NotificationProvider } from "../../context/NotificationContext";
 import { Provider as PaperProvider } from 'react-native-paper';
 
+// Get screen dimensions
+const { height } = Dimensions.get('window');
 
 const TabIcon = ({ icon, color, name, focused }) => {
-  
   return (
-    
     <View className="items-center justify-center gap-2">
       <Image
         source={icon}
@@ -30,12 +29,41 @@ const TabIcon = ({ icon, color, name, focused }) => {
   );
 };
 
+const CustomMapsButton = ({ onPress }) => {
+  return (
+    <TouchableOpacity 
+      style={styles.mapsButton}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Image
+        source={icons.maps}
+        resizeMode="contain"
+        tintColor="#FFFFFF"
+        style={styles.mapsIcon}
+      />
+      <Text style={styles.mapsText}>Maps</Text>
+    </TouchableOpacity>
+  );
+};
+
 const TabsLayout = () => {
+  const pathname = usePathname();
+  const isOnMapsScreen = pathname === "/maps";
+  const isOnProfileScreen = pathname === "/profile";
+
   return (
     <PaperProvider>
       <NotificationProvider>
         <AuthProvider>
         <>
+          {/* Custom Maps Button at the top - only show when NOT on maps and profile screen */}
+          {!isOnMapsScreen && !isOnProfileScreen && (
+            <View style={styles.mapsContainer}>
+              <CustomMapsButton onPress={() => router.push("maps")} />
+            </View>
+          )}
+          
           {/* This code is for bottom navigation bar */}
           <Tabs
             screenOptions={{
@@ -81,6 +109,15 @@ const TabsLayout = () => {
                     focused={focused}
                   />
                 ),
+              }}
+            />
+            {/* Maps tab - hidden but still available for navigation */}
+            <Tabs.Screen
+              name="maps"
+              options={{
+                title: "Maps",
+                headerShown: false,
+                tabBarButton: () => null, 
               }}
             />
             {/* Dummy tab for spacing */}
@@ -178,6 +215,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
+  mapsContainer: {
+    position: "absolute",
+    bottom: 93, 
+    right: 20,
+    zIndex: 999, 
+  },
+  mapsButton: {
+    backgroundColor: "#2C9C4B",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  mapsIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+  },
+  mapsText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 14,
+  }
 });
 
 export default TabsLayout;

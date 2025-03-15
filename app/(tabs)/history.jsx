@@ -211,13 +211,13 @@ const History = () => {
                 className={`px-4 py-2 rounded-full mr-2 ${filterType === "recent" ? "bg-[#228B22]" : "bg-gray-200"}`}
                 onPress={() => setFilterType("recent")}
               >
-                <Text className={filterType === "recent" ? "text-white" : "text-gray-700"}>Recent First</Text>
+                <Text className={filterType === "recent" ? "text-white" : "text-gray-700"}>Recent</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className={`px-4 py-2 rounded-full mr-2 ${filterType === "oldest" ? "bg-[#228B22]" : "bg-gray-200"}`}
                 onPress={() => setFilterType("oldest")}
               >
-                <Text className={filterType === "oldest" ? "text-white" : "text-gray-700"}>Oldest First</Text>
+                <Text className={filterType === "oldest" ? "text-white" : "text-gray-700"}>Oldest</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className={`px-4 py-2 rounded-full mr-2 ${filterType === "highest" ? "bg-[#228B22]" : "bg-gray-200"}`}
@@ -265,7 +265,7 @@ const History = () => {
               
               {/* Pagination Controls */}
               {filteredScans.length > ITEMS_PER_PAGE && (
-                <View className="flex-row justify-between items-center mt-4">
+                <View className="flex-row justify-between items-center mt-1 mb-4">
                   <TouchableOpacity 
                     onPress={prevPage}
                     disabled={currentPage === 1}

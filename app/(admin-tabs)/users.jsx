@@ -10,12 +10,13 @@ import {
   Image,
   TouchableOpacity,
   Animated,
+  ScrollView
 } from "react-native";
 import { images } from "../../constants";
 import axios from "axios";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { router } from "expo-router"; 
+import { router } from "expo-router";
 
 const API_URL = API_URL_BCNKEND;
 
@@ -25,25 +26,25 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const searchInputRef = useRef(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(5);
-  
+
   // Filter state
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Filter states for age and gender
   const [selectedGender, setSelectedGender] = useState(null);
   const [selectedAgeRange, setSelectedAgeRange] = useState(null);
-  
+
   // Collapsible filter state
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const animatedHeight = useRef(new Animated.Value(0)).current;
-  
+
   // Age range options
   const ageRanges = [
     { label: "18-30", min: 18, max: 30 },
@@ -51,7 +52,7 @@ const Users = () => {
     { label: "46-60", min: 46, max: 60 },
     { label: "Over 60", min: 61, max: 120 }
   ];
-  
+
   // Toggle filters visibility
   const toggleFilters = () => {
     const toValue = filtersExpanded ? 0 : 1;
@@ -62,33 +63,33 @@ const Users = () => {
     }).start();
     setFiltersExpanded(!filtersExpanded);
   };
-  
+
   // Calculate if any filters are active
-  const hasActiveFilters = 
-    sortBy !== "name" || 
-    sortOrder !== "asc" || 
-    searchQuery || 
-    selectedGender || 
+  const hasActiveFilters =
+    sortBy !== "name" ||
+    sortOrder !== "asc" ||
+    searchQuery ||
+    selectedGender ||
     selectedAgeRange;
-  
+
   // Use debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
       setSearchQuery(inputValue);
     }, 300);
-    
+
     return () => clearTimeout(handler);
   }, [inputValue]);
 
   // Calculate age from birthdate
   const calculateAge = (birthdate) => {
     if (!birthdate) return null;
-    
+
     const today = new Date();
     const birthDate = new Date(birthdate);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
@@ -105,16 +106,16 @@ const Users = () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.data.success) {
         const processedUsers = response.data.data.map(user => ({
           ...user,
           age: calculateAge(user.birthdate),
-          isNew: user.created_at ? 
-            (new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24) <= 7 : 
+          isNew: user.created_at ?
+            (new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24) <= 7 :
             false
         }));
-        
+
         setUsers(processedUsers);
         setFilteredUsers(processedUsers);
       } else {
@@ -136,7 +137,7 @@ const Users = () => {
   // Apply filters and search
   useEffect(() => {
     let result = [...users];
-    
+
     // Apply search query
     if (searchQuery) {
       result = result.filter((user) =>
@@ -144,31 +145,31 @@ const Users = () => {
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user.mobile_number && 
+        (user.mobile_number &&
           user.mobile_number.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
-    
+
     // Apply gender filter
     if (selectedGender) {
-      result = result.filter(user => 
+      result = result.filter(user =>
         user.gender && user.gender.toLowerCase() === selectedGender.toLowerCase()
       );
     }
-    
+
     // Apply age filter
     if (selectedAgeRange) {
-      result = result.filter(user => 
-        user.age !== null && 
-        user.age >= selectedAgeRange.min && 
+      result = result.filter(user =>
+        user.age !== null &&
+        user.age >= selectedAgeRange.min &&
         user.age <= selectedAgeRange.max
       );
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
-      
+
       if (sortBy === "name") {
         const nameA = `${a.firstname} ${a.lastname}`.toLowerCase();
         const nameB = `${b.firstname} ${b.lastname}`.toLowerCase();
@@ -181,10 +182,10 @@ const Users = () => {
         const ageB = b.age !== null ? b.age : -1;
         comparison = ageA - ageB;
       }
-      
+
       return sortOrder === "asc" ? comparison : -comparison;
     });
-    
+
     setFilteredUsers(result);
     setCurrentPage(1); // Reset to first page when filters change
   }, [users, searchQuery, sortBy, sortOrder, selectedGender, selectedAgeRange]);
@@ -214,8 +215,8 @@ const Users = () => {
     setCurrentPage(1);
   };
 
-   // Navigate to the user profile view
-   const handleUserPress = (user) => {
+  // Navigate to the user profile view
+  const handleUserPress = (user) => {
     router.push({
       pathname: '/viewuser',
       params: {
@@ -233,9 +234,9 @@ const Users = () => {
   // Update the renderItem function to make the entire card clickable
   const renderItem = ({ item }) => {
     const defaultAvatar = images.Default_Profile;
-    
+
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => handleUserPress(item)}
         style={{
           flexDirection: 'column',
@@ -252,7 +253,7 @@ const Users = () => {
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Image 
+          <Image
             source={item.profile_image ? { uri: item.profile_image } : defaultAvatar}
             style={{
               width: 70,
@@ -290,7 +291,7 @@ const Users = () => {
               }}>
                 User
               </Text>
-              
+
               {item.gender && (
                 <Text style={{
                   fontSize: 12,
@@ -306,7 +307,7 @@ const Users = () => {
                   {item.gender}
                 </Text>
               )}
-              
+
               {item.age !== null && (
                 <Text style={{
                   fontSize: 12,
@@ -364,7 +365,7 @@ const Users = () => {
           ListHeaderComponent={
             <View>
               <Text style={{ fontSize: 30, fontWeight: '600', marginBottom: 12 }}>Users</Text>
-              
+
               {/* Search Box */}
               <View style={{
                 flexDirection: 'row',
@@ -396,15 +397,15 @@ const Users = () => {
                   </TouchableOpacity>
                 )}
               </View>
-              
+
               {/* Filter Header with Active Filter indicators */}
-              <View style={{ 
-                flexDirection: 'row', 
-                justifyContent: 'space-between', 
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 marginVertical: 8
               }}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -418,8 +419,8 @@ const Users = () => {
                   onPress={toggleFilters}
                 >
                   <Icon name="filter-list" size={20} color={hasActiveFilters ? "#1890ff" : "#666"} />
-                  <Text style={{ 
-                    marginLeft: 6, 
+                  <Text style={{
+                    marginLeft: 6,
                     fontWeight: '500',
                     color: hasActiveFilters ? "#1890ff" : "#666"
                   }}>
@@ -429,16 +430,16 @@ const Users = () => {
                       selectedAgeRange ? 1 : 0
                     ].reduce((a, b) => a + b, 0)})` : ""}
                   </Text>
-                  <Icon 
-                    name={filtersExpanded ? "expand-less" : "expand-more"} 
-                    size={20} 
-                    color={hasActiveFilters ? "#1890ff" : "#666"} 
+                  <Icon
+                    name={filtersExpanded ? "expand-less" : "expand-more"}
+                    size={20}
+                    color={hasActiveFilters ? "#1890ff" : "#666"}
                     style={{ marginLeft: 4 }}
                   />
                 </TouchableOpacity>
-                
+
                 {hasActiveFilters && (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -454,11 +455,11 @@ const Users = () => {
                   </TouchableOpacity>
                 )}
               </View>
-              
+
               {/* Active Filters Display */}
               {hasActiveFilters && (
-                <View style={{ 
-                  flexDirection: 'row', 
+                <View style={{
+                  flexDirection: 'row',
                   flexWrap: 'wrap',
                   marginBottom: 12
                 }}>
@@ -478,7 +479,7 @@ const Users = () => {
                       </Text>
                     </View>
                   )}
-                  
+
                   {sortOrder !== "asc" && (
                     <View style={{
                       flexDirection: 'row',
@@ -495,7 +496,7 @@ const Users = () => {
                       </Text>
                     </View>
                   )}
-                  
+
                   {selectedGender && (
                     <View style={{
                       flexDirection: 'row',
@@ -512,7 +513,7 @@ const Users = () => {
                       </Text>
                     </View>
                   )}
-                  
+
                   {selectedAgeRange && (
                     <View style={{
                       flexDirection: 'row',
@@ -531,15 +532,15 @@ const Users = () => {
                   )}
                 </View>
               )}
-              
-              {/* Collapsible Filter Panel - MODIFIED TO COMPLETELY HIDE WHEN CLOSED */}
+
+              {/* Collapsible Filter Panel - FIXED TO BE PROPERLY SCROLLABLE */}
               {filtersExpanded && (
-                <Animated.View 
+                <Animated.View
                   style={{
                     overflow: 'hidden',
-                    height: animatedHeight.interpolate({
+                    maxHeight: animatedHeight.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [0, 330] 
+                      outputRange: [0, 330]
                     }),
                     backgroundColor: '#f9f9f9',
                     borderRadius: 8,
@@ -548,14 +549,19 @@ const Users = () => {
                     borderColor: '#e0e0e0',
                   }}
                 >
-                  <View style={{ padding: 12 }}>
+                  <ScrollView
+                    contentContainerStyle={{ padding: 12 }}
+                    showsVerticalScrollIndicator={false}
+                    scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
+                  >
                     {/* Sort Options */}
                     <View style={{ marginBottom: 16 }}>
                       <Text style={{ fontSize: 14, fontWeight: '500', color: '#666', marginBottom: 6 }}>
                         Sort by:
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={{
                             backgroundColor: sortBy === "name" ? '#228B22' : '#e0e0e0',
                             paddingVertical: 6,
@@ -568,8 +574,8 @@ const Users = () => {
                         >
                           <Text style={{ color: sortBy === "name" ? 'white' : '#333', fontWeight: '500' }}>Name</Text>
                         </TouchableOpacity>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                           style={{
                             backgroundColor: sortBy === "email" ? '#228B22' : '#e0e0e0',
                             paddingVertical: 6,
@@ -582,8 +588,8 @@ const Users = () => {
                         >
                           <Text style={{ color: sortBy === "email" ? 'white' : '#333', fontWeight: '500' }}>Email</Text>
                         </TouchableOpacity>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                           style={{
                             backgroundColor: sortBy === "age" ? '#228B22' : '#e0e0e0',
                             paddingVertical: 6,
@@ -597,12 +603,12 @@ const Users = () => {
                           <Text style={{ color: sortBy === "age" ? 'white' : '#333', fontWeight: '500' }}>Age</Text>
                         </TouchableOpacity>
                       </View>
-                      
+
                       <Text style={{ fontSize: 14, fontWeight: '500', color: '#666', marginBottom: 6, marginTop: 8 }}>
                         Order:
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={{
                             backgroundColor: sortOrder === "asc" ? '#228B22' : '#e0e0e0',
                             paddingVertical: 6,
@@ -619,8 +625,8 @@ const Users = () => {
                             Ascending
                           </Text>
                         </TouchableOpacity>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                           style={{
                             backgroundColor: sortOrder === "desc" ? '#228B22' : '#e0e0e0',
                             paddingVertical: 6,
@@ -639,14 +645,14 @@ const Users = () => {
                         </TouchableOpacity>
                       </View>
                     </View>
-                    
+
                     {/* Gender Filter */}
                     <View style={{ marginBottom: 16 }}>
                       <Text style={{ fontSize: 14, fontWeight: '500', color: '#666', marginBottom: 6 }}>
                         Filter by Gender:
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={{
                             backgroundColor: selectedGender === "male" ? '#2196F3' : '#e0e0e0',
                             paddingVertical: 6,
@@ -664,8 +670,8 @@ const Users = () => {
                             Male
                           </Text>
                         </TouchableOpacity>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                           style={{
                             backgroundColor: selectedGender === "female" ? '#E91E63' : '#e0e0e0',
                             paddingVertical: 6,
@@ -685,7 +691,7 @@ const Users = () => {
                         </TouchableOpacity>
                       </View>
                     </View>
-                    
+
                     {/* Age Range Filter */}
                     <View style={{ marginBottom: 8 }}>
                       <Text style={{ fontSize: 14, fontWeight: '500', color: '#666', marginBottom: 6 }}>
@@ -693,7 +699,7 @@ const Users = () => {
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                         {ageRanges.map((range) => (
-                          <TouchableOpacity 
+                          <TouchableOpacity
                             key={range.label}
                             style={{
                               backgroundColor: selectedAgeRange === range ? '#FF9800' : '#e0e0e0',
@@ -707,8 +713,8 @@ const Users = () => {
                             }}
                             onPress={() => setSelectedAgeRange(selectedAgeRange === range ? null : range)}
                           >
-                            <Text style={{ 
-                              color: selectedAgeRange === range ? 'white' : '#333', 
+                            <Text style={{
+                              color: selectedAgeRange === range ? 'white' : '#333',
                               fontWeight: '500'
                             }}>
                               {range.label}
@@ -717,10 +723,10 @@ const Users = () => {
                         ))}
                       </View>
                     </View>
-                  </View>
+                  </ScrollView>
                 </Animated.View>
               )}
-              
+
               {filteredUsers.length > 0 && (
                 <Text style={{ fontSize: 14, color: '#666', marginBottom: 16 }}>
                   Showing {indexOfFirstUser + 1}-{Math.min(indexOfLastUser, filteredUsers.length)} of {filteredUsers.length} users
@@ -730,14 +736,14 @@ const Users = () => {
           }
           ListFooterComponent={
             filteredUsers.length > 0 ? (
-              <View style={{ 
-                flexDirection: 'row', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 marginTop: 20,
                 marginBottom: 30,
               }}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={{
                     backgroundColor: currentPage === 1 ? '#B8B8B8' : '#228B22',
                     paddingVertical: 8,
@@ -751,12 +757,12 @@ const Users = () => {
                 >
                   <Text style={{ color: 'white', fontWeight: '600' }}>Prev</Text>
                 </TouchableOpacity>
-                
+
                 <Text style={{ fontSize: 14, color: '#666' }}>
                   {indexOfFirstUser + 1}-{Math.min(indexOfLastUser, filteredUsers.length)} of {filteredUsers.length}
                 </Text>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={{
                     backgroundColor: currentPage === totalPages ? '#B8B8B8' : '#228B22',
                     paddingVertical: 8,

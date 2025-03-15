@@ -20,8 +20,10 @@ import drop from "../assets/icons/drop.png";
 import wind from "../assets/icons/wind.png";
 import report from "../assets/icons/report.png";
 import treatment from "../assets/icons/treatment.png";
+import maps from "../assets/icons/map.png";
 
 export default {
+  maps,
   home,
   profile,
   clock,

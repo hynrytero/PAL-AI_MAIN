@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { TouchableOpacity, TextInput, Alert, Modal, View, Text, SafeAreaView, ScrollView, ImageBackground } from 'react-native';
 import { router } from "expo-router";
-import { Button } from "react-native-paper";
+import { Button, ActivityIndicator } from "react-native-paper";
 import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
 import { useAuth } from "../../context/AuthContext";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+
 
 const API_URL = API_URL_BCNKEND;
 
@@ -40,6 +41,18 @@ const ManageAccount = () => {
     return passwordRegex.test(password);
   };
 
+  // Check if password change button should be enabled
+  const isPasswordChangeEnabled = () => {
+    return (
+      currentPassword.length > 0 && // Current password is provided
+      newPassword.length > 0 && // New password is provided
+      reEnterNewPassword.length > 0 && // Confirm password is provided
+      passwordErrors.newPassword === "" && // New password passes validation
+      passwordErrors.confirmPassword === "" && // Confirmation password matches
+      newPassword === reEnterNewPassword // Extra check that passwords match
+    );
+  };
+
   const handlePasswordChange = (password, type) => {
     if (type === 'new') {
       setNewPassword(password);
@@ -50,6 +63,18 @@ const ManageAccount = () => {
         }));
       } else {
         setPasswordErrors(prev => ({ ...prev, newPassword: "" }));
+      }
+      
+      // Also update confirm password error if confirm password has been entered
+      if (reEnterNewPassword) {
+        if (reEnterNewPassword !== password) {
+          setPasswordErrors(prev => ({
+            ...prev,
+            confirmPassword: "Passwords don't match."
+          }));
+        } else {
+          setPasswordErrors(prev => ({ ...prev, confirmPassword: "" }));
+        }
       }
     } else if (type === 'confirm') {
       setReEnterNewPassword(password);
@@ -285,10 +310,22 @@ const ManageAccount = () => {
       ) : null}
       <Button
         mode="contained"
-        style={{ borderRadius: 5, marginBottom: 10, backgroundColor: "forestgreen"}}
+        style={{ 
+          borderRadius: 5, 
+          marginBottom: 10, 
+          backgroundColor: isPasswordChangeEnabled() ? "forestgreen" : "#c0c0c0"
+        }}
+        disabled={isLoading || !isPasswordChangeEnabled()}
         onPress={handleChangePassword}
       >
-        Change Password
+        {isLoading ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <ActivityIndicator size={20} color="white" animating={true} />
+            <Text style={{ color: 'white', marginLeft: 10 }}>Changing Password...</Text>
+          </View>
+        ) : (
+          "Change Password"
+        )}
       </Button>
     </View>
   );
@@ -349,10 +386,18 @@ const ManageAccount = () => {
                 />
                 <Button
                   mode="contained"
-                  style={{ borderRadius: 5, marginBottom: 10, backgroundColor: "forestgreen"}}
+                  style={{ borderRadius: 5, marginBottom: 10, backgroundColor: "forestgreen" }}
+                  disabled={isLoading}
                   onPress={handleEmailChange}
                 >
-                  Send OTP
+                  {isLoading ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <ActivityIndicator size={20} color="white" animating={true} />
+                      <Text style={{ color: 'white', marginLeft: 10 }}>Sending OTP...</Text>
+                    </View>
+                  ) : (
+                    "Send OTP"
+                  )}
                 </Button>
               </View>
             )}
@@ -435,9 +480,17 @@ const ManageAccount = () => {
             <Button
               mode="contained"
               style={{ borderRadius: 5, marginBottom: 10 }}
+              disabled={isLoading}
               onPress={handleVerifyOtp}
             >
-              Verify OTP
+              {isLoading ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <ActivityIndicator size={20} color="white" animating={true} />
+                  <Text style={{ color: 'white', marginLeft: 10 }}>Verifying...</Text>
+                </View>
+              ) : (
+                "Verify OTP"
+              )}
             </Button>
             <Button
               mode="outlined"

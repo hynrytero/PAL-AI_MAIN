@@ -45,13 +45,13 @@ const ICON_OPTIONS = [
 ];
 
 const COMMON_COLORS = [
-    { value: "#4285F4", label: "Primary Blue" },
-    { value: "#EA4335", label: "Alert Red" },
-    { value: "#FBBC05", label: "Warning Yellow" },
-    { value: "#34A853", label: "Success Green" },
-    { value: "#9C27B0", label: "Info Purple" },
-    { value: "#FF6D00", label: "Notice Orange" },
-    { value: "#607D8B", label: "Neutral Gray" },
+    { value: "#4285F4", label: "Blue" },
+    { value: "#EA4335", label: "Red" },
+    { value: "#FBBC05", label: "Yellow" },
+    { value: "#34A853", label: "Green" },
+    { value: "#9C27B0", label: "Purple" },
+    { value: "#FF6D00", label: "Orange" },
+    { value: "#607D8B", label: "Gray" },
     { value: "#000000", label: "Black" }
 ];
 
@@ -516,7 +516,7 @@ const NotificationManager = () => {
                 <ScrollView className="mt-12">
                     <SafeAreaView className="px-7 w-full h-full mb-10">
                         <View className="flex-row items-center justify-between w-full mb-3">
-                            <Text className="font-pmedium text-[30px]">Notification Manager</Text>
+                            <Text className="font-pmedium text-[30px]">Notice Board</Text>
                         </View>
 
                         {/* Target Selection Section */}
@@ -708,7 +708,7 @@ const NotificationManager = () => {
                             className="mt-3"
                             style={{ backgroundColor: PRIMARY_COLOR, borderRadius: 16 }}
                         >
-                            Send Notification
+                            Send NotificationF
                         </Button>
 
                         <Button

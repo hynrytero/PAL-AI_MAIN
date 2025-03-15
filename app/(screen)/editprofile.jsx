@@ -47,7 +47,6 @@ const Profile = () => {
       const response = await axios.get(`${API_URL}/profile/fetch-profile/${user.id}`, {
         headers: {
           'X-API-Key': AUTH_KEY,
-          'Content-Type': 'application/json'
         }
       });
 
@@ -123,7 +122,6 @@ const Profile = () => {
                   method: 'POST',
                   headers: {
                     'X-API-Key': AUTH_KEY,
-                    'Content-Type': 'application/json'
                   },
                   body: formData,
                 });
@@ -153,7 +151,6 @@ const Profile = () => {
                 {
                   headers: {
                     'X-API-Key': AUTH_KEY,
-                    'Content-Type': 'application/json'
                   }
                 }
               );
