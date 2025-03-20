@@ -8,7 +8,7 @@ import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
-import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+import { AUTH_KEY, API_URL_BCNKEND } from "@env";
 
 const API_URL = API_URL_BCNKEND;
 
@@ -59,14 +59,16 @@ const SignIn = () => {
     if (!userId || !token) return;
 
     try {
-      const response = await axios.post(`${API_URL}/auth/pushToken`, {
-        user_id: userId,
-        token: token
-      },
+      const response = await axios.post(
+        `${API_URL}/auth/pushToken`,
+        {
+          user_id: userId,
+          token: token,
+        },
         {
           headers: {
-            'X-API-Key': AUTH_KEY
-          }
+            "X-API-Key": AUTH_KEY,
+          },
         }
       );
       return response.data;
@@ -84,24 +86,25 @@ const SignIn = () => {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-  
+
     setIsSubmitting(true);
     console.log(AUTH_KEY);
     try {
-      const response = await axios.post(`${API_URL}/auth/login`,
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
         {
           identifier: form.identifier,
           password: form.password,
         },
         {
           headers: {
-            'X-API-Key': AUTH_KEY,
+            "X-API-Key": AUTH_KEY,
           },
         }
       );
-  
+
       console.log("Response data:", response.data.message);
-  
+
       if (response.data.user) {
         await login({
           id: response.data.user.id,
@@ -110,7 +113,7 @@ const SignIn = () => {
           roleId: response.data.user.roleId,
         });
         await saveCredentials();
-  
+
         // Register push token if available
         if (expoPushToken) {
           try {
@@ -122,7 +125,7 @@ const SignIn = () => {
         }
         console.log("User ID : ", response.data.user.id);
         console.log("Push token: ", expoPushToken);
-        
+
         // Role-based routing
         if (response.data.user.roleId === 0) {
           router.push("report");
@@ -138,7 +141,7 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <ImageBackground
       source={images.background_signin}
@@ -201,7 +204,7 @@ const SignIn = () => {
           <CustomButton
             title="Log in"
             handlePress={handleLogin}
-            //handlePress={() => router.push("report")}
+            // handlePress={() => router.push("report")}
             // handlePress={() => router.push("recommend-treatments")}
             // handlePress={() => router.push("farmers-treatment")}
             containerStyles="w-full mt-5"

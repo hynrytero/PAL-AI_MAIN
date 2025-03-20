@@ -51,16 +51,34 @@ const FarmersTreatmentScreen = () => {
               disease="Lorem Ipsumazole"
               num="Joemar Ygot"
               color="#000064"
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Lorem Ipsumazole" },
+                })
+              }
             />
             <SimpleCard
               disease="Blatimazole"
               num="Henry Tero"
               color="#E80D0D"
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Blatimazole" },
+                })
+              }
             />
             <SimpleCard
               disease="Hatdoceterizine"
               num="Angelo Degamo"
               color="#FED402"
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Hatdoceterizine" },
+                })
+              }
             />
           </View>
         </ScrollView>

@@ -147,6 +147,7 @@ const TreatmentDetailsScreen = ({ isReview = false, farmerName = "" }) => {
             <CustomButton
               title="Edit Treatment"
               containerStyles="w-full my-6"
+              onPress={() => router.push("/edit-treatment")}
             />
           )}
         </ScrollView>
