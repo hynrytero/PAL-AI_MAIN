@@ -1,10 +1,10 @@
-import { View, Text } from "react-native";
-import TreatmentCard from "../../components/TreatmentCard";
+import { View, Text, TouchableOpacity } from "react-native";
 import { ScrollView, SafeAreaView } from "react-native";
-import images from "../../constants/images";
-import { Link, router } from "expo-router";
-
+import { router } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
+import TreatmentCard from "../../components/TreatmentCard";
 import SimpleCard from "../../components/SimpleCard";
+import images from "../../constants/images";
 import React from "react";
 
 const TreatmentScreen = () => {
@@ -16,6 +16,12 @@ const TreatmentScreen = () => {
       >
         <View className="flex-row items-center w-full mb-3">
           <Text className="font-pmedium text-[30px]">Treatments</Text>
+          <TouchableOpacity
+            onPress={() => router.push("farmers-treatment")}
+            style={{ marginLeft: 10 }}
+          >
+            <FontAwesome name="refresh" size={24} color="black" />
+          </TouchableOpacity>
         </View>
         <View
           style={{
@@ -37,13 +43,23 @@ const TreatmentScreen = () => {
               treatment="Imidacloprid"
               color="#CCCCE0"
               image={images.treatment1}
-              handlePress={() => router.push("treatment-details")}
-              style={{ width: "48%" }}
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Imidacloprid" },
+                })
+              }
             />
             <TreatmentCard
               treatment="Thiamethoxam"
               color="#CCCCE0"
               image={images.treatment2}
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Thiamethoxam" },
+                })
+              }
             />
           </View>
           <View
@@ -58,11 +74,23 @@ const TreatmentScreen = () => {
               treatment="Tricyclazole"
               color="#FACFCF"
               image={images.treatment3}
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Tricyclazole" },
+                })
+              }
             />
             <TreatmentCard
               treatment="Azoxystrbin"
               color="#FACFCF"
               image={images.treatment4}
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Azoxystrbin" },
+                })
+              }
             />
           </View>
           <View
@@ -77,11 +105,23 @@ const TreatmentScreen = () => {
               treatment="Mancozeb"
               color="#FFF6CC"
               image={images.treatment5}
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Mancozeb" },
+                })
+              }
             />
             <TreatmentCard
               treatment="Carbendazim"
               color="#FFF6CC"
               image={images.treatment6}
+              handlePress={() =>
+                router.push({
+                  pathname: "treatment-details",
+                  params: { treatment: "Carbendazim" },
+                })
+              }
             />
           </View>
         </View>

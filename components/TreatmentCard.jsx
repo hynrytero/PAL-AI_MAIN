@@ -1,25 +1,23 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 
-export default function TreatmentCard({ treatment, color, image }) {
+const TreatmentCard = ({ treatment, color, image, handlePress }) => {
   return (
-    <View
+    <TouchableOpacity
+      onPress={handlePress}
       style={{
-        backgroundColor: color, // ✅ Use inline style for dynamic background color
-        borderRadius: 20,
-        overflow: "hidden",
-        height: 144,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
+        backgroundColor: color,
         padding: 10,
-        flex: 1, // ✅ Allow the card to take up available space in a row
+        borderRadius: 10,
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
-      <Image source={image} style={{ heighth: "100%", height: 87 }} />
-      <Text style={{ fontSize: 14, color: "black", fontWeight: "600" }}>
-        {treatment}
-      </Text>
-    </View>
+      <Image source={image} style={{ width: 100, height: 100 }} />
+      <Text>{treatment}</Text>
+    </TouchableOpacity>
   );
-}
+};
+
+export default TreatmentCard;
