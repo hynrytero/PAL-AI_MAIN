@@ -17,13 +17,13 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => {
-      // if (user.isAuthenticated && user.roleId === 1) {
-      //   router.replace("/home");
-      // }else if (user.isAuthenticated && user.roleId === 0) {
-      //   router.replace("/report");
-      // } else {
-      //   setIsLoading(false);
-      // }
+      if (user.isAuthenticated && user.roleId === 1) {
+        router.replace("/home");
+      }else if (user.isAuthenticated && user.roleId === 0) {
+        router.replace("/report");
+      } else {
+        setIsLoading(false);
+      }
       setIsLoading(false);
     }, 1000); 
     return () => clearTimeout(timer);

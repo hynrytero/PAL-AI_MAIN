@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Button } from "react-native-paper";
 import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
+import { useNotification } from "../../context/NotificationContext";
 import axios from 'axios';
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
@@ -23,6 +24,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const { resetNotifications } = useNotification();
 
   // Check authentication and redirect if needed
   useEffect(() => {
@@ -74,9 +76,11 @@ const Profile = () => {
   }, [user?.id]);
 
   const handleLogout = async () => {
+
     try {
       setLoading(true);
       await logout();
+      console.log('Logged out');
     } catch (error) {
       console.error('Logout error:', error);
       Alert.alert('Error', 'Failed to logout. Please try again.');

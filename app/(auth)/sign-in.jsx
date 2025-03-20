@@ -86,7 +86,7 @@ const SignIn = () => {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-
+    console.log(`Logged In`);
     setIsSubmitting(true);
     console.log(AUTH_KEY);
     try {

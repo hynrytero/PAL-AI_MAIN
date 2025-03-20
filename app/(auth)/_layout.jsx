@@ -7,6 +7,7 @@ import { NotificationProvider } from "../../context/NotificationContext";
 
 const AuthenticationLayout = () => {
   return (
+    <NotificationProvider>
       <AuthProvider>
         <>
           <Stack>
@@ -56,6 +57,7 @@ const AuthenticationLayout = () => {
           <StatusBar style="light" />
         </>
       </AuthProvider>
+    </NotificationProvider>
   );
 };
 

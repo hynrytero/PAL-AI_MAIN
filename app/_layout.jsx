@@ -2,7 +2,6 @@ import { StyleSheet, Text, View } from "react-native";
 import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
-import { NotificationProvider } from "../context/NotificationContext";
 import * as Notifications from "expo-notifications";
 import { AuthProvider } from '../context/AuthContext';
 
@@ -38,7 +37,6 @@ const RootLayout = () => {
 
   return (
     <AuthProvider>
-      <NotificationProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -47,7 +45,6 @@ const RootLayout = () => {
           <Stack.Screen name="(screen)" options={{ headerShown: false }} />
           <Stack.Screen name="(admin-screen)" options={{ headerShown: false }} />
         </Stack>
-      </NotificationProvider>
     </AuthProvider>
   );
 };

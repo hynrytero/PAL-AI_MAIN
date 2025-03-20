@@ -2,10 +2,11 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Tabs } from "expo-router";
-import { AuthProvider } from "../../context/AuthContext";
+import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { icons } from "../../constants";
 import { NotificationProvider, useNotification } from "../../context/NotificationContext";
 import { Provider as PaperProvider } from "react-native-paper";
+import { useRouter } from "expo-router";
 
 const TabIcon = ({ icon, color, name, focused, showBadge = false }) => {
   return (
@@ -49,11 +50,73 @@ const NotificationTabWithBadge = ({ color, focused }) => {
   );
 };
 
+// Custom tab bar that includes logout button
+const CustomTabBar = ({ state, descriptors, navigation }) => {
+  const { logout } = useAuth();
+  const router = useRouter();
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Redirect to login screen after logout
+      router.replace("sign-in");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  return (
+    <View style={styles.tabContainer}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            style={styles.tab}
+          >
+            {options.tabBarIcon({
+              focused: isFocused,
+              color: isFocused ? "#2C9C4B" : "#000064",
+            })}
+          </TouchableOpacity>
+        );
+      })}
+      
+      {/* Logout Tab */}
+      <TouchableOpacity
+        style={styles.tab}
+        onPress={handleLogout}
+      >
+        <TabIcon
+          icon={icons.logout || icons.profile}
+          color="#000064"
+          name="Logout"
+          focused={false}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 // Create a wrapper component for tabs content to use context
 const TabsContent = () => {
   return (
     <>
-      {/* This code is for bottom navigation bar */}
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: "#2C9C4B",
@@ -67,6 +130,7 @@ const TabsContent = () => {
             justifyContent: "space-between", // Ensure tabs are evenly spaced
           },
         }}
+        tabBar={(props) => <CustomTabBar {...props} />}
       >
         {/* This tab is for home screen (weather) */}
         <Tabs.Screen
@@ -129,6 +193,7 @@ const TabsContent = () => {
           }}
         />
       </Tabs>
+      
       <StatusBar style="dark" />
     </>
   );
@@ -147,26 +212,22 @@ const TabsLayout = () => {
 };
 
 const styles = StyleSheet.create({
-  fab: {
-    position: "absolute",
-    bottom: 50, // Adjust based on your tab bar height
-    alignSelf: "center",
-    backgroundColor: "#2C9C4B", // Green background for FAB
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5, // Adds shadow for Android
-    shadowColor: "#000", // Adds shadow for iOS
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
   badge: {
     borderWidth: 1,
     borderColor: "#FFFFFF",
     elevation: 2,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    borderTopWidth: 2,
+    borderTopColor: '#C8C8C8',
+    height: 84,
+  },
+  tab: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
 

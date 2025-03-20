@@ -33,6 +33,7 @@ export const NotificationProvider = ({ children }) => {
   const { user } = useAuth();
   const notificationListener = useRef();
   const responseListener = useRef();
+  const currentUserId = useRef(null);
 
   useEffect(() => {
     // Create a variable to track if the component is mounted
@@ -89,6 +90,24 @@ export const NotificationProvider = ({ children }) => {
     };
   }, []);
 
+  // Reset unread count when user changes
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      currentUserId.current = null;
+      return;
+    }
+
+    // Check if user ID has changed
+    if (user.id !== currentUserId.current) {
+      // Reset unread count immediately when switching users
+      setUnreadCount(0);
+      currentUserId.current = user.id;
+      // Then trigger a refresh to fetch the correct count
+      setRefreshTrigger(prev => prev + 1);
+    }
+  }, [user]);
+
   // Fetch unread count whenever user changes or refresh is triggered
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -128,7 +147,8 @@ export const NotificationProvider = ({ children }) => {
       error, 
       refreshTrigger,
       triggerRefresh,
-      unreadCount
+      unreadCount,
+      currentUserId: currentUserId.current // Expose current user ID for debugging if needed
     }}>
       {children}
     </NotificationContext.Provider>
