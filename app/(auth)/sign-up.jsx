@@ -6,6 +6,12 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  Dimensions,
+  StyleSheet,
 } from "react-native";
 import React, { useState } from "react";
 import { Link, router } from "expo-router";
@@ -17,6 +23,7 @@ import CustomButton from "../../components/CustomButton";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
 const API_URL = API_URL_BCNKEND;
+const { width, height } = Dimensions.get('window');
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -210,208 +217,355 @@ const SignUp = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <ImageBackground
-        source={images.background_signup}
-        className="flex-1 h-full"
-        resizeMode="cover"
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
       >
-        <View className="flex-1 h-full justify-center">
-          <View className="w-full justify-center px-7">
-            <View className="flex-row items-center">
-              <Image
-                source={images.logo}
-                resizeMode="contain"
-                className="w-[100px] h-[100px] mr-3"
-              />
-              <Text className="font-psemibold text-3xl">PAL-AI</Text>
-            </View>
-            <Text className="font-psemibold text-3xl mt-6">Sign-Up</Text>
-            <Text className="text-lg">Please enter the details.</Text>
-            <View className="flex-row w-full justify-between mt-3">
-              <TextInput
-                label="First Name"
-                value={form.firstname}
-                onChangeText={(e) => setForm({ ...form, firstname: e })}
-                className="w-[48%]"
-                mode="outlined"
-                activeOutlineColor="#006400"
-                outlineColor="#CBD2E0"
-                textColor="#2D3648"
-              />
-              <TextInput
-                label="Last Name"
-                value={form.lastname}
-                onChangeText={(e) => setForm({ ...form, lastname: e })}
-                className="w-[48%]"
-                mode="outlined"
-                activeOutlineColor="#006400"
-                outlineColor="#CBD2E0"
-                textColor="#2D3648"
-              />
-            </View>
-            <View className="flex-row w-full justify-between mt-1">
-              <TextInput
-                label="Birthdate (MM/DD/YYYY)"
-                value={form.birthdate}
-                keyboardType="numeric"
-                onChangeText={handleBirthdate}
-                className="w-[48%]"
-                mode="outlined"
-                activeOutlineColor="#006400"
-                outlineColor="#CBD2E0"
-                textColor="#2D3648"
-                error={!!birthdateError}
-                maxLength={10}
-              />
+        <ImageBackground
+          source={images.background_signup}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.formContainer}>
+                <View style={styles.logoContainer}>
+                  <Image
+                    source={images.logo}
+                    resizeMode="contain"
+                    style={styles.logo}
+                  />
+                  <Text style={styles.appTitle}>PAL-AI</Text>
+                </View>
+                <Text style={styles.signUpTitle}>Sign-Up</Text>
+                <Text style={styles.formDescription}>Please enter the details.</Text>
 
-              <View className="w-[48%] bg-white border border-[#CBD2E0] rounded-[5px] p-2 mt-[6px]">
-                <Dropdown
-                  className="mx-[5px] align-middle my-[6px]"
-                  placeholderStyle="text-base"
-                  selectedTextStyle="text-base"
-                  inputSearchStyle="text-base"
-                  iconStyle="mr-2"
-                  data={data}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Gender"
-                  value={selectedGender}
-                  onChange={(item) => {
-                    setSelectedGender(item.value);
-                    setValue(item.value);
-                  }}
-                  style={{ flex: 1 }}
+                <View style={styles.rowContainer}>
+                  <TextInput
+                    label="First Name"
+                    value={form.firstname}
+                    onChangeText={(e) => setForm({ ...form, firstname: e })}
+                    style={styles.halfWidthInput}
+                    mode="outlined"
+                    activeOutlineColor="#006400"
+                    outlineColor="#CBD2E0"
+                    textColor="#2D3648"
+                    dense={width < 360}
+                  />
+                  <TextInput
+                    label="Last Name"
+                    value={form.lastname}
+                    onChangeText={(e) => setForm({ ...form, lastname: e })}
+                    style={styles.halfWidthInput}
+                    mode="outlined"
+                    activeOutlineColor="#006400"
+                    outlineColor="#CBD2E0"
+                    textColor="#2D3648"
+                    dense={width < 360}
+                  />
+                </View>
+
+                <View style={styles.rowContainer}>
+                  <TextInput
+                    label="Birthdate (MM/DD/YYYY)"
+                    value={form.birthdate}
+                    keyboardType="numeric"
+                    onChangeText={handleBirthdate}
+                    style={styles.halfWidthInput}
+                    mode="outlined"
+                    activeOutlineColor="#006400"
+                    outlineColor="#CBD2E0"
+                    textColor="#2D3648"
+                    error={!!birthdateError}
+                    maxLength={10}
+                    dense={width < 360}
+                  />
+
+                  <View style={styles.dropdownContainer}>
+                    <Dropdown
+                      style={styles.dropdown}
+                      placeholderStyle={styles.dropdownPlaceholder}
+                      selectedTextStyle={styles.dropdownSelectedText}
+                      inputSearchStyle={styles.dropdownSearchInput}
+                      iconStyle={styles.dropdownIcon}
+                      data={data}
+                      labelField="label"
+                      valueField="value"
+                      placeholder="Gender"
+                      value={selectedGender}
+                      onChange={(item) => {
+                        setSelectedGender(item.value);
+                        setValue(item.value);
+                      }}
+                    />
+                  </View>
+                </View>
+
+                {birthdateError && form.birthdate.length > 0 && (
+                  <Text style={styles.errorText}>{birthdateError}</Text>
+                )}
+
+                <TextInput
+                  label="Email"
+                  value={form.email}
+                  onChangeText={handleChangeEmail}
+                  style={styles.fullWidthInput}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  error={!!error}
+                  dense={width < 360}
                 />
+
+                {error && form.email.length > 0 && (
+                  <Text style={styles.errorText}>{error}</Text>
+                )}
+
+                <TextInput
+                  label="Mobile Number"
+                  value={form.mobilenumber}
+                  keyboardType="numeric"
+                  onChangeText={handleChangeMobile}
+                  style={styles.fullWidthInput}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  error={!!mobileError}
+                  dense={width < 360}
+                />
+
+                {mobileError && form.mobilenumber.length > 0 && (
+                  <Text style={styles.errorText}>{mobileError}</Text>
+                )}
+
+                <TextInput
+                  label="Username"
+                  value={form.username}
+                  onChangeText={(e) => setForm({ ...form, username: e })}
+                  style={styles.fullWidthInput}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  dense={width < 360}
+                />
+
+                <TextInput
+                  label="Password"
+                  value={form.password}
+                  onChangeText={handleChangePassword}
+                  secureTextEntry={!passwordVisible}
+                  right={
+                    <TextInput.Icon
+                      icon={passwordVisible ? "eye-off" : "eye"}
+                      color="#006400"
+                      onPress={() => setPasswordVisible(!passwordVisible)}
+                    />
+                  }
+                  style={styles.fullWidthInput}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  error={!!passwordError}
+                  dense={width < 360}
+                />
+
+                {passwordError && form.password.length > 0 && (
+                  <Text style={styles.errorText}>{passwordError}</Text>
+                )}
+
+                <TextInput
+                  label="Confirm Password"
+                  value={form.confirmpassword}
+                  onChangeText={handleConfirmPassword}
+                  secureTextEntry={!conPasswordVisible}
+                  right={
+                    <TextInput.Icon
+                      icon={conPasswordVisible ? "eye-off" : "eye"}
+                      color="#006400"
+                      onPress={() => setConPasswordVisible(!conPasswordVisible)}
+                    />
+                  }
+                  style={styles.fullWidthInput}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  error={!!confirmPasswordError}
+                  dense={width < 360}
+                />
+
+                {confirmPasswordError && form.confirmpassword.length > 0 && (
+                  <Text style={styles.errorText}>{confirmPasswordError}</Text>
+                )}
+
+                <View style={styles.checkboxContainer}>
+                  <Checkbox
+                    status={isChecked ? "checked" : "unchecked"}
+                    onPress={() => setIsChecked(!isChecked)}
+                    color="#006400"
+                  />
+                  <Text style={styles.termsText}>
+                    I agree to the{" "}
+                    <Link
+                      href="/terms-and-condition"
+                      style={styles.termsLink}
+                    >
+                      Terms and Conditions
+                    </Link>
+                  </Text>
+                </View>
+
+                <CustomButton
+                  title="Sign Up"
+                  handlePress={handleSignUp}
+                  containerStyles={styles.signUpButton}
+                  isLoading={isSubmitting}
+                  disabled={!isFormValid}
+                />
+
+                <View style={styles.loginLinkContainer}>
+                  <Text style={styles.loginText}>
+                    Already a user?{" "}
+                    <Link
+                      href="/sign-in"
+                      style={styles.loginLink}
+                    >
+                      Log in</Link>
+                  </Text>
+                </View>
               </View>
-            </View>
-            {birthdateError && form.birthdate.length > 0 && (
-              <Text className="text-red-500 mt-1">{birthdateError}</Text>
-            )}
-
-            {/* Rest of the form remains the same */}
-            <TextInput
-              label="Email"
-              value={form.email}
-              onChangeText={handleChangeEmail}
-              className="w-full mt-1"
-              mode="outlined"
-              activeOutlineColor="#006400"
-              outlineColor="#CBD2E0"
-              textColor="#2D3648"
-              error={!!error}
-            />
-            {error && form.email.length > 0 && (
-              <Text className="text-red-500 mt-1">{error}</Text>
-            )}
-
-            <TextInput
-              label="Mobile Number"
-              value={form.mobilenumber}
-              keyboardType="numeric"
-              onChangeText={handleChangeMobile}
-              className="w-full mt-1"
-              mode="outlined"
-              activeOutlineColor="#006400"
-              outlineColor="#CBD2E0"
-              textColor="#2D3648"
-              error={!!mobileError}
-            />
-            {mobileError && form.mobilenumber.length > 0 && (
-              <Text className="text-red-500 mt-1">{mobileError}</Text>
-            )}
-
-            <TextInput
-              label="Username"
-              value={form.username}
-              onChangeText={(e) => setForm({ ...form, username: e })}
-              className="w-full mt-1"
-              mode="outlined"
-              activeOutlineColor="#006400"
-              outlineColor="#CBD2E0"
-              textColor="#2D3648"
-            />
-            <TextInput
-              label="Password"
-              value={form.password}
-              onChangeText={handleChangePassword}
-              secureTextEntry={!passwordVisible}
-              right={
-                <TextInput.Icon
-                  icon={passwordVisible ? "eye-off" : "eye"}
-                  color="#006400"
-                  onPress={() => setPasswordVisible(!passwordVisible)}
-                />
-              }
-              className="w-full mt-1"
-              mode="outlined"
-              activeOutlineColor="#006400"
-              outlineColor="#CBD2E0"
-              textColor="#2D3648"
-              error={!!passwordError}
-            />
-            {passwordError && form.password.length > 0 && (
-              <Text className="text-red-500 mt-1">{passwordError}</Text>
-            )}
-
-            <TextInput
-              label="Confirm Password"
-              value={form.confirmpassword}
-              onChangeText={handleConfirmPassword}
-              secureTextEntry={!conPasswordVisible}
-              right={
-                <TextInput.Icon
-                  icon={conPasswordVisible ? "eye-off" : "eye"}
-                  color="#006400"
-                  onPress={() => setConPasswordVisible(!conPasswordVisible)}
-                />
-              }
-              className="w-full mt-1"
-              mode="outlined"
-              activeOutlineColor="#006400"
-              outlineColor="#CBD2E0"
-              textColor="#2D3648"
-              error={!!confirmPasswordError}
-            />
-            {confirmPasswordError && form.confirmpassword.length > 0 && (
-              <Text className="text-red-500 mt-1">{confirmPasswordError}</Text>
-            )}
-            <View className="mt-2 flex-row items-center">
-              <Checkbox
-                status={isChecked ? "checked" : "unchecked"}
-                onPress={() => setIsChecked(!isChecked)}
-                color="#006400"
-              />
-              <Text className="ml-2">
-                I agree to the{" "}
-                <Link
-                  href="/terms-and-condition"
-                  className="text-green-700 font-medium"
-                >
-                  Terms and Conditions
-                </Link>
-              </Text>
-            </View>
-            <CustomButton
-              title="Sign Up"
-              handlePress={handleSignUp}
-              containerStyles="w-full mt-6"
-              isLoading={isSubmitting}
-              disabled={!isFormValid}
-            />
-            <View className="items-center">
-              <Text className="mt-3 font-pregular text-sm text-[#4B4B4B]">
-                Already a user?{" "}
-                <Link href="/sign-in" className="font-psemibold text-secondary">
-                  Log in
-                </Link>
-              </Text>
-            </View>
-          </View>
-        </View>
-      </ImageBackground>
-    </TouchableWithoutFeedback>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </ImageBackground>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: height * 0.04,
+  },
+  formContainer: {
+    width: '100%',
+    paddingHorizontal: width * 0.05,
+    maxWidth: 500,
+    alignSelf: 'center',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: height * 0.02,
+  },
+  logo: {
+    width: width * 0.3,
+    height: width * 0.3,
+    maxWidth: 100,
+    maxHeight: 100,
+    marginRight: 10,
+  },
+  appTitle: {
+    fontSize: Math.min(width * 0.06, 28),
+    fontWeight: '700',
+  },
+  signUpTitle: {
+    fontSize: Math.min(width * 0.06, 28),
+    fontWeight: '600',
+    marginBottom: 5,
+  },
+  formDescription: {
+    fontSize: Math.min(width * 0.04, 18),
+    marginBottom: height * 0.02,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  halfWidthInput: {
+    width: '48%',
+  },
+  fullWidthInput: {
+    width: '100%',
+    marginBottom: 8,
+  },
+  dropdownContainer: {
+    width: '48%',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#CBD2E0',
+    borderRadius: 5,
+    padding: 8,
+    justifyContent: 'center',
+    height: width < 360 ? 48 : 56,
+  },
+  dropdown: {
+    flex: 1,
+  },
+  dropdownPlaceholder: {
+    fontSize: Math.min(width * 0.035, 16),
+  },
+  dropdownSelectedText: {
+    fontSize: Math.min(width * 0.035, 16),
+  },
+  dropdownSearchInput: {
+    fontSize: Math.min(width * 0.035, 16),
+  },
+  dropdownIcon: {
+    marginRight: 8,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: Math.min(width * 0.03, 14),
+    marginBottom: 8,
+  },
+  checkboxContainer: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  termsText: {
+    marginLeft: 8,
+    fontSize: Math.min(width * 0.035, 16),
+  },
+  termsLink: {
+    color: '#006400',
+    fontWeight: '500',
+  },
+  signUpButton: {
+    width: '100%',
+    marginTop: height * 0.03,
+    height: Math.min(height * 0.06, 50),
+  },
+  loginLinkContainer: {
+    alignItems: 'center',
+    marginTop: height * 0.02,
+  },
+  loginText: {
+    fontSize: Math.min(width * 0.035, 16),
+    color: '#4B4B4B',
+  },
+  loginLink: {
+    fontWeight: '600',
+    color: '#006400',
+  },
+});
 
 export default SignUp;

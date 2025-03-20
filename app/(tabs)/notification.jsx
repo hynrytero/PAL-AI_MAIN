@@ -18,6 +18,7 @@ import { images } from "../../constants";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { format } from "date-fns";
+import { useNotification } from "../../context/NotificationContext";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
 const API_URL = API_URL_BCNKEND;
@@ -25,7 +26,9 @@ const API_URL = API_URL_BCNKEND;
 const { width, height } = Dimensions.get('window');
 
 const Notification = () => {
+
   const { user } = useAuth();
+  const { refreshTrigger, triggerRefresh } = useNotification();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -87,6 +90,9 @@ const Notification = () => {
       setNotifications(notifications.map(note =>
         note.id === notificationId ? { ...note, read: true } : note
       ));
+      
+      // Trigger refresh for badge counter
+      triggerRefresh();
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -106,6 +112,9 @@ const Notification = () => {
       setNotifications(notifications.map(note =>
         note.id === notificationId ? { ...note, read: false } : note
       ));
+      
+      // Trigger refresh for badge counter
+      triggerRefresh();
     } catch (error) {
       console.error("Error marking notification as unread:", error);
     }
@@ -126,6 +135,9 @@ const Notification = () => {
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: true })));
       Alert.alert("Success", "All notifications marked as read");
+      
+      // Trigger refresh for badge counter
+      triggerRefresh();
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       Alert.alert("Error", "Failed to mark notifications as read");
@@ -147,6 +159,9 @@ const Notification = () => {
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: false })));
       Alert.alert("Success", "All notifications marked as unread");
+      
+      // Trigger refresh for badge counter
+      triggerRefresh();
     } catch (error) {
       console.error("Error marking all notifications as unread:", error);
       Alert.alert("Error", "Failed to mark notifications as unread");
@@ -163,6 +178,9 @@ const Notification = () => {
 
       // Remove from local state
       setNotifications(notifications.filter(note => note.id !== notificationId));
+      
+      // Trigger refresh for badge counter
+      triggerRefresh();
     } catch (error) {
       console.error("Error deleting notification:", error);
       Alert.alert("Error", "Failed to delete notification");
@@ -181,6 +199,9 @@ const Notification = () => {
 
       setNotifications([]);
       Alert.alert("Success", "All notifications cleared");
+      
+      // Trigger refresh for badge counter
+      triggerRefresh();
     } catch (error) {
       console.error("Error clearing notifications:", error);
       Alert.alert("Error", "Failed to clear notifications");
@@ -194,7 +215,7 @@ const Notification = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, [user]);
+  }, [user, refreshTrigger]);
 
   const showMenu = (id) => setMenuVisible(id);
   const hideMenu = () => setMenuVisible(null);
@@ -241,7 +262,7 @@ const Notification = () => {
     return (
       <Modal
         visible={modalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={closeModal}
         statusBarTranslucent={true}
@@ -274,7 +295,7 @@ const Notification = () => {
                   </View>
                 </View>
 
-                {/* Pull handle for better UX */}
+                {/* Pull handle */}
                 <View className="items-center py-2">
                   <View className="w-10 h-1 rounded-full bg-gray-300" />
                 </View>
@@ -308,14 +329,20 @@ const Notification = () => {
                   )}
                 </ScrollView>
 
-                {/* Action buttons with better styling */}
-                <Surface className="p-4 border-t border-gray-200 flex-row justify-end space-x-3 elevation-2">
+                {/* Action buttons */}
+                <Surface className="p-4 bg-white border-t border-gray-300 flex-row justify-end space-x-3 elevation-2">
+
                   <Button
                     mode="outlined"
                     icon="delete-outline"
                     onPress={() => {
                       deleteNotification(selectedNotification.id);
                       closeModal();
+                    }}
+                    textColor="#228B22"
+                    style={{
+                      borderColor: '#228B22',
+                      borderWidth: 2
                     }}
                   >
                     Delete
@@ -324,6 +351,7 @@ const Notification = () => {
                     mode="contained"
                     icon="check"
                     onPress={closeModal}
+                    buttonColor="#228B22"
                   >
                     Done
                   </Button>
@@ -377,6 +405,7 @@ const Notification = () => {
                     onPress={toggleMarkAllMenu}
                   />
                 }
+                contentStyle={{ backgroundColor: 'white' }}
               >
                 <Menu.Item
                   onPress={() => {
@@ -396,7 +425,26 @@ const Notification = () => {
                 />
               </Menu>
 
-              <IconButton icon="delete-sweep" onPress={clearAllNotifications} />
+              <IconButton
+                icon="delete-sweep"
+                onPress={() => {
+                  Alert.alert(
+                    "Clear Notifications",
+                    "Are you sure you want to delete all notifications?",
+                    [
+                      {
+                        text: "Cancel",
+                        style: "cancel"
+                      },
+                      {
+                        text: "Delete",
+                        onPress: () => clearAllNotifications(),
+                        style: "destructive"
+                      }
+                    ]
+                  );
+                }}
+              />
             </View>
           </View>
 
@@ -437,6 +485,7 @@ const Notification = () => {
                               onPress={() => showMenu(notification.id)}
                             />
                           }
+                          contentStyle={{ backgroundColor: 'white' }} 
                         >
                           {notification.read ? (
                             <Menu.Item

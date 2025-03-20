@@ -399,14 +399,16 @@ const NotificationManager = () => {
     // Handle sending notification
     const handleSendNotification = async () => {
         if (!validateForm()) return;
-
+    
         setLoading(true);
-
+    
         try {
-            let endpoint;
-
+            let endpoint, pushEndpoint;
+    
             if (notificationType === "all") {
                 endpoint = `${API_URL}/notifications/store-notification-all`;
+                pushEndpoint = `${API_URL}/admin/push-notify/broadcast`;
+    
                 const payload = {
                     title,
                     body,
@@ -414,23 +416,42 @@ const NotificationManager = () => {
                     icon_bg_color: iconBgColor,
                     type
                 };
-
+    
+                // Store notification in database
                 await axios.post(endpoint, payload, {
                     headers: {
                         'X-API-Key': AUTH_KEY,
                         'Content-Type': 'application/json'
                     }
                 });
-
+    
+                // Send push notification to all users
+                await axios.post(pushEndpoint, {
+                    title,  
+                    body,
+                    data: {
+                        type,  
+                        icon,
+                        icon_bg_color: iconBgColor
+                    }
+                }, {
+                    headers: {
+                        'X-API-Key': AUTH_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+    
                 Alert.alert(
                     "Success",
                     "Notification sent to all users successfully"
                 );
             } else if (notificationType === "multiple") {
                 endpoint = `${API_URL}/notifications/store-notification`;
-                // Send notifications to each selected user
-                const promises = selectedUsers.map(user =>
-                    axios.post(endpoint, {
+                pushEndpoint = `${API_URL}/admin/push-notify/notify`;
+    
+                // Send database notifications and push notifications to each selected user
+                const promises = selectedUsers.map(async user => {
+                    await axios.post(endpoint, {
                         user_id: parseInt(user.user_id),
                         title,
                         body,
@@ -442,17 +463,36 @@ const NotificationManager = () => {
                             'X-API-Key': AUTH_KEY,
                             'Content-Type': 'application/json'
                         }
-                    })
-                );
-
+                    });
+    
+                    // Then send push notification if the user has a push token
+                    if (user.push_token) {
+                        await axios.post(pushEndpoint, {
+                            user_id: parseInt(user.user_id),
+                            title,  
+                            body,
+                            data: {
+                                type,  
+                                icon,
+                                icon_bg_color: iconBgColor
+                            }
+                        }, {
+                            headers: {
+                                'X-API-Key': AUTH_KEY,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                    }
+                });
+    
                 await Promise.all(promises);
-
+    
                 Alert.alert(
                     "Success",
                     `Notifications sent successfully to ${selectedUsers.length} users`
                 );
             }
-
+    
             resetForm();
         } catch (error) {
             console.error("Error sending notification:", error);

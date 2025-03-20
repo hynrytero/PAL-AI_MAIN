@@ -23,6 +23,9 @@ const ReportScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedDateFilter, setSelectedDateFilter] = useState("All Time");
+  const [selectedConfidenceFilter, setSelectedConfidenceFilter] = useState("All");
+  const [activeFilterType, setActiveFilterType] = useState("disease"); // 'disease', 'date', 'confidence'
   const ITEMS_PER_PAGE = 5;
 
   // Disease mapping for colors and filters
@@ -33,14 +36,31 @@ const ReportScreen = () => {
     "Leaf Blight": { color: "#FED402" }
   };
 
+  // Date filter options
+  const dateFilters = [
+    "All Time",
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year"
+  ];
+
+  // Confidence score filter options
+  const confidenceFilters = [
+    "All",
+    "High (90-100%)",
+    "Medium (70-89%)",
+    "Low (0-69%)"
+  ];
+
   useEffect(() => {
     fetchReports();
   }, []);
 
   useEffect(() => {
-    // Apply filters whenever search query or disease filter changes
+    // Apply filters whenever search query or any filter changes
     applyFilters();
-  }, [searchQuery, selectedFilter, scanData]);
+  }, [searchQuery, selectedFilter, selectedDateFilter, selectedConfidenceFilter, scanData]);
 
   const fetchReports = async () => {
     try {
@@ -92,12 +112,60 @@ const ReportScreen = () => {
   const applyFilters = () => {
     setCurrentPage(1);
     let results = [...scanData];
+
+    // Apply disease filter
     if (selectedFilter !== "All") {
-      results = results.filter(scan => 
+      results = results.filter(scan =>
         scan.rice_leaf_disease === selectedFilter
       );
     }
-    
+
+    // Apply date filter
+    if (selectedDateFilter !== "All Time") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      results = results.filter(scan => {
+        const scanDate = new Date(scan.created_at);
+
+        switch (selectedDateFilter) {
+          case "Today":
+            return scanDate >= today;
+          case "This Week":
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay());
+            weekStart.setHours(0, 0, 0, 0);
+            return scanDate >= weekStart;
+          case "This Month":
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            return scanDate >= monthStart;
+          case "This Year":
+            const yearStart = new Date(now.getFullYear(), 0, 1);
+            return scanDate >= yearStart;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply confidence filter
+    if (selectedConfidenceFilter !== "All") {
+      results = results.filter(scan => {
+        const confidenceScore = scan.disease_confidence_score * 100;
+
+        switch (selectedConfidenceFilter) {
+          case "High (90-100%)":
+            return confidenceScore >= 90;
+          case "Medium (70-89%)":
+            return confidenceScore >= 70 && confidenceScore < 90;
+          case "Low (0-69%)":
+            return confidenceScore < 70;
+          default:
+            return true;
+        }
+      });
+    }
+
     // Apply search query filter (case insensitive)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -105,33 +173,37 @@ const ReportScreen = () => {
         const userName = getUserName(scan).toLowerCase();
         const diseaseType = scan.rice_leaf_disease.toLowerCase();
         const date = formatDate(scan.created_at).toLowerCase();
-        
+
         return (
-          userName.includes(query) || 
-          diseaseType.includes(query) || 
+          userName.includes(query) ||
+          diseaseType.includes(query) ||
           date.includes(query)
         );
       });
     }
-    
+
     setFilteredData(results);
   };
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedFilter("All");
+    setSelectedDateFilter("All Time");
+    setSelectedConfidenceFilter("All");
     setFilteredData(scanData);
     setCurrentPage(1);
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
-  // Get user's name from scan data, handling possible null values
+  // Get user's name from scan databse
   const getUserName = (scan) => {
-    // If the backend doesn't include user information, provide a default
     if (!scan.firstname && !scan.lastname) {
       return `User ${scan.user_id || 'Unknown'}`;
     }
@@ -140,13 +212,12 @@ const ReportScreen = () => {
 
   // Convert scan_image to image source for ReportCard
   const getImageSource = (scan) => {
-    // Check if scan_image is a URL to cloud storage
     if (scan.scan_image &&
       (scan.scan_image.startsWith('https://') || scan.scan_image.startsWith('http://'))) {
       return { uri: scan.scan_image };
     }
 
-    // Fallback to default images based on disease type
+    // Fallback to default images
     const diseaseImageMap = {
       "Tungro": images.tungro,
       "Rice Blast": images.blast,
@@ -158,7 +229,7 @@ const ReportScreen = () => {
 
   // Handle navigation to result screen
   const handleViewResult = (scan) => {
-    console.log(`user id: `+user.id);
+    console.log(`user id: ` + user.id);
     router.push({
       pathname: "/view-treatments",
       params: {
@@ -188,6 +259,12 @@ const ReportScreen = () => {
       setCurrentPage(currentPage - 1);
     }
   };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery ||
+    selectedFilter !== "All" ||
+    selectedDateFilter !== "All Time" ||
+    selectedConfidenceFilter !== "All";
 
   if (loading) {
     return (
@@ -245,43 +322,143 @@ const ReportScreen = () => {
             ) : null}
           </View>
 
-          {/* Filter Buttons */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+          {/* Filter Type Selection */}
+          <View className="flex-row mb-3">
+            {["Disease", "Date", "Confidence"].map((type) => (
+              <TouchableOpacity
+                key={type}
+                onPress={() => setActiveFilterType(type.toLowerCase())}
+                className={`flex-1 h-9 py-2 mx-1 items-center rounded-full ${activeFilterType === type.toLowerCase() ? "bg-[#228B22]" : "bg-gray-200"
+                  }`}
+              >
+                <Text
+                  className={`font-pmedium ${activeFilterType === type.toLowerCase() ? "text-white" : "text-gray-700"
+                    }`}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Dynamic Filter Options */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
             className="mb-4"
           >
-            {Object.keys(diseaseMapping).map((disease) => (
+            {activeFilterType === "disease" && Object.keys(diseaseMapping).map((disease) => (
               <TouchableOpacity
                 key={disease}
                 onPress={() => setSelectedFilter(disease)}
-                className={`mr-2 px-3 py-1 rounded-full ${
-                  selectedFilter === disease 
-                    ? "bg-green-600" 
-                    : "bg-gray-200"
-                }`}
+                className={`mr-2 px-3 py-1 rounded-full ${selectedFilter === disease
+                  ? "bg-green-600"
+                  : "bg-gray-200"
+                  }`}
               >
                 <Text
-                  className={`font-pmedium ${
-                    selectedFilter === disease 
-                      ? "text-white" 
-                      : "text-gray-700"
-                  }`}
+                  className={`font-pmedium ${selectedFilter === disease
+                    ? "text-white"
+                    : "text-gray-700"
+                    }`}
                 >
                   {disease}
                 </Text>
               </TouchableOpacity>
             ))}
-            
-            {(searchQuery || selectedFilter !== "All") && (
+
+            {activeFilterType === "date" && dateFilters.map((dateFilter) => (
+              <TouchableOpacity
+                key={dateFilter}
+                onPress={() => setSelectedDateFilter(dateFilter)}
+                className={`mr-2 px-3 py-1 rounded-full ${selectedDateFilter === dateFilter
+                  ? "bg-green-600"
+                  : "bg-gray-200"
+                  }`}
+              >
+                <Text
+                  className={`font-pmedium ${selectedDateFilter === dateFilter
+                    ? "text-white"
+                    : "text-gray-700"
+                    }`}
+                >
+                  {dateFilter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            {activeFilterType === "confidence" && confidenceFilters.map((confidenceFilter) => (
+              <TouchableOpacity
+                key={confidenceFilter}
+                onPress={() => setSelectedConfidenceFilter(confidenceFilter)}
+                className={`mr-2 px-3 py-1 rounded-full ${selectedConfidenceFilter === confidenceFilter
+                  ? "bg-green-600"
+                  : "bg-gray-200"
+                  }`}
+              >
+                <Text
+                  className={`font-pmedium ${selectedConfidenceFilter === confidenceFilter
+                    ? "text-white"
+                    : "text-gray-700"
+                    }`}
+                >
+                  {confidenceFilter}
+                </Text>
+              </TouchableOpacity>
+            ))}{/* Clear Filters Button */}
+            {hasActiveFilters && (
               <TouchableOpacity
                 onPress={clearFilters}
                 className="mr-2 px-3 py-1 rounded-full border border-gray-300 bg-white"
               >
-                <Text className="font-pmedium text-gray-700">Clear</Text>
+                <Text className="font-pmedium text-gray-700">Clear All</Text>
               </TouchableOpacity>
             )}
           </ScrollView>
+
+          {/* Active Filters Summary */}
+          {hasActiveFilters && (
+            <View className="mb-4 p-2 bg-white-100 rounded-lg border border-gray-300">
+              <Text className="font-pmedium text-xs text-gray-700 mb-1">Active Filters:</Text>
+              <View className="flex-row flex-wrap">
+                {selectedFilter !== "All" && (
+                  <View className="bg-green-100 mr-2 mb-1 px-2 py-1 rounded-full flex-row items-center">
+                    <Text className="text-xs font-pmedium text-green-800">{selectedFilter}</Text>
+                    <TouchableOpacity onPress={() => setSelectedFilter("All")}>
+                      <Icon name="close" size={14} color="#166534" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {selectedDateFilter !== "All Time" && (
+                  <View className="bg-blue-100 mr-2 mb-1 px-2 py-1 rounded-full flex-row items-center">
+                    <Text className="text-xs font-pmedium text-blue-800">{selectedDateFilter}</Text>
+                    <TouchableOpacity onPress={() => setSelectedDateFilter("All Time")}>
+                      <Icon name="close" size={14} color="#1e40af" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {selectedConfidenceFilter !== "All" && (
+                  <View className="bg-purple-100 mr-2 mb-1 px-2 py-1 rounded-full flex-row items-center">
+                    <Text className="text-xs font-pmedium text-purple-800">{selectedConfidenceFilter}</Text>
+                    <TouchableOpacity onPress={() => setSelectedConfidenceFilter("All")}>
+                      <Icon name="close" size={14} color="#6b21a8" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {searchQuery && (
+                  <View className="bg-gray-200 mr-2 mb-1 px-2 py-1 rounded-full flex-row items-center">
+                    <Text className="text-xs font-pmedium text-gray-800">"{searchQuery}"</Text>
+                    <TouchableOpacity onPress={() => setSearchQuery("")}>
+                      <Icon name="close" size={14} color="#374151" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
 
           {/* Pie Chart */}
           <View className="w-full items-center mb-4">
@@ -335,7 +512,7 @@ const ReportScreen = () => {
               <View className="py-8 items-center">
                 <Icon name="search-off" size={48} color="#666" />
                 <Text className="font-pmedium text-gray-500 mt-2">No results found</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={clearFilters}
                   className="mt-4 bg-green-600 px-4 py-2 rounded-lg"
                 >
@@ -345,8 +522,8 @@ const ReportScreen = () => {
             ) : (
               <>
                 {visibleScans.map((scan) => (
-                  <TouchableOpacity 
-                    key={scan.rice_leaf_scan_id} 
+                  <TouchableOpacity
+                    key={scan.rice_leaf_scan_id}
                     onPress={() => handleViewResult(scan)}
                     activeOpacity={0.7}
                   >

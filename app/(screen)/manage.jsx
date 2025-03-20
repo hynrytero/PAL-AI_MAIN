@@ -24,7 +24,7 @@ const ManageAccount = () => {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError] = useState("");
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); 
 
   const [passwordErrors, setPasswordErrors] = useState({
     newPassword: "",
@@ -64,7 +64,7 @@ const ManageAccount = () => {
       } else {
         setPasswordErrors(prev => ({ ...prev, newPassword: "" }));
       }
-      
+
       // Also update confirm password error if confirm password has been entered
       if (reEnterNewPassword) {
         if (reEnterNewPassword !== password) {
@@ -89,17 +89,50 @@ const ManageAccount = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (!deletePassword) {
       Alert.alert("Error", "Please enter your password to confirm deletion.");
       return;
     }
 
-    // Here you would verify the password with your backend
-    // For now, we'll simulate the verification
-    Alert.alert("Account Deleted", "Your account has been deleted.");
-    setModalVisible(false);
-    router.push("/signin");
+    try {
+      setIsLoading(true);
+
+      const response = await fetch(`${API_URL}/credentials/delete-account`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          password: deletePassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete account');
+      }
+
+      // Success case
+      Alert.alert("Account Deleted", "Your account has been successfully deleted.");
+      setModalVisible(false);
+
+      if (logout) {
+        logout();
+      }
+
+      // Navigate to sign in
+      router.push("/sign-in");
+
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to delete account. Please try again.");
+      console.log(`ERROR:`, error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangePassword = async () => {
@@ -310,9 +343,9 @@ const ManageAccount = () => {
       ) : null}
       <Button
         mode="contained"
-        style={{ 
-          borderRadius: 5, 
-          marginBottom: 10, 
+        style={{
+          borderRadius: 5,
+          marginBottom: 10,
           backgroundColor: isPasswordChangeEnabled() ? "forestgreen" : "#c0c0c0"
         }}
         disabled={isLoading || !isPasswordChangeEnabled()}
@@ -427,7 +460,7 @@ const ManageAccount = () => {
       </ScrollView>
 
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
@@ -445,14 +478,23 @@ const ManageAccount = () => {
             />
             <Button
               mode="contained"
-              style={{ borderRadius: 5, marginBottom: 10 }}
+              style={{ borderRadius: 5, marginBottom: 10, backgroundColor: "red" }}
+              disabled={isLoading}
               onPress={handleDeleteAccount}
             >
-              Delete Account
+              {isLoading ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <ActivityIndicator size={20} color="white" animating={true} />
+                  <Text style={{ color: 'white', marginLeft: 10 }}>Deleting Account...</Text>
+                </View>
+              ) : (
+                "Delete Account"
+              )}
             </Button>
             <Button
               mode="outlined"
               style={{ borderRadius: 5 }}
+              disabled={isLoading}
               onPress={() => setModalVisible(false)}
             >
               Cancel

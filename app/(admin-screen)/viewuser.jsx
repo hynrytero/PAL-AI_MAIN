@@ -11,12 +11,17 @@ import {
 } from "react-native";
 import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
+import axios from "axios";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+
+const API_URL = API_URL_BCNKEND;
 
 const viewuser = () => {
   const params = useLocalSearchParams(); // Get URL parameters
-  
+
   // Extract user data from params instead of fetching from the database
   const [userData, setUserData] = useState({
+    user_id: params.user_id || '',
     firstname: params.firstname || '',
     lastname: params.lastname || '',
     email: params.email || '',
@@ -25,17 +30,18 @@ const viewuser = () => {
     gender: params.gender || '',
     profile_image: params.profile_image || '',
   });
-  
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState(new Date());
   const [contactNumber, setContactNumber] = useState("");
- 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     setFirstName(userData.firstname);
     setLastName(userData.lastname);
     setContactNumber(userData.mobile_number);
-    
+
     if (userData.birthdate) {
       setBirthDate(new Date(userData.birthdate));
     }
@@ -43,6 +49,50 @@ const viewuser = () => {
 
   const handleBack = () => {
     router.back();
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Delete User",
+      `Are you sure you want to delete ${userData.firstname} ${userData.lastname}'s account? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: confirmDelete
+        }
+      ]
+    );
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setIsLoading(true);
+      
+      const deleteUrl = `${API_URL}/admin/users/delete-user/${userData.user_id}`;
+      const response = await axios.delete(deleteUrl, {
+        headers: {
+          'X-API-Key': AUTH_KEY,
+        }
+      });
+  
+      if (response.data.success) {
+        Alert.alert(
+          "Success",
+          "User has been deleted successfully",
+          [{ text: "OK", onPress: () => router.push("/users") }]
+        );
+      } else {
+        Alert.alert("Error", response.data.message || "Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Delete user error:", error.response ? error.response.status : error.message);
+      console.error("Delete user error details:", error.response ? error.response.data : "No response data");
+      Alert.alert("Error", "Failed to delete user. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -128,6 +178,17 @@ const viewuser = () => {
               </Text>
             </View>
           </View>
+
+          {/* Delete Button */}
+          <TouchableOpacity
+            onPress={handleDelete}
+            className="bg-red-500 py-2 px-3 rounded-md mt-3 items-center "
+            disabled={isLoading}
+          >
+            <Text className="text-white font-semibold text-lg">
+              {isLoading ? "Deleting..." : "Delete User"}
+            </Text>
+          </TouchableOpacity>
         </SafeAreaView>
       </ScrollView>
     </ImageBackground>

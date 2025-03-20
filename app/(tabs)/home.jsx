@@ -415,19 +415,37 @@ const Home = () => {
                     key={index}
                     style={{
                       backgroundColor: '#5284B7',
-                      width: cardWidth,
+                      width: '30%',
+                      aspectRatio: 1,
                       borderRadius: 5,
                       justifyContent: 'center',
                       alignItems: 'center',
                       padding: 12,
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      marginHorizontal: index === 1 ? '3%' : 0 // Add space between cards
                     }}
                   >
                     <Image
                       source={getWeatherIcon(item.weather[0].icon)}
-                      style={{ position: 'absolute', bottom: -20, right: -20, width: 100, height: 100, opacity: 0.6 }}
+                      style={{
+                        position: 'absolute',
+                        bottom: -20,
+                        right: -20,
+                        width: 100,
+                        height: 100,
+                        opacity: 0.6
+                      }}
+                      resizeMode="contain"
                     />
-                    <Text style={{ color: 'white', fontWeight: '500', fontSize: 14 }}>
+                    <Text
+                      style={{
+                        color: 'white',
+                        fontWeight: '500',
+                        fontSize: 14,
+                        textAlign: 'center'
+                      }}
+                      numberOfLines={1}
+                    >
                       {formatDay(item.dt)}
                     </Text>
                     <Text style={{ fontSize: 36, color: 'white' }}>
@@ -450,10 +468,8 @@ const Home = () => {
               width: '100%',
               paddingVertical: 12
             }}>
-              <Text style={{ fontWeight: '600' }}>Today</Text>
-              <Text style={{ fontWeight: '500' }}>
-                {formatDate(currentTime)}
-              </Text>
+              <Text style={{ fontWeight: '700', fontSize: 16, marginBottom:0, marginLeft: 7}}>Today</Text>
+              <Text style={{ fontWeight: '500' }}> {formatDate(currentTime)} </Text>
             </View>
             <ScrollView
               horizontal={true}
