@@ -2,11 +2,10 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Tabs } from "expo-router";
-import { AuthProvider, useAuth } from "../../context/AuthContext";
+import { AuthProvider } from "../../context/AuthContext";
 import { icons } from "../../constants";
 import { NotificationProvider, useNotification } from "../../context/NotificationContext";
 import { Provider as PaperProvider } from "react-native-paper";
-import { useRouter } from "expo-router";
 
 const TabIcon = ({ icon, color, name, focused, showBadge = false }) => {
   return (
@@ -52,19 +51,6 @@ const NotificationTabWithBadge = ({ color, focused }) => {
 
 // Custom tab bar that includes logout button
 const CustomTabBar = ({ state, descriptors, navigation }) => {
-  const { logout } = useAuth();
-  const router = useRouter();
-  
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Redirect to login screen after logout
-      router.replace("sign-in");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
   return (
     <View style={styles.tabContainer}>
       {state.routes.map((route, index) => {
@@ -96,19 +82,6 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
           </TouchableOpacity>
         );
       })}
-      
-      {/* Logout Tab */}
-      <TouchableOpacity
-        style={styles.tab}
-        onPress={handleLogout}
-      >
-        <TabIcon
-          icon={icons.logout || icons.profile}
-          color="#000064"
-          name="Logout"
-          focused={false}
-        />
-      </TouchableOpacity>
     </View>
   );
 };

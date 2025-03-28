@@ -20,9 +20,13 @@ const Result = () => {
     confidence = "0%",
     date = new Date().toLocaleDateString(),
     description = "No description available",
-    treatments = "No treatments available",
+    treatments = '{"id": "", "name": "", "description": ""}',
+    medicines = '{"id": "", "name": "", "description": "", "image": ""}',
     fromHistory = false,
   } = params;
+
+  const parsedTreatment = JSON.parse(treatments);
+  const parsedMedicine = JSON.parse(medicines);
 
   const handleBack = () => {
     if (fromHistory === "true") {
@@ -96,7 +100,8 @@ const Result = () => {
                   date: date,
                   description: description,
                   treatments: treatments,
-                  fromHistory: fromHistory, // Pass through the navigation source
+                  medicines: medicines,
+                  fromHistory: fromHistory,
                 },
               })
             }

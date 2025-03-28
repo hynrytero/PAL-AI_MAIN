@@ -13,7 +13,7 @@ export default function SmallCard({ disease, num, color, handlePress }) {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          backgroundColor: "#E6F7F0", // Light mint green background matching image
+          backgroundColor: "#E6F7F0", 
           borderRadius: 10,
           paddingHorizontal: 20,
           shadowColor: "#000",
@@ -23,7 +23,7 @@ export default function SmallCard({ disease, num, color, handlePress }) {
           width: "100%",
           alignSelf: "center",
           position: "relative",
-          overflow: "hidden", // Ensure the sidebar doesn't overflow
+          overflow: "hidden", 
         }}
       >
         {/* Left Colored Bar */}
@@ -50,7 +50,7 @@ export default function SmallCard({ disease, num, color, handlePress }) {
         >
           <Text
             style={{
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: "600",
               color: "#000",
               marginBottom: 2,
@@ -59,12 +59,10 @@ export default function SmallCard({ disease, num, color, handlePress }) {
             {disease}
           </Text>
           <Text style={{ fontSize: 14, color: "#666" }}>
-            {isNumber ? `${num} Treatments` : num}
+            {isNumber ? `Treatments` : num}
           </Text>
         </View>
 
-        {/* Ellipsis Icon */}
-        <MaterialIcons name="more-horiz" size={24} color="#333" />
       </View>
     </TouchableOpacity>
   );

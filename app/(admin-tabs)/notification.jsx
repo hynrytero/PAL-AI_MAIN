@@ -64,7 +64,7 @@ const Notification = () => {
     if (!user || !user.id) return;
 
     try {
-      const response = await axios.get(`${API_URL}/notifications/${user.id}`, {
+      const response = await axios.get(`${API_URL}/notifications/user/${user.id}`, {
         headers: {
           'X-API-Key': AUTH_KEY
         }

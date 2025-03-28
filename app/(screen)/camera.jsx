@@ -154,9 +154,6 @@ export default function App() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
         setImage(selectedImage.uri);
-
-        // Send selected image to API
-        //const predictions = await sendImageToAPI(selectedImage.uri)
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -216,33 +213,105 @@ export default function App() {
     }
   };
 
-  /* 
-        change the title of the medicine in order to do that must add it to the json file
-        implement environtment variables
-        transfer endpoint code from local to main - change pool methods
-  */
+// send notifications to admin if tungro
+const sendTungroNotificationToAdmins = async (imageUrl, disease) => {
+  try {
+    // Fetch all admin users with push tokens
+    const response = await fetch(`${API_URL}/notifications/fetch-admin`, {
+      method: 'GET',
+      headers: {
+        'X-API-Key': AUTH_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch admin users: ${response.status}`);
+    }
+
+    const adminUsers = await response.json();
+    
+    if (!adminUsers || adminUsers.length === 0) {
+      console.log('No admin users found with push tokens');
+      return;
+    }
+
+    const currentDate = new Date().toLocaleString();
+    
+    // For each admin, store notification and send push notification
+    for (const admin of adminUsers) {
+      // 1. Store notification in database
+      await fetch(`${API_URL}/notifications/store-notification`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: admin.userId,
+          title: 'Urgent: Possible Tungro Disease Detected',
+          body: `Farmer ${user.username} (${user.email}) has detected a possible ${disease} in their field on ${currentDate}. Immediate attention required.`,
+          icon: 'warning',
+          icon_bg_color: 'red',
+          type: 'alert',
+          data: {
+            imageUrl: imageUrl,
+            disease: disease,
+            detectedAt: currentDate,
+            scanBy: user.id
+          }
+        })
+      });
+      
+      // 2. Send push notification
+      await fetch(`${API_URL}/push-notify/notify`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: admin.userId,
+          title: 'Urgent: Possible Tungro Disease Detected',
+          body: `A farmer has detected ${disease} in their field. Immediate attention required.`,
+          data: {
+            type: 'disease_alert',
+            imageUrl: imageUrl,
+            disease: disease,
+            detectedAt: currentDate,
+            scanBy: user.id
+          }
+        })
+      });
+    }
+    
+    console.log(`Tungro notification sent to ${adminUsers.length} admins`);
+  } catch (error) {
+    console.error('Error sending Tungro notifications:', error);
+  }
+};
 
   // Save Picture
   const savePicture = async () => {
-
     if (image) {
       try {
-
         // Send image for prediction
         const predictionsResult = await sendImageToAPI(image);
-
+  
         // Send image to cloud storage
         const uploadImage = await uploadImageToCloud(image);
-
+  
         // Get Disease Info
         const result = await getDiseaseInfo(predictionsResult[0].class_number);
 
         // Send prediction to database
         savePredictionToDB(predictionsResult, uploadImage);
-
-        // Save image to gallery
-        //await MediaLibrary.createAssetAsync(image);
-
+  
+        // Check if the disease is Tungro and send notification to admin
+        if (result.rice_leaf_disease === "Tungro") {
+          await sendTungroNotificationToAdmins(uploadImage, result.rice_leaf_disease);
+        }
+  
         // Navigate to result screen with the data
         router.push({
           pathname: "/result",
@@ -252,10 +321,11 @@ export default function App() {
             confidence: `${(predictionsResult[0]?.confidence * 100).toFixed(2)}%`,
             date: new Date().toLocaleDateString(),
             description: result.disease_description,
-            treatments: result.treatment_description,
+            treatments: JSON.stringify(result.treatments),
+            medicines: JSON.stringify(result.medicines)
           },
         });
-
+  
       } catch (err) {
         console.log("Error details:", err.message, err.stack);
         Alert.alert("Error", `Upload failed: ${err.message}`);
@@ -394,14 +464,6 @@ export default function App() {
 
           {/* Bottom Controls */}
           <View style={styles.bottomControlsContainer}>
-            {/* <TouchableOpacity
-              onPress={() => previousImage && setImage(previousImage)}
-            >
-              <Image
-                source={{ uri: previousImage }}
-                style={styles.previousImage}
-              />
-            </TouchableOpacity> */}
             <Button
               icon="photo-library"
               onPress={pickImageFromGallery}

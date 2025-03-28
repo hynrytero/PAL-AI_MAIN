@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, TouchableOpacity, ImageBackground, Image } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useRouter, useLocalSearchParams, Link } from "expo-router";
 import { images } from "../../constants";
@@ -74,7 +74,7 @@ const SignUpOTP = () => {
     >
       <View className="flex-1 items-center px-6 h-full w-full">
         {/* Header */}
-        <View className="flex-row w-full items-center justify-start mt-[100px] mb-[100px]">
+        <View className="flex-row w-full items-center justify-start mt-[100px] mb-[45px]">
           <TouchableOpacity onPress={() => router.push("/sign-in")}>
             <Icon name="chevron-back" size={24} color="black" />
           </TouchableOpacity>
@@ -83,8 +83,15 @@ const SignUpOTP = () => {
           </Text>
         </View>
 
+        {/* Logo */}
+        <Image
+          source={images.logo}
+          style={{ width: 120, height: 120 }}
+          resizeMode="contain"
+        />
+
         {/* Content */}
-        <View className="w-full h-full items-center pt-20">
+        <View className="w-full h-full items-center pt-5">
           <View className="flex-column items-center my-5 gap-2">
             <Text className="font-psemibold text-3xl">Forgot Password?</Text>
             <Text className="text-center text-gray-500">

@@ -16,7 +16,9 @@ import { images } from "../../constants";
 import axios from "axios";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useAuth } from "../../context/AuthContext";
 
 const API_URL = API_URL_BCNKEND;
 
@@ -26,6 +28,7 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const searchInputRef = useRef(null);
+  const { logout } = useAuth();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -343,6 +346,16 @@ const Users = () => {
     );
   }
 
+  const handleLogout = async () => {
+      try {
+        await logout();
+        router.replace("sign-in");
+        console.log(`Logged Out`);
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+    };
+
   if (error) {
     return (
       <ImageBackground source={images.background_history} style={{ flex: 1 }}>
@@ -365,7 +378,12 @@ const Users = () => {
           keyExtractor={(item, index) => (item.email || index.toString())}
           ListHeaderComponent={
             <View>
-              <Text style={{ fontSize: 30, fontWeight: '600', marginBottom: 12 }}>Users</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, marginRight: 7 }}>
+                <Text style={{ fontSize: 30, fontWeight: "600" }}>Users</Text>
+                <TouchableOpacity onPress={handleLogout}>
+                  <FontAwesome name="sign-out" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
 
               {/* Search Box */}
               <View style={{

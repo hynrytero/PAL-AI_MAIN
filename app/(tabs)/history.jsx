@@ -59,7 +59,22 @@ const History = () => {
       }
 
       const data = await response.json();
-      setScans(data);
+      // Transform the data to match the component's expected format
+      const transformedData = data.map(scan => ({
+        ...scan,
+        diseaseDescription: scan.disease_description, // Map disease_description to diseaseDescription
+        confidence: scan.confidence.toString(), // Ensure confidence is a string
+        treatments: scan.treatments.map(treatment => ({
+          ...treatment,
+          treatment: treatment.name // Map name to treatment for backwards compatibility
+        })),
+        medicines: scan.medicines.map(medicine => ({
+          ...medicine,
+          medicine: medicine.name // Map name to medicine for backwards compatibility
+        }))
+      }));
+      
+      setScans(transformedData);
       setCurrentPage(1); // Reset to first page when new data is loaded
     } catch (error) {
       console.error('Error:', error);
@@ -131,7 +146,8 @@ const History = () => {
         confidence: `${scan.confidence}%`,
         date: formatDate(scan.date),
         description: scan.diseaseDescription,
-        treatments: scan.medicineDescription,
+        medicines: JSON.stringify(scan.medicines),
+        treatments: JSON.stringify(scan.treatments),
         fromHistory: true
       }
     });
@@ -245,9 +261,9 @@ const History = () => {
             <ActivityIndicator size="large" color="#ADD8E6" />
           ) : paginatedScans.length > 0 ? (
             <>
-              {paginatedScans.map((scan) => (
+              {paginatedScans.map((scan, index) => (
                 <TouchableOpacity
-                  key={scan.id}
+                  key={`${scan.id}-${index}`}
                   onPress={() => handleCardPress(scan)}
                   activeOpacity={0.7}
                   disabled={isNavigating}
@@ -259,6 +275,8 @@ const History = () => {
                     percent={scan.confidence.toString()}
                     color="bg-[#ADD8E6]"
                     image={{ uri: scan.image }}
+                    medicines={scan.medicines}
+                    treatments={scan.treatments}
                   />
                 </TouchableOpacity>
               ))}

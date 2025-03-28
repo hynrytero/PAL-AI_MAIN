@@ -14,7 +14,7 @@ const TreatmentCard = ({ treatment, color, image, handlePress }) => {
         alignItems: "center",
       }}
     >
-      <Image source={image} style={{ width: 100, height: 100 }} />
+      <Image source={image} style={{ width: 100, height: 100, borderRadius: 15 }} />
       <Text>{treatment}</Text>
     </TouchableOpacity>
   );

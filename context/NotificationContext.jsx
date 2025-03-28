@@ -115,9 +115,9 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(0);
         return;
       }
-
+  
       try {
-        const response = await axios.get(`${API_URL}/notifications/${user.id}`, {
+        const response = await axios.get(`${API_URL}/notifications/user/${user.id}`, {
           headers: {
             'X-API-Key': AUTH_KEY
           }
@@ -125,13 +125,15 @@ export const NotificationProvider = ({ children }) => {
         
         // Count unread notifications from the existing endpoint
         const unreadNotifications = response.data.filter(notification => !notification.read);
-        setUnreadCount(unreadNotifications.length);
+        const count = unreadNotifications.length;
+        console.log(`Unread notifications count: ${count}`); // Add logging
+        setUnreadCount(count);
       } catch (error) {
         console.error("Error fetching unread notification count:", error);
         setUnreadCount(0);
       }
     };
-
+  
     fetchUnreadCount();
   }, [user, refreshTrigger]);
 

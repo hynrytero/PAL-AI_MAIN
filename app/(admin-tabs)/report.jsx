@@ -88,11 +88,21 @@ const ReportScreen = () => {
   };
 
   const processReportData = (data) => {
-    setScanData(data);
-    setFilteredData(data);
+    // Deduplicate the data based on rice_leaf_scan_id and created_at
+    const uniqueScans = data.reduce((acc, scan) => {
+        const key = `${scan.rice_leaf_scan_id}-${scan.created_at}`;
+        if (!acc[key]) {
+            acc[key] = scan;
+        }
+        return acc;
+    }, {});
+
+    const deduplicatedData = Object.values(uniqueScans);
+    setScanData(deduplicatedData);
+    setFilteredData(deduplicatedData);
 
     // Count occurrences of each disease type
-    const diseaseCounts = data.reduce((acc, scan) => {
+    const diseaseCounts = deduplicatedData.reduce((acc, scan) => {
       const disease = scan.rice_leaf_disease;
       acc[disease] = (acc[disease] || 0) + 1;
       return acc;
@@ -106,7 +116,7 @@ const ReportScreen = () => {
     }));
 
     setChartData(formattedChartData);
-    setTotalScans(data.length);
+    setTotalScans(deduplicatedData.length);
   };
 
   const applyFilters = () => {
@@ -521,9 +531,9 @@ const ReportScreen = () => {
               </View>
             ) : (
               <>
-                {visibleScans.map((scan) => (
+                {visibleScans.map((scan, index) => (
                   <TouchableOpacity
-                    key={scan.rice_leaf_scan_id}
+                    key={`${scan.rice_leaf_scan_id}-${index}`}
                     onPress={() => handleViewResult(scan)}
                     activeOpacity={0.7}
                   >

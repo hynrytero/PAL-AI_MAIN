@@ -11,7 +11,6 @@ import {
   Platform,
   SafeAreaView,
   Dimensions,
-  StyleSheet,
 } from "react-native";
 import React, { useState } from "react";
 import { Link, router } from "expo-router";
@@ -82,8 +81,12 @@ const SignUp = () => {
     return passwordRegex.test(password);
   };
 
-  const validateConfirmPassword = (confirmpassword) => {
-    return confirmpassword !== form.password;
+  const validatePasswordIdentity = (Password) => {
+    return Password === form.confirmpassword;
+  };
+
+  const validateConfirmPassword = (confirmPassword) => {
+    return confirmPassword === form.password;
   };
 
   const validateBirthdate = (birthdate) => {
@@ -170,11 +173,18 @@ const SignUp = () => {
     } else {
       setPasswordError("");
     }
+    
+    if (!validatePasswordIdentity(e) && form.confirmpassword !== "") {
+      setConfirmPasswordError("Password doesn't match.");
+    } else {
+      setConfirmPasswordError("");
+    }
+
   };
 
   const handleConfirmPassword = (e) => {
     setForm({ ...form, confirmpassword: e });
-    if (validateConfirmPassword(e)) {
+    if (!validateConfirmPassword(e)) {
       setConfirmPasswordError("Password doesn't match.");
     } else {
       setConfirmPasswordError("");
@@ -217,39 +227,77 @@ const SignUp = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{
+      flex: 1,
+    }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
+        style={{ flex: 1 }}
       >
         <ImageBackground
           source={images.background_signup}
-          style={styles.backgroundImage}
+          style={{
+            flex: 1,
+            width: '100%',
+          }}
           resizeMode="cover"
         >
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <ScrollView
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={{
+                flexGrow: 1,
+                justifyContent: 'center',
+                paddingVertical: height * 0.04,
+              }}
               showsVerticalScrollIndicator={false}
             >
-              <View style={styles.formContainer}>
-                <View style={styles.logoContainer}>
+              <View style={{
+                width: '100%',
+                paddingHorizontal: width * 0.05,
+                maxWidth: 500,
+                alignSelf: 'center',
+              }}>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginBottom: height * 0.02,
+                }}>
                   <Image
                     source={images.logo}
                     resizeMode="contain"
-                    style={styles.logo}
+                    style={{
+                      width: width * 0.3,
+                      height: width * 0.3,
+                      maxWidth: 100,
+                      maxHeight: 100,
+                      marginRight: 10,
+                    }}
                   />
-                  <Text style={styles.appTitle}>PAL-AI</Text>
+                  <Text style={{
+                    fontSize: Math.min(width * 0.06, 28),
+                    fontWeight: '700',
+                  }}>PAL-AI</Text>
                 </View>
-                <Text style={styles.signUpTitle}>Sign-Up</Text>
-                <Text style={styles.formDescription}>Please enter the details.</Text>
+                <Text style={{
+                  fontSize: Math.min(width * 0.8, 28),
+                  fontWeight: '600',
+                  marginBottom: 5,
+                }}>Sign-Up</Text>
+                <Text style={{
+                  fontSize: Math.min(width * 0.04, 18),
+                  marginBottom: height * 0.02,
+                }}>Please enter the details.</Text>
 
-                <View style={styles.rowContainer}>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
                   <TextInput
                     label="First Name"
                     value={form.firstname}
                     onChangeText={(e) => setForm({ ...form, firstname: e })}
-                    style={styles.halfWidthInput}
+                    style={{ width: '48%' }}
                     mode="outlined"
                     activeOutlineColor="#006400"
                     outlineColor="#CBD2E0"
@@ -260,7 +308,7 @@ const SignUp = () => {
                     label="Last Name"
                     value={form.lastname}
                     onChangeText={(e) => setForm({ ...form, lastname: e })}
-                    style={styles.halfWidthInput}
+                    style={{ width: '48%' }}
                     mode="outlined"
                     activeOutlineColor="#006400"
                     outlineColor="#CBD2E0"
@@ -269,13 +317,17 @@ const SignUp = () => {
                   />
                 </View>
 
-                <View style={styles.rowContainer}>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
                   <TextInput
                     label="Birthdate (MM/DD/YYYY)"
                     value={form.birthdate}
                     keyboardType="numeric"
                     onChangeText={handleBirthdate}
-                    style={styles.halfWidthInput}
+                    style={{ width: '48%' }}
                     mode="outlined"
                     activeOutlineColor="#006400"
                     outlineColor="#CBD2E0"
@@ -285,13 +337,22 @@ const SignUp = () => {
                     dense={width < 360}
                   />
 
-                  <View style={styles.dropdownContainer}>
+                  <View style={{
+                    width: '48%',
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#CBD2E0',
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: 'center',
+                    height: width < 360 ? 48 : 56,
+                  }}>
                     <Dropdown
-                      style={styles.dropdown}
-                      placeholderStyle={styles.dropdownPlaceholder}
-                      selectedTextStyle={styles.dropdownSelectedText}
-                      inputSearchStyle={styles.dropdownSearchInput}
-                      iconStyle={styles.dropdownIcon}
+                      style={{ flex: 1 }}
+                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      iconStyle={{ marginRight: 8 }}
                       data={data}
                       labelField="label"
                       valueField="value"
@@ -306,14 +367,18 @@ const SignUp = () => {
                 </View>
 
                 {birthdateError && form.birthdate.length > 0 && (
-                  <Text style={styles.errorText}>{birthdateError}</Text>
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{birthdateError}</Text>
                 )}
 
                 <TextInput
                   label="Email"
                   value={form.email}
                   onChangeText={handleChangeEmail}
-                  style={styles.fullWidthInput}
+                  style={{ width: '100%', marginBottom: 8 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -323,7 +388,11 @@ const SignUp = () => {
                 />
 
                 {error && form.email.length > 0 && (
-                  <Text style={styles.errorText}>{error}</Text>
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{error}</Text>
                 )}
 
                 <TextInput
@@ -331,7 +400,7 @@ const SignUp = () => {
                   value={form.mobilenumber}
                   keyboardType="numeric"
                   onChangeText={handleChangeMobile}
-                  style={styles.fullWidthInput}
+                  style={{ width: '100%', marginBottom: 8 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -341,14 +410,18 @@ const SignUp = () => {
                 />
 
                 {mobileError && form.mobilenumber.length > 0 && (
-                  <Text style={styles.errorText}>{mobileError}</Text>
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{mobileError}</Text>
                 )}
 
                 <TextInput
                   label="Username"
                   value={form.username}
                   onChangeText={(e) => setForm({ ...form, username: e })}
-                  style={styles.fullWidthInput}
+                  style={{ width: '100%', marginBottom: 8 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -368,7 +441,7 @@ const SignUp = () => {
                       onPress={() => setPasswordVisible(!passwordVisible)}
                     />
                   }
-                  style={styles.fullWidthInput}
+                  style={{ width: '100%', marginBottom: 8 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -378,7 +451,11 @@ const SignUp = () => {
                 />
 
                 {passwordError && form.password.length > 0 && (
-                  <Text style={styles.errorText}>{passwordError}</Text>
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{passwordError}</Text>
                 )}
 
                 <TextInput
@@ -393,7 +470,7 @@ const SignUp = () => {
                       onPress={() => setConPasswordVisible(!conPasswordVisible)}
                     />
                   }
-                  style={styles.fullWidthInput}
+                  style={{ width: '100%', marginBottom: 8 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -403,20 +480,34 @@ const SignUp = () => {
                 />
 
                 {confirmPasswordError && form.confirmpassword.length > 0 && (
-                  <Text style={styles.errorText}>{confirmPasswordError}</Text>
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{confirmPasswordError}</Text>
                 )}
 
-                <View style={styles.checkboxContainer}>
+                <View style={{
+                  marginTop: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
                   <Checkbox
                     status={isChecked ? "checked" : "unchecked"}
                     onPress={() => setIsChecked(!isChecked)}
                     color="#006400"
                   />
-                  <Text style={styles.termsText}>
+                  <Text style={{
+                    marginLeft: 8,
+                    fontSize: Math.min(width * 0.035, 16),
+                  }}>
                     I agree to the{" "}
                     <Link
                       href="/terms-and-condition"
-                      style={styles.termsLink}
+                      style={{
+                        color: '#006400',
+                        fontWeight: '500',
+                      }}
                     >
                       Terms and Conditions
                     </Link>
@@ -426,19 +517,33 @@ const SignUp = () => {
                 <CustomButton
                   title="Sign Up"
                   handlePress={handleSignUp}
-                  containerStyles={styles.signUpButton}
+                  containerStyles={{
+                    width: '100%',
+                    marginTop: height * 0.03,
+                    height: Math.min(height * 0.06, 50),
+                  }}
                   isLoading={isSubmitting}
                   disabled={!isFormValid}
                 />
 
-                <View style={styles.loginLinkContainer}>
-                  <Text style={styles.loginText}>
+                <View style={{
+                  alignItems: 'center',
+                  marginTop: height * 0.02,
+                }}>
+                  <Text style={{
+                    fontSize: Math.min(width * 0.035, 16),
+                    color: '#4B4B4B',
+                  }}>
                     Already a user?{" "}
                     <Link
                       href="/sign-in"
-                      style={styles.loginLink}
+                      style={{
+                        fontWeight: '600',
+                        color: '#006400',
+                      }}
                     >
-                      Log in</Link>
+                      Log in
+                    </Link>
                   </Text>
                 </View>
               </View>
@@ -449,123 +554,5 @@ const SignUp = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingVertical: height * 0.04,
-  },
-  formContainer: {
-    width: '100%',
-    paddingHorizontal: width * 0.05,
-    maxWidth: 500,
-    alignSelf: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: height * 0.02,
-  },
-  logo: {
-    width: width * 0.3,
-    height: width * 0.3,
-    maxWidth: 100,
-    maxHeight: 100,
-    marginRight: 10,
-  },
-  appTitle: {
-    fontSize: Math.min(width * 0.06, 28),
-    fontWeight: '700',
-  },
-  signUpTitle: {
-    fontSize: Math.min(width * 0.06, 28),
-    fontWeight: '600',
-    marginBottom: 5,
-  },
-  formDescription: {
-    fontSize: Math.min(width * 0.04, 18),
-    marginBottom: height * 0.02,
-  },
-  rowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  halfWidthInput: {
-    width: '48%',
-  },
-  fullWidthInput: {
-    width: '100%',
-    marginBottom: 8,
-  },
-  dropdownContainer: {
-    width: '48%',
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#CBD2E0',
-    borderRadius: 5,
-    padding: 8,
-    justifyContent: 'center',
-    height: width < 360 ? 48 : 56,
-  },
-  dropdown: {
-    flex: 1,
-  },
-  dropdownPlaceholder: {
-    fontSize: Math.min(width * 0.035, 16),
-  },
-  dropdownSelectedText: {
-    fontSize: Math.min(width * 0.035, 16),
-  },
-  dropdownSearchInput: {
-    fontSize: Math.min(width * 0.035, 16),
-  },
-  dropdownIcon: {
-    marginRight: 8,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: Math.min(width * 0.03, 14),
-    marginBottom: 8,
-  },
-  checkboxContainer: {
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  termsText: {
-    marginLeft: 8,
-    fontSize: Math.min(width * 0.035, 16),
-  },
-  termsLink: {
-    color: '#006400',
-    fontWeight: '500',
-  },
-  signUpButton: {
-    width: '100%',
-    marginTop: height * 0.03,
-    height: Math.min(height * 0.06, 50),
-  },
-  loginLinkContainer: {
-    alignItems: 'center',
-    marginTop: height * 0.02,
-  },
-  loginText: {
-    fontSize: Math.min(width * 0.035, 16),
-    color: '#4B4B4B',
-  },
-  loginLink: {
-    fontWeight: '600',
-    color: '#006400',
-  },
-});
 
 export default SignUp;

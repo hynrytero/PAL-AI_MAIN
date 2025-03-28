@@ -13,8 +13,13 @@ const Treatment = () => {
     confidence = "0%",
     date = new Date().toLocaleDateString(),
     description = "No description available",
-    treatments = "No treatments available",
+    treatments = '{"id": "", "name": "", "description": ""}',
+    medicines = '{"id": "", "name": "", "description": "", "image": ""}',
+    fromHistory = false,
   } = useLocalSearchParams();
+
+  const parsedTreatment = JSON.parse(treatments);
+  const parsedMedicine = JSON.parse(medicines);
 
   return (
     <ImageBackground
@@ -39,37 +44,74 @@ const Treatment = () => {
 
             {/* Dynamic Image */}
             <Image
-              source={images.logo} // Replace with your fallback image path
+              source={imageUri ? { uri: imageUri } : images.logo}
               resizeMode="cover"
               className="w-full h-[275px] mb-5 border bg-slate-400"
               borderRadius={10}
-              onError={(e) =>
-                console.error("Image load error:", e.nativeEvent.error)
-              }
+              onError={(e) => console.error("Image load error:", e.nativeEvent.error)}
               onLoad={() => console.log("Image loaded successfully")}
             />
 
             {/* Disease Name */}
-            <View className="justify-center items-center">
+            <View className="justify-center items-center mb-5">
               <Text className="font-pmedium text-[25px] text-center">
                 {disease} Treatment
               </Text>
             </View>
 
-            {/* Treatments Description */}
-            <Text className="font-pregular text-md leading-6 mb-5">
-              {treatments}
-            </Text>
+            {/* Treatments Section */}
+            <Text className="font-psemibold text-xl mb-3">Recommended Treatments</Text>
+            {Array.isArray(parsedTreatment) ? (
+              parsedTreatment.map((item, index) => (
+                <View key={item.id || index} className="mb-5 p-4 bg-white/80 rounded-lg">
+                  <Text className="font-pmedium text-lg mb-2">{item.name}</Text>
+                  <Text className="font-pregular text-md leading-6">
+                    {item.description}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <View className="mb-5 p-4 bg-white/80 rounded-lg">
+                <Text className="font-pmedium text-lg mb-2">{parsedTreatment.name}</Text>
+                <Text className="font-pregular text-md leading-6">
+                  {parsedTreatment.description}
+                </Text>
+              </View>
+            )}
 
-            {/* Instructions section */}
-            <Text className="font-psemibold text-md mb-5">Instructions</Text>
-            <Text className="font-pregular text-md leading-6 mb-5">
-              {/* You can customize or dynamically populate these instructions */}
-              1. Consult with a healthcare professional or agricultural expert.{" "}
-              {"\n"}
-              2. Follow recommended treatment protocols. {"\n"}
-              3. Monitor progress and adjust treatment as necessary.
-            </Text>
+            {/* Medicines Section */}
+            <Text className="font-psemibold text-xl mb-3">Recommended Medicines</Text>
+            {Array.isArray(parsedMedicine) ? (
+              parsedMedicine.map((item, index) => (
+                <View key={item.id || index} className="mb-5 p-4 bg-white/80 rounded-lg">
+                  {item.image && (
+                    <Image
+                      source={{ uri: item.image }}
+                      className="w-full h-[100px] mb-3"
+                      resizeMode="contain"
+                    />
+                  )}
+                  <Text className="font-pmedium text-lg mb-2">{item.name}</Text>
+                  <Text className="font-pregular text-md leading-6">
+                    {item.description}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <View className="mb-5 p-4 bg-white/80 rounded-lg">
+                {parsedMedicine.image && (
+                  <Image
+                    source={{ uri: parsedMedicine.image }}
+                    className="w-full h-[100px] mb-3"
+                    resizeMode="contain"
+                  />
+                )}
+                <Text className="font-pmedium text-lg mb-2">{parsedMedicine.name}</Text>
+                <Text className="font-pregular text-md leading-6">
+                  {parsedMedicine.description}
+                </Text>
+              </View>
+            )}
 
             <CustomButton
               title="Store Nearby"

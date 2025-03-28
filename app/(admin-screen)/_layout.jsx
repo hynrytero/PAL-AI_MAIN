@@ -28,7 +28,7 @@ const AdminScreenLayout = () => {
               />
 
               <Stack.Screen
-                name="edit-treatment"
+                name="disease-treatments"
                 options={{
                   headerShown: false,
                 }}
@@ -47,13 +47,7 @@ const AdminScreenLayout = () => {
                   headerShown: false,
                 }}
               />
-
-              <Stack.Screen
-                name="farmers-treatment"
-                options={{
-                  headerShown: false,
-                }}
-              />
+              
             </Stack>
 
             <StatusBar style="dark" />
