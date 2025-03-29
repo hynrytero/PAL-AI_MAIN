@@ -2,20 +2,97 @@ import { View, Text, Image, ScrollView, ImageBackground } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
+import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 
 const Viewresult = () => {
+
   const params = useLocalSearchParams();
+  const [diseaseInfo, setDiseaseInfo] = useState({
+    whatItDoes: "",
+    whyAndWhereItOccurs: "",
+    howToIdentify: ""
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
   const {
     imageUri = null,
     disease = "Unknown Disease",
     confidence = "0%",
     date = new Date().toLocaleDateString(),
     description = "No description available",
-    treatments = "No treatments available",
   } = params;
+
+  // Function to get disease URL
+  const getDiseaseUrl = (diseaseName) => {
+    const urls = {
+      "Tungro": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/tungro",
+      "Rice Blast": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/blast-node-neck",
+      "Leaf Blight": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/sheath-blight"
+    };
+    return urls[diseaseName] || null;
+  };
+
+  // Fetch disease information
+  useEffect(() => {
+    const fetchDiseaseInfo = async () => {
+      try {
+        const url = getDiseaseUrl(disease);
+        if (!url) {
+          setDiseaseInfo({
+            whatItDoes: description,
+            whyAndWhereItOccurs: '',
+            howToIdentify: ''
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await fetch(`${API_URL_BCNKEND}/history/scrape-text/diseaseInfo`, {
+          method: 'POST',
+          headers: {
+            'X-API-Key': AUTH_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.content && data.content.whatItDoes && 
+            data.content.whyAndWhereItOccurs &&
+            data.content.howToIdentify) {
+          setDiseaseInfo({
+            whatItDoes: data.content.whatItDoes,
+            whyAndWhereItOccurs: data.content.whyAndWhereItOccurs,
+            howToIdentify: data.content.howToIdentify
+          });
+        } else {
+          setDiseaseInfo({
+            whatItDoes: description,
+            whyAndWhereItOccurs: '',
+            howToIdentify: ''
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching disease info:', error);
+        setDiseaseInfo({
+          whatItDoes: description,
+          whyAndWhereItOccurs: '',
+          howToIdentify: ''
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDiseaseInfo();
+  }, [disease, description]);
 
   const handleBack = () => {
       router.push("/report");
@@ -29,16 +106,17 @@ const Viewresult = () => {
       imageStyle={{}}
     >
       <SafeAreaView className="flex-1">
+        {/* Main content in ScrollView */}
         <ScrollView
           className="flex-1 p-5"
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: 50,
+            paddingBottom: 55,
           }}
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View className="flex-row items-center w-full mb-7">
+          <View className="flex-row items-center w-full mb-4">
             <Icon
               name="chevron-left"
               size={40}
@@ -52,7 +130,7 @@ const Viewresult = () => {
           <Image
             source={imageUri ? { uri: imageUri } : images.logo}
             resizeMode="cover"
-            className="w-full h-[275px] mb-5 border bg-slate-400"
+            className="w-full h-[275px] mb-4 border bg-slate-400"
             borderRadius={10}
             onError={(e) =>
               console.error("Image load error:", e.nativeEvent.error)
@@ -61,36 +139,43 @@ const Viewresult = () => {
           />
 
           {/* Disease and Date */}
-          <View className="flex-row justify-between w-full items-center mb-5">
+          <View className="flex-row justify-between w-full items-center">
             <Text className="font-pmedium text-[25px]">{disease}</Text>
-            <Text className="font-pregular text-sm">{date}</Text>
+            <Text className="font-pregular text-sm ">{date}</Text>
           </View>
 
           {/* Confidence */}
-          <Text className="font-pregular text-lg mb-5">{confidence}</Text>
+          <Text className="font-pregular text-lg mb-6">{confidence}</Text>
 
           {/* Description */}
-          <Text className="font-pregular text-md leading-6">{description}</Text>
+          {isLoading ? (
+            <Text className="font-pregular text-md">Loading disease information...</Text>
+          ) : (
+            <View>
+              <Text className="font-pbold text-xl mb-2">What it does:</Text>
+              <Text className="font-pregular text-md leading-6 mb-4">{diseaseInfo.whatItDoes}</Text>
 
-          {/* Treatments Button */}
+              <Text className="font-pbold text-xl mb-2">Why and where it occurs:</Text>
+              <Text className="font-pregular text-md leading-6 mb-4">{diseaseInfo.whyAndWhereItOccurs}</Text>
+
+              <Text className="font-pbold text-xl mb-2">How to identify:</Text>
+              <Text className="font-pregular text-md leading-6">{diseaseInfo.howToIdentify}</Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Fixed Button at bottom */}
+        <View className="px-5 pb-5 bg-white">
           <CustomButton
             title="Treatments"
             handlePress={() =>
               router.push({
-                pathname: "/treatment",
-                params: {
-                  imageUri: imageUri,
-                  disease: disease || "Unknown Disease",
-                  confidence: confidence,
-                  date: date,
-                  description: description,
-                  treatments: treatments,
-                },
+                pathname: "/treatment"
               })
             }
-            containerStyles="w-full mt-6"
+            containerStyles="w-full"
           />
-        </ScrollView>
+        </View>
       </SafeAreaView>
     </ImageBackground>
   );

@@ -3,9 +3,9 @@ import React from "react";
 
 const Card = ({ disease, desc, date, percent, color, image }) => {
   return (
-    <View className="bg-white rounded-lg overflow-hidden m-3">
+    <View className="bg-white rounded-xl overflow-hidden mb-6">
       <Image
-        source={image} // Replace this with your desired image URL
+        source={image} 
         className="w-full h-52"
       />
       <View className={`p-3 ${color}`}>

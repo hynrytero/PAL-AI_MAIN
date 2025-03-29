@@ -1,6 +1,5 @@
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, Image, ScrollView, RefreshControl, Dimensions } from "react-native";
 import { SafeAreaView, ImageBackground } from "react-native";
-import { GestureHandlerRootView, Swipeable } from "react-native-gesture-handler";
 import { router, useLocalSearchParams } from "expo-router";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import TreatmentCard from "../../components/TreatmentCard";
@@ -33,25 +32,6 @@ const TreatmentScreen = () => {
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [image, setImage] = useState(null);
   const [medicineLoading, setMedicineLoading] = useState(false);
-
-  // Swipe-related ref
-  const swipeableRef = useRef(null);
-
-  // Treatment color mapping
-  const getTreatmentColor = (index) => {
-    const colors = ["#CCCCE0", "#FACFCF", "#FFF6CC"];
-    return colors[index % colors.length];
-  };
-
-  // Disease color mapping
-  const getDiseaseColor = (diseaseName) => {
-    const colorMap = {
-      "Tungro": "#228B22",
-      "Rice Blast": "#E80D0D",
-      "Leaf Blight": "#FED402"
-    };
-    return colorMap[diseaseName] || "#000064";
-  };
 
   // Filtered and Paginated Treatments
   const filteredTreatments = useMemo(() => {
@@ -239,6 +219,22 @@ const TreatmentScreen = () => {
     return images.medicine;
   };
 
+  // Treatment color mapping
+  const getTreatmentColor = (index) => {
+    const colors = ["#CCCCE0", "#FACFCF", "#FFF6CC"];
+    return colors[index % colors.length];
+  };
+
+  // Disease color mapping
+  const getDiseaseColor = (diseaseName) => {
+    const colorMap = {
+      "Tungro": "#228B22",
+      "Rice Blast": "#E80D0D",
+      "Leaf Blight": "#FED402"
+    };
+    return colorMap[diseaseName] || "#000064";
+  };
+
   // Loading State
   if (loading) {
     return (
@@ -317,80 +313,86 @@ const TreatmentScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Medicines Section with Swipeable */}
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <Swipeable
-                ref={swipeableRef}
-                renderRightActions={() => null}
-                renderLeftActions={() => null}
-                onSwipeableRightOpen={() => {
-                  if (currentPage < totalPages) {
-                    setCurrentPage(currentPage + 1);
-                  }
-                }}
-                onSwipeableLeftOpen={() => {
-                  if (currentPage > 1) {
-                    setCurrentPage(currentPage - 1);
-                  }
-                }}
-              >
+            {/* Medicines Section */}
+            <View style={{ rowGap: 15, width: '100%' }}>
+              {paginatedTreatments.length > 0 ? (
                 <View style={{ rowGap: 15 }}>
-                  {paginatedTreatments.length > 0 ? (
-                    <View style={{ rowGap: 15 }}>
-                      {Array(Math.ceil(paginatedTreatments.length / 2))
-                        .fill()
-                        .map((_, rowIndex) => (
-                          <View
-                            key={`row-${rowIndex}`}
-                            style={{
-                              flexDirection: "row",
-                              width: "100%",
-                              columnGap: 15,
-                            }}
-                          >
-                            {paginatedTreatments
-                              .slice(rowIndex * 2, rowIndex * 2 + 2)
-                              .map((treatment, colIndex) => (
-                                <TreatmentCard
-                                  key={treatment.medicine_id || `treatment-${rowIndex}-${colIndex}`}
-                                  treatment={treatment.name || treatment.rice_plant_medicine || "Unknown"}
-                                  color={getTreatmentColor(rowIndex * 2 + colIndex)}
-                                  image={getTreatmentImage(treatment)}
-                                  handlePress={() =>
-                                    router.push({
-                                      pathname: "treatment-details",
-                                      params: {
-                                        treatmentId: treatment.medicine_id,
-                                        treatment: treatment.name || treatment.rice_plant_medicine,
-                                      },
-                                    })
-                                  }
-                                />
-                              ))}
-                            {/* If odd number of treatments in the last row, add empty space */}
-                            {rowIndex === Math.ceil(paginatedTreatments.length / 2) - 1 &&
-                              paginatedTreatments.length % 2 === 1 && <View style={{ flex: 1 }} />}
-                          </View>
-                        ))}
-                    </View>
-                  ) : (
-                    <View className="py-5 items-center bg-gray-100 rounded-md">
-                      <Text>No treatments found</Text>
-                    </View>
-                  )}
+                  {Array(Math.ceil(paginatedTreatments.length / 2))
+                    .fill()
+                    .map((_, rowIndex) => (
+                      <View
+                        key={`row-${rowIndex}`}
+                        style={{
+                          flexDirection: "row",
+                          width: "100%",
+                          columnGap: 15,
+                        }}
+                      >
+                        {paginatedTreatments
+                          .slice(rowIndex * 2, rowIndex * 2 + 2)
+                          .map((treatment, colIndex) => (
+                            <TreatmentCard
+                              key={treatment.medicine_id || `treatment-${rowIndex}-${colIndex}`}
+                              treatment={treatment.name || treatment.rice_plant_medicine || "Unknown"}
+                              color={getTreatmentColor(rowIndex * 2 + colIndex)}
+                              image={getTreatmentImage(treatment)}
+                              handlePress={() =>
+                                router.push({
+                                  pathname: "treatment-details",
+                                  params: {
+                                    treatmentId: treatment.medicine_id,
+                                    treatment: treatment.name || treatment.rice_plant_medicine,
+                                  },
+                                })
+                              }
+                            />
+                          ))}
+                        {/* If odd number of treatments in the last row, add empty space */}
+                        {rowIndex === Math.ceil(paginatedTreatments.length / 2) - 1 &&
+                          paginatedTreatments.length % 2 === 1 && <View style={{ flex: 1 }} />}
+                      </View>
+                    ))}
                 </View>
-              </Swipeable>
-            </GestureHandlerRootView>
+              ) : (
+                <View className="py-5 items-center bg-gray-100 rounded-md">
+                  <Text>No treatments found</Text>
+                </View>
+              )}
+            </View>
 
-            {/* Pagination Indicators */}
-            <View className="flex-row justify-center items-center mt-4 space-x-2">
-              {[...Array(totalPages)].map((_, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => setCurrentPage(index + 1)}
-                  className={`w-2 h-2 rounded-full ${currentPage === index + 1 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                />
-              ))}
+            {/* Pagination Controls */}
+            <View className="flex-row justify-between items-center mt-2 mx-1">
+              <TouchableOpacity
+                onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-green-600'}`}
+              >
+                <Text className={`${currentPage === 1 ? 'text-gray-500' : 'text-white'} text-[13px]`}>Prev</Text>
+              </TouchableOpacity>
+              
+              <View className="flex-row space-x-2">
+                {[...Array(totalPages)].map((_, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setCurrentPage(index + 1)}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      currentPage === index + 1 ? 'bg-green-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <Text className={`${currentPage === index + 1 ? 'text-white' : 'text-gray-700'} text-[11px]`}>
+                      {index + 1}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-green-600'}`}
+              >
+                <Text className={`${currentPage === totalPages ? 'text-gray-500' : 'text-white'} text-[13px]`}>Next</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
