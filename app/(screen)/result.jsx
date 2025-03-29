@@ -213,7 +213,7 @@ const Result = () => {
                 </View>
               ))}
 
-              <Text className="font-pregular text-[12px] mt-2 leading-2">- IRRI Knowledge Bank 2025</Text>
+              <Text className="font-pregular text-[12px] mt-2 leading-2 text-right mr-3">- IRRI Knowledge Bank 2025</Text>
             </View>
           )}
         </ScrollView>

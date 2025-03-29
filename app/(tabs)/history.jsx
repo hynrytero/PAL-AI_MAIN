@@ -59,23 +59,23 @@ const History = () => {
       }
 
       const data = await response.json();
-      // Transform the data to match the component's expected format
+     
       const transformedData = data.map(scan => ({
         ...scan,
-        diseaseDescription: scan.disease_description, // Map disease_description to diseaseDescription
-        confidence: scan.confidence.toString(), // Ensure confidence is a string
+        diseaseDescription: scan.disease_description, 
+        confidence: scan.confidence.toString(), 
         treatments: scan.treatments.map(treatment => ({
           ...treatment,
-          treatment: treatment.name // Map name to treatment for backwards compatibility
+          treatment: treatment.name 
         })),
         medicines: scan.medicines.map(medicine => ({
           ...medicine,
-          medicine: medicine.name // Map name to medicine for backwards compatibility
+          medicine: medicine.name 
         }))
       }));
       
       setScans(transformedData);
-      setCurrentPage(1); // Reset to first page when new data is loaded
+      setCurrentPage(1); 
     } catch (error) {
       console.error('Error:', error);
       Alert.alert(

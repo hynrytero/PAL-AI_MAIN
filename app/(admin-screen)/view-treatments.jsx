@@ -11,9 +11,9 @@ const Viewresult = () => {
 
   const params = useLocalSearchParams();
   const [diseaseInfo, setDiseaseInfo] = useState({
-    whatItDoes: "",
-    whyAndWhereItOccurs: "",
-    howToIdentify: ""
+    whatItDoes: { text: "", lists: [] },
+    whyAndWhereItOccurs: { text: "", lists: [] },
+    howToIdentify: { text: "", lists: [] }
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,9 +42,9 @@ const Viewresult = () => {
         const url = getDiseaseUrl(disease);
         if (!url) {
           setDiseaseInfo({
-            whatItDoes: description,
-            whyAndWhereItOccurs: '',
-            howToIdentify: ''
+            whatItDoes: { text: description, lists: [] },
+            whyAndWhereItOccurs: { text: '', lists: [] },
+            howToIdentify: { text: '', lists: [] }
           });
           setIsLoading(false);
           return;
@@ -64,27 +64,21 @@ const Viewresult = () => {
         }
 
         const data = await response.json();
-        if (data.content && data.content.whatItDoes && 
-            data.content.whyAndWhereItOccurs &&
-            data.content.howToIdentify) {
-          setDiseaseInfo({
-            whatItDoes: data.content.whatItDoes,
-            whyAndWhereItOccurs: data.content.whyAndWhereItOccurs,
-            howToIdentify: data.content.howToIdentify
-          });
+        if (data.content) {
+          setDiseaseInfo(data.content);
         } else {
           setDiseaseInfo({
-            whatItDoes: description,
-            whyAndWhereItOccurs: '',
-            howToIdentify: ''
+            whatItDoes: { text: description, lists: [] },
+            whyAndWhereItOccurs: { text: '', lists: [] },
+            howToIdentify: { text: '', lists: [] }
           });
         }
       } catch (error) {
         console.error('Error fetching disease info:', error);
         setDiseaseInfo({
-          whatItDoes: description,
-          whyAndWhereItOccurs: '',
-          howToIdentify: ''
+          whatItDoes: { text: description, lists: [] },
+          whyAndWhereItOccurs: { text: '', lists: [] },
+          howToIdentify: { text: '', lists: [] }
         });
       } finally {
         setIsLoading(false);
@@ -95,7 +89,7 @@ const Viewresult = () => {
   }, [disease, description]);
 
   const handleBack = () => {
-      router.push("/report");
+    router.push("/report");
   };
 
   return (
@@ -153,13 +147,41 @@ const Viewresult = () => {
           ) : (
             <View>
               <Text className="font-pbold text-xl mb-2">What it does:</Text>
-              <Text className="font-pregular text-md leading-6 mb-4">{diseaseInfo.whatItDoes}</Text>
+              <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.whatItDoes.text}</Text>
+              {diseaseInfo.whatItDoes.lists.map((list, listIndex) => (
+                <View key={`what-list-${listIndex}`} className="mb-4">
+                  {list.map((item, itemIndex) => (
+                    <Text key={`what-item-${itemIndex}`} className="font-pregular text-md leading-6 ml-4">
+                      • {item}
+                    </Text>
+                  ))}
+                </View>
+              ))}
 
-              <Text className="font-pbold text-xl mb-2">Why and where it occurs:</Text>
-              <Text className="font-pregular text-md leading-6 mb-4">{diseaseInfo.whyAndWhereItOccurs}</Text>
+              <Text className="font-pbold text-xl mb-2 mt-2">Why and where it occurs:</Text>
+              <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.whyAndWhereItOccurs.text}</Text>
+              {diseaseInfo.whyAndWhereItOccurs.lists.map((list, listIndex) => (
+                <View key={`why-list-${listIndex}`} className="mb-4">
+                  {list.map((item, itemIndex) => (
+                    <Text key={`why-item-${itemIndex}`} className="font-pregular text-md leading-6 ml-4">
+                      • {item}
+                    </Text>
+                  ))}
+                </View>
+              ))}
 
-              <Text className="font-pbold text-xl mb-2">How to identify:</Text>
-              <Text className="font-pregular text-md leading-6">{diseaseInfo.howToIdentify}</Text>
+              <Text className="font-pbold text-xl mb-2 mt-2">How to identify:</Text>
+              <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.howToIdentify.text}</Text>
+              {diseaseInfo.howToIdentify.lists.map((list, listIndex) => (
+                <View key={`identify-list-${listIndex}`} className="mb-4">
+                  {list.map((item, itemIndex) => (
+                    <Text key={`identify-item-${itemIndex}`} className="font-pregular text-md leading-6 ml-4">
+                      • {item}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+              <Text className="font-pregular text-[12px] mt-2 leading-2 text-right mr-3">- IRRI Knowledge Bank 2025</Text>
             </View>
           )}
         </ScrollView>
