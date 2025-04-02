@@ -27,7 +27,7 @@ const ScreenLayout = () => {
             <Stack.Screen
               name="treatment"
               options={{
-                title: "Result",
+                title: "treatment",
                 headerShown: false,
               }}
             />

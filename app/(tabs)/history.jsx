@@ -194,8 +194,15 @@ const History = () => {
         }
       >
         <SafeAreaView className="px-7 w-full h-full mb-10">
-          <View className="flex-row items-center w-full mb-3">
-            <Text className="font-pmedium text-[30px]">History</Text>
+          <View className="flex-row items-center w-full mb-3 justify-between">
+            <Text className="font-pmedium text-[30px]">Scan History</Text>
+            <TouchableOpacity 
+              className="bg-[#228B22] px-2 py-2 rounded-full flex-row items-center mr-2"
+              onPress={() => router.push("/recommend-treatments")}
+            >
+              <Ionicons name="bulb-outline" size={16} color="white" />
+              <Text className="text-white text-[13px] ml-1 mr-1">Suggestion</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Search Bar */}

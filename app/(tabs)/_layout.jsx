@@ -121,13 +121,13 @@ const TabsContent = () => {
         <Tabs.Screen
           name="history"
           options={{
-            title: "History",
+            title: "Scans",
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
                 icon={icons.clock}
                 color={color}
-                name="History"
+                name="Scans"
                 focused={focused}
               />
             ),
