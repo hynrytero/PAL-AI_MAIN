@@ -61,7 +61,7 @@ const RecommendTreatments = () => {
             title: `Suggestion: From Farmer ${user.username} (${user.email})`,
             body: `Description: ${suggestionDescription}`,
             icon: 'warning',
-            icon_bg_color: 'Blue',
+            icon_bg_color: 'green',
             type: 'suggestion'
           })
         });

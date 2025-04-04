@@ -48,7 +48,7 @@ const Result = () => {
   // Function to get disease URL
   const getDiseaseUrl = (diseaseName) => {
     const urls = {
-      "Tungro": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/tungro",
+      "Possible Tungro": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/tungro",
       "Rice Blast": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/blast-node-neck",
       "Leaf Blight": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/sheath-blight"
     };
@@ -167,12 +167,12 @@ const Result = () => {
           </View>
 
           {/* Confidence */}
-          <Text className="font-pregular text-lg mb-5">{confidence}</Text>
+          <Text className="font-pregular text-lg mb-4">{confidence}</Text>
 
           {/* Description */}
           {isLoading ? (
-            <Text className="font-pregular text-md">Loading disease information...</Text>
-          ) : (
+            <Text className="font-pregular text-md text-center">Loading disease information...</Text>
+          ) : disease !== "No Disease" ? (
             <View>
               <Text className="font-pbold text-xl mb-2">What it does:</Text>
               <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.whatItDoes.text}</Text>
@@ -215,31 +215,38 @@ const Result = () => {
 
               <Text className="font-pregular text-[12px] mt-2 leading-2 text-right mr-3">- IRRI Knowledge Bank 2025</Text>
             </View>
+          ) : (
+            <View>
+              <Text className="font-pbold text-xl mb-2">No Disease Detected:</Text>
+              <Text className="font-pregular text-md leading-6">{description}</Text>
+            </View>
           )}
         </ScrollView>
 
         {/* Fixed Button at bottom */}
-        <View className="px-5 pb-5 bg-white">
-          <CustomButton
-            title="Treatments"
-            handlePress={() =>
-              router.push({
-                pathname: "/treatment",
-                params: {
-                  imageUri: imageUri,
-                  disease: disease || "Unknown Disease",
-                  confidence: confidence,
-                  date: date,
-                  description: description,
-                  treatments: treatments,
-                  medicines: medicines,
-                  fromHistory: fromHistory,
-                },
-              })
-            }
-            containerStyles="w-full"
-          />
-        </View>
+        {disease !== "No Disease" && (
+          <View className="px-5 pb-5 bg-white">
+            <CustomButton
+              title="Treatments"
+              handlePress={() =>
+                router.push({
+                  pathname: "/treatment",
+                  params: {
+                    imageUri: imageUri,
+                    disease: disease || "Unknown Disease",
+                    confidence: confidence,
+                    date: date,
+                    description: description,
+                    treatments: treatments,
+                    medicines: medicines,
+                    fromHistory: fromHistory,
+                  },
+                })
+              }
+              containerStyles="w-full"
+            />
+          </View>
+        )}
       </SafeAreaView>
     </ImageBackground>
   );

@@ -228,7 +228,7 @@ const TreatmentScreen = () => {
   // Disease color mapping
   const getDiseaseColor = (diseaseName) => {
     const colorMap = {
-      "Tungro": "#228B22",
+      "Possible Tungro": "#228B22",
       "Rice Blast": "#E80D0D",
       "Leaf Blight": "#FED402"
     };
@@ -354,7 +354,7 @@ const TreatmentScreen = () => {
                     ))}
                 </View>
               ) : (
-                <View className="py-5 items-center bg-gray-100 rounded-md">
+                <View className="py-5 items-center bg-white-100 rounded-md">
                   <Text>No treatments found</Text>
                 </View>
               )}
@@ -402,23 +402,25 @@ const TreatmentScreen = () => {
 
             <View style={{ rowGap: 10 }}>
               {diseases.length > 0 ? (
-                diseases.map(disease => (
-                  <SimpleCard
-                    key={disease.disease_id}
-                    disease={disease.name || "Unknown"}
-                    num={disease.medicine_count || 0}
-                    color={getDiseaseColor(disease.name)}
-                    handlePress={() =>
-                      router.push({
-                        pathname: "disease-treatments",
-                        params: {
-                          diseaseId: disease.disease_id,
-                          diseaseName: disease.name
-                        }
-                      })
-                    }
-                  />
-                ))
+                diseases
+                  .filter(disease => disease.name !== "No Disease")
+                  .map(disease => (
+                    <SimpleCard
+                      key={disease.disease_id}
+                      disease={disease.name || "Unknown"}
+                      num={disease.medicine_count || 0}
+                      color={getDiseaseColor(disease.name)}
+                      handlePress={() =>
+                        router.push({
+                          pathname: "disease-treatments",
+                          params: {
+                            diseaseId: disease.disease_id,
+                            diseaseName: disease.name
+                          }
+                        })
+                      }
+                    />
+                  ))
               ) : (
                 <View className="py-5 items-center bg-gray-100 rounded-md">
                   <Text>No diseases available</Text>
@@ -457,12 +459,14 @@ const TreatmentScreen = () => {
                 className="border border-gray-300 p-2 rounded mb-3 h-24"
               />
 
-              {/* Disease Selector - Now Required */}
+              {/* Disease Selector*/}
               <View className="mb-3">
-                <Text className="mb-2 font-pmedium">Select Disease</Text>
+                <Text className="font-pmedium">Select Disease</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View className="flex-row">
-                    {diseases.map(disease => (
+                    {diseases
+                    .filter(disease => disease.name !== "No Disease")
+                    .map(disease => (
                       <TouchableOpacity
                         key={disease.disease_id}
                         onPress={() => setSelectedDisease(disease)}
@@ -472,11 +476,11 @@ const TreatmentScreen = () => {
                           }`}
                       >
                         <Text
-                          className={
+                          className={`${
                             selectedDisease?.disease_id === disease.disease_id
                               ? 'text-white'
                               : 'text-black'
-                          }
+                          } text-[12px]`}
                         >
                           {disease.name}
                         </Text>

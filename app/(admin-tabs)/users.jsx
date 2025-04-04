@@ -10,7 +10,8 @@ import {
   Image,
   TouchableOpacity,
   Animated,
-  ScrollView
+  ScrollView,
+  RefreshControl
 } from "react-native";
 import { images } from "../../constants";
 import axios from "axios";
@@ -27,6 +28,7 @@ const Users = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const searchInputRef = useRef(null);
   const { logout } = useAuth();
 
@@ -333,10 +335,23 @@ const Users = () => {
     );
   };
 
+  // Add onRefresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchUsers();
+    } catch (err) {
+      console.error("Error refreshing users:", err);
+      setError("Failed to refresh users");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchUsers]);
+
   if (loading) {
     return (
       <ImageBackground source={images.background_history} style={{ flex: 1 }}>
-        <SafeAreaView style={{ paddingHorizontal: 28, flex: 1 }}>
+        <SafeAreaView style={{ paddingHorizontal: 28, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={{ marginTop: 16, textAlign: 'center', fontSize: 16, color: '#666' }}>
             Loading users...
@@ -359,10 +374,23 @@ const Users = () => {
   if (error) {
     return (
       <ImageBackground source={images.background_history} style={{ flex: 1 }}>
-        <SafeAreaView style={{ paddingHorizontal: 28, flex: 1 }}>
-          <Text style={{ textAlign: 'center', fontSize: 16, color: 'red', marginTop: 48 }}>
+        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+          <Icon name="error-outline" size={48} color="#ff4d4f" />
+          <Text style={{ textAlign: 'center', fontSize: 16, color: '#ff4d4f', marginTop: 12 }}>
             {error}
           </Text>
+          <TouchableOpacity 
+            style={{ 
+              marginTop: 20, 
+              backgroundColor: '#228B22', 
+              paddingVertical: 10, 
+              paddingHorizontal: 20, 
+              borderRadius: 8 
+            }}
+            onPress={fetchUsers}
+          >
+            <Text style={{ color: 'white', fontWeight: '600' }}>Try Again</Text>
+          </TouchableOpacity>
         </SafeAreaView>
       </ImageBackground>
     );
@@ -376,6 +404,14 @@ const Users = () => {
           data={currentUsers}
           renderItem={renderItem}
           keyExtractor={(item, index) => (item.email || index.toString())}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#228B22']}
+              tintColor="#228B22"
+            />
+          }
           ListHeaderComponent={
             <View>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, marginRight: 7 }}>

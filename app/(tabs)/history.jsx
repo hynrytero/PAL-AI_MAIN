@@ -37,7 +37,6 @@ const History = () => {
     fetchScanHistory();
   }, []);
 
-  // Apply filters and search whenever scans, searchQuery, or filterType changes
   useEffect(() => {
     applyFiltersAndSearch();
   }, [scans, searchQuery, filterType]);
@@ -195,13 +194,13 @@ const History = () => {
       >
         <SafeAreaView className="px-7 w-full h-full mb-10">
           <View className="flex-row items-center w-full mb-3 justify-between">
-            <Text className="font-pmedium text-[30px]">Scan History</Text>
+            <Text className="font-pmedium text-[30px]">Scans</Text>
             <TouchableOpacity 
-              className="bg-[#228B22] px-2 py-2 rounded-full flex-row items-center mr-2"
+              className="bg-[#228B22] px-3 py-2 rounded-full flex-row items-center"
               onPress={() => router.push("/recommend-treatments")}
             >
               <Ionicons name="bulb-outline" size={16} color="white" />
-              <Text className="text-white text-[13px] ml-1 mr-1">Suggestion</Text>
+              <Text className="text-white text-[13px] ml-1">Suggest</Text>
             </TouchableOpacity>
           </View>
 

@@ -31,7 +31,7 @@ const ReportScreen = () => {
   // Disease mapping for colors and filters
   const diseaseMapping = {
     "All": { color: "#CCCCCC" },
-    "Tungro": { color: "#000064" },
+    "Possible Tungro": { color: "#008000" },
     "Rice Blast": { color: "#E80D0D" },
     "Leaf Blight": { color: "#FED402" }
   };
@@ -227,7 +227,7 @@ const ReportScreen = () => {
       return { uri: scan.scan_image };
     }
 
-    // Fallback to default images
+    // Fallback images
     const diseaseImageMap = {
       "Tungro": images.tungro,
       "Rice Blast": images.blast,
@@ -504,8 +504,8 @@ const ReportScreen = () => {
               <Text style={{ fontSize: 14 }}>Leaf Blight: {chartData.find(item => item.disease === "Leaf Blight")?.value || 0}</Text>
               <Text style={{ color: "#E80D0D" }}>  ● </Text>
               <Text style={{ fontSize: 14 }}>Rice Blast: {chartData.find(item => item.disease === "Rice Blast")?.value || 0}</Text>
-              <Text style={{ color: "#000064" }}>  ● </Text>
-              <Text style={{ fontSize: 14 }}>Tungro: {chartData.find(item => item.disease === "Tungro")?.value || 0}</Text>
+              <Text style={{ color: "#008000" }}>  ● </Text>
+              <Text style={{ fontSize: 14 }}>Tungro: {chartData.find(item => item.disease === "Possible Tungro")?.value || 0}</Text>
             </Text>
           </View>
 

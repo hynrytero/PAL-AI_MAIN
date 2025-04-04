@@ -73,17 +73,59 @@ export default function App() {
         body: formData
       });
 
+      const data = await response.json();
+
+      // Handle non-rice leaf case 
+      if (!data.is_rice_leaf) {
+        Alert.alert(
+          "Not a Rice Leaf",
+          "The image does not appear to contain a rice leaf. Please ensure you are taking a clear photo of a rice leaf with good lighting.",
+          [
+            {
+              text: "Return Home",
+              onPress: () => {
+                setImage(null);
+                setPredictions(null);
+                router.push("/home");
+              },
+              style: "cancel"
+            },
+            {
+              text: "Try Again",
+              onPress: () => {
+                setImage(null);
+                setPredictions(null);
+              },
+              style: "default"
+            }
+          ]
+        );
+        return null;
+      }
+
+      // catch error sa response if naa
       if (!response.ok) {
+        if (data.error) {
+          throw new Error(data.error);
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      // Ensure predictions array exists
+      if (!data.predictions || !Array.isArray(data.predictions)) {
+        throw new Error("Invalid response format: predictions array missing");
+      }
+
+      // array predictions
       setPredictions(data.predictions);
       return data.predictions;
 
     } catch (error) {
       console.error("Error sending image to API:", error);
-      Alert.alert("Error", "Failed to process image");
+      Alert.alert(
+        "Error",
+        error.message || "Failed to process image. Please try again."
+      );
       throw error;
     } finally {
       setIsProcessing(false);
@@ -108,7 +150,7 @@ export default function App() {
         body: formData
       });
       const data = await response.json();
-      return data.imageUrl; 
+      return data.imageUrl;
     } catch (error) {
       console.error('Upload failed:', error);
       throw error;
@@ -213,83 +255,83 @@ export default function App() {
     }
   };
 
-// send notifications to admin if tungro
-const sendTungroNotificationToAdmins = async (imageUrl, disease) => {
-  try {
-    // Fetch all admin users with push tokens
-    const response = await fetch(`${API_URL}/notifications/fetch-admin`, {
-      method: 'GET',
-      headers: {
-        'X-API-Key': AUTH_KEY,
-        'Content-Type': 'application/json'
+  // send notifications to admin if tungro
+  const sendTungroNotificationToAdmins = async (imageUrl, disease) => {
+    try {
+      // Fetch all admin users with push tokens
+      const response = await fetch(`${API_URL}/notifications/fetch-admin`, {
+        method: 'GET',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch admin users: ${response.status}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch admin users: ${response.status}`);
-    }
+      const adminUsers = await response.json();
 
-    const adminUsers = await response.json();
-    
-    if (!adminUsers || adminUsers.length === 0) {
-      console.log('No admin users found with push tokens');
-      return;
-    }
+      if (!adminUsers || adminUsers.length === 0) {
+        console.log('No admin users found with push tokens');
+        return;
+      }
 
-    const currentDate = new Date().toLocaleString();
-    
-    // For each admin, store notification and send push notification
-    for (const admin of adminUsers) {
-      // 1. Store notification in database
-      await fetch(`${API_URL}/notifications/store-notification`, {
-        method: 'POST',
-        headers: {
-          'X-API-Key': AUTH_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: admin.userId,
-          title: 'Urgent: Possible Tungro Disease Detected',
-          body: `Farmer ${user.username} (${user.email}) has detected a possible ${disease} in their field on ${currentDate}. Immediate attention required.`,
-          icon: 'warning',
-          icon_bg_color: 'red',
-          type: 'alert',
-          data: {
-            imageUrl: imageUrl,
-            disease: disease,
-            detectedAt: currentDate,
-            scanBy: user.id
-          }
-        })
-      });
-      
-      // 2. Send push notification
-      await fetch(`${API_URL}/push-notify/notify`, {
-        method: 'POST',
-        headers: {
-          'X-API-Key': AUTH_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: admin.userId,
-          title: 'Urgent: Possible Tungro Disease Detected',
-          body: `A farmer has detected ${disease} in their field. Immediate attention required.`,
-          data: {
-            type: 'disease_alert',
-            imageUrl: imageUrl,
-            disease: disease,
-            detectedAt: currentDate,
-            scanBy: user.id
-          }
-        })
-      });
+      const currentDate = new Date().toLocaleString();
+
+      // For each admin, store notification and send push notification
+      for (const admin of adminUsers) {
+        // 1. Store notification in database
+        await fetch(`${API_URL}/notifications/store-notification`, {
+          method: 'POST',
+          headers: {
+            'X-API-Key': AUTH_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: admin.userId,
+            title: 'Urgent: Possible Tungro Disease Detected',
+            body: `Farmer ${user.username} (${user.email}) has detected a possible ${disease} in their field on ${currentDate}. Immediate attention required.`,
+            icon: 'warning',
+            icon_bg_color: 'red',
+            type: 'alert',
+            data: {
+              imageUrl: imageUrl,
+              disease: disease,
+              detectedAt: currentDate,
+              scanBy: user.id
+            }
+          })
+        });
+
+        // 2. Send push notification
+        await fetch(`${API_URL}/push-notify/notify`, {
+          method: 'POST',
+          headers: {
+            'X-API-Key': AUTH_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: admin.userId,
+            title: 'Urgent: Possible Tungro Disease Detected',
+            body: `A farmer has detected ${disease} in their field. Immediate attention required.`,
+            data: {
+              type: 'disease_alert',
+              imageUrl: imageUrl,
+              disease: disease,
+              detectedAt: currentDate,
+              scanBy: user.id
+            }
+          })
+        });
+      }
+
+      console.log(`Tungro notification sent to ${adminUsers.length} admins`);
+    } catch (error) {
+      console.error('Error sending Tungro notifications:', error);
     }
-    
-    console.log(`Tungro notification sent to ${adminUsers.length} admins`);
-  } catch (error) {
-    console.error('Error sending Tungro notifications:', error);
-  }
-};
+  };
 
   // Save Picture
   const savePicture = async () => {
@@ -297,21 +339,26 @@ const sendTungroNotificationToAdmins = async (imageUrl, disease) => {
       try {
         // Send image for prediction
         const predictionsResult = await sendImageToAPI(image);
-  
+
+        // not a rice leaf if null
+        if (predictionsResult === null) {
+          return;
+        }
+
         // Send image to cloud storage
         const uploadImage = await uploadImageToCloud(image);
-  
+
         // Get Disease Info
         const result = await getDiseaseInfo(predictionsResult[0].class_number);
 
         // Send prediction to database
         savePredictionToDB(predictionsResult, uploadImage);
-  
+
         // Check if the disease is Tungro and send notification to admin
         if (result.rice_leaf_disease === "Tungro") {
           await sendTungroNotificationToAdmins(uploadImage, result.rice_leaf_disease);
         }
-  
+
         // Navigate to result screen with the data
         router.push({
           pathname: "/result",
@@ -325,7 +372,7 @@ const sendTungroNotificationToAdmins = async (imageUrl, disease) => {
             medicines: JSON.stringify(result.medicines)
           },
         });
-  
+
       } catch (err) {
         console.log("Error details:", err.message, err.stack);
         Alert.alert("Error", `Upload failed: ${err.message}`);

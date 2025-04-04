@@ -27,7 +27,7 @@ const Treatment = () => {
   // Function to get disease URL
   const getDiseaseUrl = (diseaseName) => {
     const urls = {
-      "Tungro": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/tungro",
+      "Possible Tungro": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/tungro",
       "Rice Blast": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/blast-node-neck",
       "Leaf Blight": "http://www.knowledgebank.irri.org/training/fact-sheets/pest-management/diseases/item/sheath-blight"
     };
