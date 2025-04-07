@@ -39,7 +39,6 @@ const SignUp = () => {
   const data = [
     { label: "Male", value: "male" },
     { label: "Female", value: "female" },
-    { label: "Prefer not to say", value: "unspecified" },
   ];
 
   const [expanded, setExpanded] = React.useState(true);
