@@ -62,6 +62,9 @@ const SignUp = () => {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [birthdateError, setBirthdateError] = useState("");
   const [isChecked, setIsChecked] = useState(false);
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
 
   // Form Content Validation
   const validateEmail = (email) => {
@@ -111,14 +114,28 @@ const SignUp = () => {
     return date <= minDate;
   };
 
+  const validateText = (name) => {
+    // Only allow letters, spaces, hyphens, and apostrophes
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
+    return nameRegex.test(name);
+  };
+
   // Form handlers
   const handleChangeEmail = (e) => {
     setForm({ ...form, email: e });
-    if (!validateEmail(e)) {
+
+    if (!validateText(e)) {
+      setError("Email can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setError("");
+    }
+
+    if (!validateText(e)) {
       setError("Invalid email format");
     } else {
       setError("");
     }
+
   };
 
   const handleBirthdate = (e) => {
@@ -141,9 +158,39 @@ const SignUp = () => {
     }
   };
 
+  const handleChangeFirstName = (e) => {
+    setForm({ ...form, firstname: e });
+    if (!validateText(e)) {
+      setFirstNameError("Firtsname can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setFirstNameError("");
+    }
+  };
+
+  const handleChangeLastName = (e) => {
+    setForm({ ...form, lastname: e });
+    if (!validateText(e)) {
+      setLastNameError("Lastname can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setLastNameError("");
+    }
+  };
+
+  const handleChangeUsername = (e) => {
+    setForm({ ...form, username: e });
+    if (!validateText(e)) {
+      setUsernameError("Username can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setUsernameError("");
+    }
+  };
+
   const isFormValid =
     form.firstname.trim() !== "" &&
     form.lastname.trim() !== "" &&
+    validateText(form.firstname) &&
+    validateText(form.lastname) &&
+    validateText(form.username) &&
     validateBirthdate(form.birthdate) &&
     validateEmail(form.email) &&
     validateMobileNumber(form.mobilenumber) &&
@@ -165,6 +212,7 @@ const SignUp = () => {
 
   const handleChangePassword = (e) => {
     setForm({ ...form, password: e });
+
     if (!validatePassword(e)) {
       setPasswordError(
         "Password must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character."
@@ -183,6 +231,7 @@ const SignUp = () => {
 
   const handleConfirmPassword = (e) => {
     setForm({ ...form, confirmpassword: e });
+
     if (!validateConfirmPassword(e)) {
       setConfirmPasswordError("Password doesn't match.");
     } else {
@@ -295,26 +344,44 @@ const SignUp = () => {
                   <TextInput
                     label="First Name"
                     value={form.firstname}
-                    onChangeText={(e) => setForm({ ...form, firstname: e })}
+                    onChangeText={handleChangeFirstName}
                     style={{ width: '48%' }}
                     mode="outlined"
                     activeOutlineColor="#006400"
                     outlineColor="#CBD2E0"
                     textColor="#2D3648"
                     dense={width < 360}
+                    error={!!firstNameError}
                   />
                   <TextInput
                     label="Last Name"
                     value={form.lastname}
-                    onChangeText={(e) => setForm({ ...form, lastname: e })}
+                    onChangeText={handleChangeLastName}
                     style={{ width: '48%' }}
                     mode="outlined"
                     activeOutlineColor="#006400"
                     outlineColor="#CBD2E0"
                     textColor="#2D3648"
                     dense={width < 360}
+                    error={!!lastNameError}
                   />
                 </View>
+
+                {firstNameError && form.firstname.length > 0 && (
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{firstNameError}</Text>
+                )}
+
+                {lastNameError && form.lastname.length > 0 && (
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{lastNameError}</Text>
+                )}
 
                 <View style={{
                   flexDirection: 'row',
@@ -419,14 +486,23 @@ const SignUp = () => {
                 <TextInput
                   label="Username"
                   value={form.username}
-                  onChangeText={(e) => setForm({ ...form, username: e })}
+                  onChangeText={handleChangeUsername}
                   style={{ width: '100%', marginBottom: 8 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
                   textColor="#2D3648"
+                  error={!!usernameError}
                   dense={width < 360}
                 />
+
+                {usernameError && form.username.length > 0 && (
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{usernameError}</Text>
+                )}
 
                 <TextInput
                   label="Password"
