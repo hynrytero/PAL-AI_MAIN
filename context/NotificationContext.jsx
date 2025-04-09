@@ -103,6 +103,10 @@ export const NotificationProvider = ({ children }) => {
       // Reset unread count immediately when switching users
       setUnreadCount(0);
       currentUserId.current = user.id;
+      
+      // Clear any existing notifications
+      setNotification(null);
+      
       // Then trigger a refresh to fetch the correct count
       setRefreshTrigger(prev => prev + 1);
     }

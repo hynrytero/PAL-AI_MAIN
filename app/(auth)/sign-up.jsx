@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, router } from "expo-router";
 import axios from "axios";
 import { Checkbox, TextInput } from "react-native-paper";
@@ -20,6 +20,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+import { regions, provinces, cities, barangays } from "select-philippines-address";
 
 const API_URL = API_URL_BCNKEND;
 const { width, height } = Dimensions.get('window');
@@ -34,7 +35,215 @@ const SignUp = () => {
     username: "",
     password: "",
     confirmpassword: "",
+    yearsOfExperience: "",
+    streetAddress: "",
+    region: "",
+    regionCode: "",
+    province: "",
+    provinceCode: "",
+    city: "",
+    cityCode: "",
+    barangay: "",
   });
+
+  const [addressData, setAddressData] = useState({
+    regions: [],
+    provinces: [],
+    cities: [],
+    barangays: [],
+  });
+
+  const [isLoading, setIsLoading] = useState({
+    regions: true,
+    provinces: false,
+    cities: false,
+    barangays: false,
+  });
+
+  const [addressErrors, setAddressErrors] = useState({
+    regions: "",
+    provinces: "",
+    cities: "",
+    barangays: "",
+  });
+
+  // Fetch regions on component mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRegions = async () => {
+      try {
+        setIsLoading(prev => ({ ...prev, regions: true }));
+        setAddressErrors(prev => ({ ...prev, regions: "" }));
+        const regionsData = await regions();
+        if (isMounted) {
+          const formattedRegions = regionsData.map(region => ({
+            label: region.region_name,
+            value: region.region_name,
+            code: region.region_code
+          }));
+          setAddressData(prev => ({ ...prev, regions: formattedRegions }));
+        }
+      } catch (error) {
+        console.error("Error fetching regions:", error);
+        if (isMounted) {
+          setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(prev => ({ ...prev, regions: false }));
+        }
+      }
+    };
+
+    fetchRegions();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Update provinces when region changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProvinces = async () => {
+      if (form.region) {
+        try {
+          setIsLoading(prev => ({ ...prev, provinces: true }));
+          setAddressErrors(prev => ({ ...prev, provinces: "" }));
+          // Find the region code from the selected region name
+          const selectedRegion = addressData.regions.find(r => r.value === form.region);
+          if (selectedRegion) {
+            const regionCode = selectedRegion.code;
+            if (isMounted) {
+              setForm(prev => ({ ...prev, regionCode }));
+            }
+
+            const provincesData = await provinces(regionCode);
+            if (isMounted) {
+              const formattedProvinces = provincesData.map(province => ({
+                label: province.province_name,
+                value: province.province_name,
+                code: province.province_code
+              }));
+              setAddressData(prev => ({ ...prev, provinces: formattedProvinces }));
+              setForm(prev => ({ ...prev, province: "", provinceCode: "", city: "" }));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching provinces:", error);
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, provinces: "Failed to load provinces. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, provinces: false }));
+          }
+        }
+      } else {
+        setAddressData(prev => ({ ...prev, provinces: [] }));
+      }
+    };
+
+    fetchProvinces();
+    return () => {
+      isMounted = false;
+    };
+  }, [form.region]);
+
+  // Update cities when province changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCities = async () => {
+      if (form.province) {
+        try {
+          setIsLoading(prev => ({ ...prev, cities: true }));
+          setAddressErrors(prev => ({ ...prev, cities: "" }));
+          // Find the province code from the selected province name
+          const selectedProvince = addressData.provinces.find(p => p.value === form.province);
+          if (selectedProvince) {
+            const provinceCode = selectedProvince.code;
+            if (isMounted) {
+              setForm(prev => ({ ...prev, provinceCode }));
+            }
+
+            const citiesData = await cities(provinceCode);
+            if (isMounted) {
+              const formattedCities = citiesData.map(city => ({
+                label: city.city_name,
+                value: city.city_name,
+                code: city.city_code
+              }));
+              setAddressData(prev => ({ ...prev, cities: formattedCities }));
+              setForm(prev => ({ ...prev, city: "", cityCode: "", barangay: "" }));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching cities:", error);
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, cities: "Failed to load cities. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, cities: false }));
+          }
+        }
+      } else {
+        setAddressData(prev => ({ ...prev, cities: [] }));
+      }
+    };
+
+    fetchCities();
+    return () => {
+      isMounted = false;
+    };
+  }, [form.province]);
+
+  // Update barangays when city changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBarangays = async () => {
+      if (form.city) {
+        try {
+          setIsLoading(prev => ({ ...prev, barangays: true }));
+          setAddressErrors(prev => ({ ...prev, barangays: "" }));
+          // Find the city code from the selected city name
+          const selectedCity = addressData.cities.find(c => c.value === form.city);
+          if (selectedCity) {
+            const cityCode = selectedCity.code;
+            if (isMounted) {
+              setForm(prev => ({ ...prev, cityCode }));
+            }
+
+            const barangaysData = await barangays(cityCode);
+            if (isMounted) {
+              const formattedBarangays = barangaysData.map(barangay => ({
+                label: barangay.brgy_name,
+                value: barangay.brgy_name,
+                code: barangay.brgy_code
+              }));
+              setAddressData(prev => ({ ...prev, barangays: formattedBarangays }));
+              setForm(prev => ({ ...prev, barangay: "" }));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching barangays:", error);
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, barangays: "Failed to load barangays. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, barangays: false }));
+          }
+        }
+      } else {
+        setAddressData(prev => ({ ...prev, barangays: [] }));
+      }
+    };
+
+    fetchBarangays();
+    return () => {
+      isMounted = false;
+    };
+  }, [form.city]);
 
   const data = [
     { label: "Male", value: "male" },
@@ -65,6 +274,7 @@ const SignUp = () => {
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
   const [usernameError, setUsernameError] = useState("");
+  const [yearsOfExperienceError, setYearsOfExperienceError] = useState("");
 
   // Form Content Validation
   const validateEmail = (email) => {
@@ -120,17 +330,16 @@ const SignUp = () => {
     return nameRegex.test(name);
   };
 
+  const validateYearsOfExperience = (years) => {
+    const yearsNum = parseInt(years);
+    return !isNaN(yearsNum) && yearsNum >= 0;
+  };
+
   // Form handlers
   const handleChangeEmail = (e) => {
     setForm({ ...form, email: e });
 
-    if (!validateText(e)) {
-      setError("Email can only contain letters, spaces, hyphens, and apostrophes");
-    } else {
-      setError("");
-    }
-
-    if (!validateText(e)) {
+    if (!validateEmail(e)) {
       setError("Invalid email format");
     } else {
       setError("");
@@ -185,6 +394,19 @@ const SignUp = () => {
     }
   };
 
+  const handleChangeYearsOfExperience = (e) => {
+    if (e.length <= 2) {
+      const num = parseInt(e);
+      setForm({ ...form, yearsOfExperience: e });
+
+      if (isNaN(num) || num < 0) {
+        setYearsOfExperienceError("Please enter a valid number");
+      } else {
+        setYearsOfExperienceError("");
+      }
+    }
+  };
+
   const isFormValid =
     form.firstname.trim() !== "" &&
     form.lastname.trim() !== "" &&
@@ -197,6 +419,11 @@ const SignUp = () => {
     form.username.trim() !== "" &&
     validatePassword(form.password) &&
     form.password === form.confirmpassword &&
+    validateYearsOfExperience(form.yearsOfExperience) &&
+    form.region !== "" &&
+    form.province !== "" &&
+    form.city !== "" &&
+    form.barangay !== "" &&
     isChecked;
 
   const handleChangeMobile = (e) => {
@@ -220,7 +447,7 @@ const SignUp = () => {
     } else {
       setPasswordError("");
     }
-    
+
     if (!validatePasswordIdentity(e) && form.confirmpassword !== "") {
       setConfirmPasswordError("Password doesn't match.");
     } else {
@@ -252,6 +479,11 @@ const SignUp = () => {
           birthdate: form.birthdate,
           gender: selectedGender,
           mobilenumber: form.mobilenumber,
+          yearsOfExperience: form.yearsOfExperience,
+          region: form.region,
+          province: form.province,
+          city: form.city,
+          barangay: form.barangay,
         },
         {
           headers: {
@@ -259,12 +491,12 @@ const SignUp = () => {
           }
         }
       );
+
       router.push({
         pathname: "/sign-up-otp",
         params: { email: form.email },
       });
     } catch (error) {
-      console.log("Error: ", error);
       Alert.alert(
         "Error",
         error.response?.data?.message || "Registration failed"
@@ -329,18 +561,26 @@ const SignUp = () => {
                 <Text style={{
                   fontSize: Math.min(width * 0.8, 28),
                   fontWeight: '600',
-                  marginBottom: 5,
+                  marginBottom: 2,
                 }}>Sign-Up</Text>
                 <Text style={{
                   fontSize: Math.min(width * 0.04, 18),
                   marginBottom: height * 0.02,
                 }}>Please enter the details.</Text>
 
+                <Text style={{
+                  fontSize: Math.min(width * 0.045, 18),
+                  fontWeight: '600',
+                  marginTop: 5,
+                  marginBottom: 5,
+                }}>User Information</Text>
+
                 <View style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   marginBottom: 8,
                 }}>
+
                   <TextInput
                     label="First Name"
                     value={form.firstname}
@@ -505,6 +745,174 @@ const SignUp = () => {
                 )}
 
                 <TextInput
+                  label="Years of Experience"
+                  value={form.yearsOfExperience}
+                  onChangeText={handleChangeYearsOfExperience}
+                  keyboardType="numeric"
+                  style={{ width: '100%', marginBottom: 8 }}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  error={!!yearsOfExperienceError}
+                  dense={width < 360}
+                />
+
+                {yearsOfExperienceError && form.yearsOfExperience.length > 0 && (
+                  <Text style={{
+                    color: 'red',
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}>{yearsOfExperienceError}</Text>
+                )}
+
+                <Text style={{
+                  fontSize: Math.min(width * 0.045, 18),
+                  fontWeight: '600',
+                  marginTop: 16,
+                  marginBottom: 12,
+                }}>Address Information</Text>
+
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                  <View style={{
+                    width: '48%',
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#CBD2E0',
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: 'center',
+                    height: width < 360 ? 48 : 56,
+                  }}>
+                    <Dropdown
+                      style={{ flex: 1 }}
+                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      iconStyle={{ marginRight: 8 }}
+                      data={addressData.regions}
+                      labelField="label"
+                      valueField="value"
+                      placeholder={isLoading.regions ? "Loading..." : "Region"}
+                      value={form.region}
+                      onChange={(item) => {
+                        setForm({ ...form, region: item.value, regionCode: item.code, province: "", provinceCode: "", city: "" });
+                      }}
+                      disable={isLoading.regions}
+                      loading={isLoading.regions}
+                      errorMessage={addressErrors.regions}
+                    />
+                  </View>
+
+                  <View style={{
+                    width: '48%',
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#CBD2E0',
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: 'center',
+                    height: width < 360 ? 48 : 56,
+                  }}>
+                    <Dropdown
+                      style={{ flex: 1 }}
+                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      iconStyle={{ marginRight: 8 }}
+                      data={addressData.provinces}
+                      labelField="label"
+                      valueField="value"
+                      placeholder={isLoading.provinces ? "Loading..." : "Province"}
+                      value={form.province}
+                      onChange={(item) => {
+                        setForm({ ...form, province: item.value, provinceCode: item.code, city: "" });
+                      }}
+                      disabled={!form.region || isLoading.provinces}
+                      loading={isLoading.provinces}
+                      errorMessage={addressErrors.provinces}
+                    />
+                  </View>
+                </View>
+
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                  <View style={{
+                    width: '48%',
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#CBD2E0',
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: 'center',
+                    height: width < 360 ? 48 : 56,
+                  }}>
+                    <Dropdown
+                      style={{ flex: 1 }}
+                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      iconStyle={{ marginRight: 8 }}
+                      data={addressData.cities}
+                      labelField="label"
+                      valueField="value"
+                      placeholder={isLoading.cities ? "Loading..." : "City/Municipality"}
+                      value={form.city}
+                      onChange={(item) => {
+                        setForm({ ...form, city: item.value, cityCode: item.code });
+                      }}
+                      disabled={!form.province || isLoading.cities}
+                      loading={isLoading.cities}
+                      errorMessage={addressErrors.cities}
+                    />
+                  </View>
+
+                  <View style={{
+                    width: '48%',
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#CBD2E0',
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: 'center',
+                    height: width < 360 ? 48 : 56,
+                  }}>
+                    <Dropdown
+                      style={{ flex: 1 }}
+                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                      iconStyle={{ marginRight: 8 }}
+                      data={addressData.barangays}
+                      labelField="label"
+                      valueField="value"
+                      placeholder={isLoading.barangays ? "Loading..." : "Barangay"}
+                      value={form.barangay}
+                      onChange={(item) => {
+                        setForm({ ...form, barangay: item.value });
+                      }}
+                      disabled={!form.city || isLoading.barangays}
+                      loading={isLoading.barangays}
+                      errorMessage={addressErrors.barangays}
+                    />
+                  </View>
+                </View>
+
+                <Text style={{
+                  fontSize: Math.min(width * 0.045, 18),
+                  fontWeight: '600',
+                  marginTop: 16,
+                  marginBottom: 5,
+                }}>User Password</Text>
+
+                <TextInput
                   label="Password"
                   value={form.password}
                   onChangeText={handleChangePassword}
@@ -545,7 +953,7 @@ const SignUp = () => {
                       onPress={() => setConPasswordVisible(!conPasswordVisible)}
                     />
                   }
-                  style={{ width: '100%', marginBottom: 8 }}
+                  style={{ width: '100%', marginBottom: 20 }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"

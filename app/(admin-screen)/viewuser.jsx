@@ -29,6 +29,10 @@ const viewuser = () => {
     birthdate: params.birthdate || '',
     gender: params.gender || '',
     profile_image: params.profile_image || '',
+    region: params.region || '',
+    province: params.province || '',
+    city: params.city || '',
+    barangay: params.barangay || '',
   });
 
   const [firstName, setFirstName] = useState("");
@@ -69,14 +73,14 @@ const viewuser = () => {
   const confirmDelete = async () => {
     try {
       setIsLoading(true);
-      
+
       const deleteUrl = `${API_URL}/admin/users/delete-user/${userData.user_id}`;
       const response = await axios.delete(deleteUrl, {
         headers: {
           'X-API-Key': AUTH_KEY,
         }
       });
-  
+
       if (response.data.success) {
         Alert.alert(
           "Success",
@@ -127,7 +131,7 @@ const viewuser = () => {
           </View>
 
           {/* About Section */}
-          <View className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+          <View className="bg-white rounded-lg shadow-md p-4 mb-3 border border-gray-200">
             <Text className="text-xl font-semibold text-gray-800 mb-4">About</Text>
 
             {/* First and Last Name */}
@@ -171,13 +175,51 @@ const viewuser = () => {
             </View>
 
             {/* Gender */}
-            <View className="mb-2">
+            <View className="mb-5">
               <Text className="text-base text-gray-700">Gender</Text>
               <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
                 {userData.gender || "Not specified"}
               </Text>
             </View>
           </View>
+
+          {/* Address Section */}
+          <View className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <Text className="text-xl font-semibold text-gray-800 mb-4">Address</Text>
+
+            {/* Region */}
+            <View className="mb-2">
+              <Text className="text-base text-gray-700">Region</Text>
+              <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
+                {userData.region || "Not specified"}
+              </Text>
+            </View>
+
+            {/* Province */}
+            <View className="mb-2">
+              <Text className="text-base text-gray-700">Province</Text>
+              <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
+                {userData.province || "Not specified"}
+              </Text>
+            </View>
+
+            {/* City */}
+            <View className="mb-2">
+              <Text className="text-base text-gray-700">City</Text>
+              <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
+                {userData.city || "Not specified"}
+              </Text>
+            </View>
+
+            {/* Barangay */}
+            <View className="mb-2">
+              <Text className="text-base text-gray-700">Barangay</Text>
+              <Text className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800">
+                {userData.barangay || "Not specified"}
+              </Text>
+            </View>
+          </View>
+
 
           {/* Delete Button */}
           <TouchableOpacity

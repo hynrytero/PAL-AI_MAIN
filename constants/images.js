@@ -25,6 +25,7 @@ import angelo from "../assets/images/angelo.jpg";
 import map from "../assets/images/map.png";
 import Default_Profile from "../assets/images/Default_Profile.jpeg";
 import medicine from "../assets/images/medicine.png";
+import app_icon from "../assets/images/app_icon.png";
 
 
 export default {
@@ -54,5 +55,6 @@ export default {
   angelo,
   map,
   Default_Profile,
-  medicine
+  medicine,
+  app_icon
 };

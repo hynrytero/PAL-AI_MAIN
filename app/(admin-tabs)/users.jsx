@@ -42,21 +42,12 @@ const Users = () => {
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter states for age and gender
+  // Filter states for gender
   const [selectedGender, setSelectedGender] = useState(null);
-  const [selectedAgeRange, setSelectedAgeRange] = useState(null);
 
   // Collapsible filter state
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const animatedHeight = useRef(new Animated.Value(0)).current;
-
-  // Age range options
-  const ageRanges = [
-    { label: "18-30", min: 18, max: 30 },
-    { label: "31-45", min: 31, max: 45 },
-    { label: "46-60", min: 46, max: 60 },
-    { label: "Over 60", min: 61, max: 120 }
-  ];
 
   // Toggle filters visibility
   const toggleFilters = () => {
@@ -74,8 +65,7 @@ const Users = () => {
     sortBy !== "name" ||
     sortOrder !== "asc" ||
     searchQuery ||
-    selectedGender ||
-    selectedAgeRange;
+    selectedGender;
 
   // Use debounced search
   useEffect(() => {
@@ -118,7 +108,13 @@ const Users = () => {
           age: calculateAge(user.birthdate),
           isNew: user.created_at ?
             (new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24) <= 7 :
-            false
+            false,
+          fullAddress: [
+            user.barangay,
+            user.city,
+            user.province,
+            user.region
+          ].filter(Boolean).join(', ')
         }));
 
         setUsers(processedUsers);
@@ -162,15 +158,6 @@ const Users = () => {
       );
     }
 
-    // Apply age filter
-    if (selectedAgeRange) {
-      result = result.filter(user =>
-        user.age !== null &&
-        user.age >= selectedAgeRange.min &&
-        user.age <= selectedAgeRange.max
-      );
-    }
-
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
@@ -179,13 +166,16 @@ const Users = () => {
         const nameA = `${a.firstname} ${a.lastname}`.toLowerCase();
         const nameB = `${b.firstname} ${b.lastname}`.toLowerCase();
         comparison = nameA.localeCompare(nameB);
-      } else if (sortBy === "email") {
-        comparison = a.email.toLowerCase().localeCompare(b.email.toLowerCase());
       } else if (sortBy === "age") {
         // Handle null values for sorting
         const ageA = a.age !== null ? a.age : -1;
         const ageB = b.age !== null ? b.age : -1;
         comparison = ageA - ageB;
+      } else if (sortBy === "experience") {
+        // Handle null values for sorting
+        const expA = a.years_experience !== null ? a.years_experience : -1;
+        const expB = b.years_experience !== null ? b.years_experience : -1;
+        comparison = expA - expB;
       }
 
       return sortOrder === "asc" ? comparison : -comparison;
@@ -193,7 +183,7 @@ const Users = () => {
 
     setFilteredUsers(result);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [users, searchQuery, sortBy, sortOrder, selectedGender, selectedAgeRange]);
+  }, [users, searchQuery, sortBy, sortOrder, selectedGender]);
 
   // Get current users for pagination
   const indexOfLastUser = currentPage * usersPerPage;
@@ -215,7 +205,6 @@ const Users = () => {
     setSortBy("name");
     setSortOrder("asc");
     setSelectedGender(null);
-    setSelectedAgeRange(null);
     setFilteredUsers(users);
     setCurrentPage(1);
   };
@@ -232,12 +221,16 @@ const Users = () => {
         mobile_number: user.mobile_number,
         birthdate: user.birthdate,
         gender: user.gender,
-        profile_image: user.profile_image
+        profile_image: user.profile_image,
+        region: user.region,
+        province: user.province,
+        city: user.city,
+        barangay: user.barangay
       }
     });
   };
 
-  // Update the renderItem function to make the entire card clickable
+  // Update the renderItem function to include address information
   const renderItem = ({ item }) => {
     const defaultAvatar = images.Default_Profile;
 
@@ -284,20 +277,6 @@ const Users = () => {
               {item.mobile_number || "No phone number"}
             </Text>
             <View style={{ flexDirection: 'row', marginTop: 6, flexWrap: 'wrap' }}>
-              <Text style={{
-                fontSize: 12,
-                fontWeight: '600',
-                paddingVertical: 3,
-                paddingHorizontal: 8,
-                borderRadius: 12,
-                color: "white",
-                backgroundColor: "#008000",
-                marginRight: 6,
-                marginBottom: 4
-              }}>
-                User
-              </Text>
-
               {item.gender && (
                 <Text style={{
                   fontSize: 12,
@@ -323,9 +302,25 @@ const Users = () => {
                   borderRadius: 12,
                   color: "white",
                   backgroundColor: "#FF9800",
+                  marginRight: 6,
                   marginBottom: 4
                 }}>
-                  {item.age} years old
+                  {item.age} yrs old
+                </Text>
+              )}
+
+              {item.years_experience !== null && (
+                <Text style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  paddingVertical: 3,
+                  paddingHorizontal: 8,
+                  borderRadius: 12,
+                  color: "white",
+                  backgroundColor: "#008000",
+                  marginBottom: 4
+                }}>
+                  {item.years_experience} yrs exp
                 </Text>
               )}
             </View>
@@ -362,14 +357,14 @@ const Users = () => {
   }
 
   const handleLogout = async () => {
-      try {
-        await logout();
-        router.replace("sign-in");
-        console.log(`Logged Out`);
-      } catch (error) {
-        console.error("Logout failed:", error);
-      }
-    };
+    try {
+      await logout();
+      router.replace("sign-in");
+      console.log(`Logged Out`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   if (error) {
     return (
@@ -379,13 +374,13 @@ const Users = () => {
           <Text style={{ textAlign: 'center', fontSize: 16, color: '#ff4d4f', marginTop: 12 }}>
             {error}
           </Text>
-          <TouchableOpacity 
-            style={{ 
-              marginTop: 20, 
-              backgroundColor: '#228B22', 
-              paddingVertical: 10, 
-              paddingHorizontal: 20, 
-              borderRadius: 8 
+          <TouchableOpacity
+            style={{
+              marginTop: 20,
+              backgroundColor: '#228B22',
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 8
             }}
             onPress={fetchUsers}
           >
@@ -481,8 +476,7 @@ const Users = () => {
                   }}>
                     Filters {hasActiveFilters ? `(${[
                       sortBy !== "name" || sortOrder !== "asc" ? 1 : 0,
-                      selectedGender ? 1 : 0,
-                      selectedAgeRange ? 1 : 0
+                      selectedGender ? 1 : 0
                     ].reduce((a, b) => a + b, 0)})` : ""}
                   </Text>
                   <Icon
@@ -568,23 +562,6 @@ const Users = () => {
                       </Text>
                     </View>
                   )}
-
-                  {selectedAgeRange && (
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#f0f0f0',
-                      paddingVertical: 4,
-                      paddingHorizontal: 8,
-                      borderRadius: 16,
-                      marginRight: 8,
-                      marginBottom: 6
-                    }}>
-                      <Text style={{ fontSize: 12, color: '#666' }}>
-                        Age: {selectedAgeRange.label}
-                      </Text>
-                    </View>
-                  )}
                 </View>
               )}
 
@@ -595,7 +572,7 @@ const Users = () => {
                     overflow: 'hidden',
                     maxHeight: animatedHeight.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [0, 330]
+                      outputRange: [0, 250]
                     }),
                     backgroundColor: '#f9f9f9',
                     borderRadius: 8,
@@ -632,20 +609,6 @@ const Users = () => {
 
                         <TouchableOpacity
                           style={{
-                            backgroundColor: sortBy === "email" ? '#228B22' : '#e0e0e0',
-                            paddingVertical: 6,
-                            paddingHorizontal: 12,
-                            borderRadius: 16,
-                            marginRight: 8,
-                            marginBottom: 8
-                          }}
-                          onPress={() => setSortBy("email")}
-                        >
-                          <Text style={{ color: sortBy === "email" ? 'white' : '#333', fontWeight: '500' }}>Email</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={{
                             backgroundColor: sortBy === "age" ? '#228B22' : '#e0e0e0',
                             paddingVertical: 6,
                             paddingHorizontal: 12,
@@ -656,6 +619,20 @@ const Users = () => {
                           onPress={() => setSortBy("age")}
                         >
                           <Text style={{ color: sortBy === "age" ? 'white' : '#333', fontWeight: '500' }}>Age</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={{
+                            backgroundColor: sortBy === "experience" ? '#228B22' : '#e0e0e0',
+                            paddingVertical: 6,
+                            paddingHorizontal: 12,
+                            borderRadius: 16,
+                            marginRight: 8,
+                            marginBottom: 8
+                          }}
+                          onPress={() => setSortBy("experience")}
+                        >
+                          <Text style={{ color: sortBy === "experience" ? 'white' : '#333', fontWeight: '500' }}>Experience</Text>
                         </TouchableOpacity>
                       </View>
 
@@ -744,38 +721,6 @@ const Users = () => {
                             Female
                           </Text>
                         </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    {/* Age Range Filter */}
-                    <View style={{ marginBottom: 8 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '500', color: '#666', marginBottom: 6 }}>
-                        Filter by Age:
-                      </Text>
-                      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                        {ageRanges.map((range) => (
-                          <TouchableOpacity
-                            key={range.label}
-                            style={{
-                              backgroundColor: selectedAgeRange === range ? '#FF9800' : '#e0e0e0',
-                              paddingVertical: 6,
-                              paddingHorizontal: 12,
-                              borderRadius: 16,
-                              marginRight: 8,
-                              marginBottom: 8,
-                              flexDirection: 'row',
-                              alignItems: 'center'
-                            }}
-                            onPress={() => setSelectedAgeRange(selectedAgeRange === range ? null : range)}
-                          >
-                            <Text style={{
-                              color: selectedAgeRange === range ? 'white' : '#333',
-                              fontWeight: '500'
-                            }}>
-                              {range.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
                       </View>
                     </View>
                   </ScrollView>

@@ -23,7 +23,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/logo.png",
+        foregroundImage: "./assets/images/app_icon.png",
         backgroundColor: "#ffffff"
       },
       package: "dev.expo.palai",

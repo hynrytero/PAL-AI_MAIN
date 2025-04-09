@@ -20,6 +20,13 @@ const Profile = () => {
     birthdate: '',
     gender: '',
     image: '',
+    yearsExperience: '',
+    address: {
+      region: '',
+      province: '',
+      city: '',
+      barangay: ''
+    }
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -154,7 +161,7 @@ const Profile = () => {
             </Text>
           </View>
 
-          <View className="w-full bg-white rounded-lg shadow-lg p-4 mb-8 border border-gray-200">
+          <View className="w-full bg-white rounded-lg shadow-lg p-4 mb-5 border border-gray-200">
             <Text className="text-xl font-semibold text-gray-800 mb-3">About</Text>
 
             {[
@@ -163,10 +170,30 @@ const Profile = () => {
               { label: "Contact Number", value: userData.contactNumber || "Not provided" },
               { label: "Birthdate", value: formatDate(userData.birthdate) || "Not provided" },
               { label: "Gender", value: userData.gender || "Not provided" },
+              { label: "Years of Experience", value: userData.yearsExperience || "Not provided" },
             ].map((item, index) => (
               <View
                 key={index}
-                className={`flex-row justify-between py-3 border-b ${index === 4 ? "border-0" : "border-gray-200"}`}
+                className={`flex-row justify-between py-3 border-b ${index === 5 ? "border-0" : "border-gray-200"}`}
+              >
+                <Text className="text-base text-gray-600">{item.label}</Text>
+                <Text className="text-base font-medium text-gray-800">{item.value}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View className="w-full bg-white rounded-lg shadow-lg p-4 mb-8 border border-gray-200">
+            <Text className="text-xl font-semibold text-gray-800 mb-3">Address</Text>
+
+            {[
+              { label: "Region", value: userData.address?.region || "Not provided" },
+              { label: "Province", value: userData.address?.province || "Not provided" },
+              { label: "City", value: userData.address?.city || "Not provided" },
+              { label: "Barangay", value: userData.address?.barangay || "Not provided" },
+            ].map((item, index) => (
+              <View
+                key={index}
+                className={`flex-row justify-between py-3 border-b ${index === 3 ? "border-0" : "border-gray-200"}`}
               >
                 <Text className="text-base text-gray-600">{item.label}</Text>
                 <Text className="text-base font-medium text-gray-800">{item.value}</Text>
