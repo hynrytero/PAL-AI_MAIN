@@ -22,6 +22,7 @@ export default {
       }
     },
     android: {
+      "softwareKeyboardLayoutMode": "pan",
       adaptiveIcon: {
         foregroundImage: "./assets/images/app_icon.png",
         backgroundColor: "#ffffff"

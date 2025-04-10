@@ -267,19 +267,19 @@ const Users = () => {
             resizeMode="cover"
           />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 6 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 1 }}>
               {item.firstname} {item.lastname}
             </Text>
-            <Text style={{ fontSize: 14, color: '#666', marginTop: 2 }}>
+            <Text style={{ fontSize: 12, color: '#666' }}>
               {item.email}
             </Text>
-            <Text style={{ fontSize: 14, color: '#666', marginTop: 2 }}>
+            <Text style={{ fontSize: 12, color: '#666', marginTop: 1 }}>
               {item.mobile_number || "No phone number"}
             </Text>
             <View style={{ flexDirection: 'row', marginTop: 6, flexWrap: 'wrap' }}>
               {item.gender && (
                 <Text style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: '600',
                   paddingVertical: 3,
                   paddingHorizontal: 8,
@@ -295,7 +295,7 @@ const Users = () => {
 
               {item.age !== null && (
                 <Text style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: '600',
                   paddingVertical: 3,
                   paddingHorizontal: 8,
@@ -311,7 +311,7 @@ const Users = () => {
 
               {item.years_experience !== null && (
                 <Text style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: '600',
                   paddingVertical: 3,
                   paddingHorizontal: 8,

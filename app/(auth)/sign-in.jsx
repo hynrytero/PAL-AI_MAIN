@@ -88,7 +88,7 @@ const SignIn = () => {
     }
     console.log(`Logged In`);
     setIsSubmitting(true);
-    console.log(AUTH_KEY);
+   // console.log(AUTH_KEY);
     try {
       const response = await axios.post(
         `${API_URL}/auth/login`,

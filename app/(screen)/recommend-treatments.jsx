@@ -4,6 +4,7 @@ import {
   ScrollView,
   ImageBackground,
   Text,
+  TouchableOpacity,
 } from "react-native";
 import { TextInput } from "react-native-paper";
 import React, { useState } from "react";
@@ -20,6 +21,14 @@ const RecommendTreatments = () => {
   const { user } = useAuth();
   const [suggestionTitle, setSuggestionTitle] = useState('');
   const [suggestionDescription, setSuggestionDescription] = useState('');
+  const [selectedType, setSelectedType] = useState('general');
+
+  const suggestionTypes = [
+    { id: 'general', label: 'General' },
+    { id: 'treatment', label: 'Treatment' },
+    { id: 'medicine', label: 'Medicine' },
+    { id: 'disease', label: 'Disease' },
+  ];
 
   // send suggestion to admin
   const sendSuggestionNotificationToAdmins = async () => {
@@ -58,7 +67,7 @@ const RecommendTreatments = () => {
           },
           body: JSON.stringify({
             user_id: admin.userId,
-            title: `Suggestion: From Farmer ${user.username} (${user.email})`,
+            title: `${suggestionTypes.find(type => type.id === selectedType)?.label || 'General'} Suggestion: From Farmer ${user.username} (${user.email})`,
             body: `Description: ${suggestionDescription}`,
             icon: 'warning',
             icon_bg_color: 'green',
@@ -75,7 +84,7 @@ const RecommendTreatments = () => {
           },
           body: JSON.stringify({
             user_id: admin.userId,
-            title: `Suggestion: From Farmer ${user.username} (${user.email})`,
+            title: `${suggestionTypes.find(type => type.id === selectedType)?.label || 'General'} Suggestion: From Farmer ${user.username} (${user.email})`,
             body: `Description: ${suggestionDescription}`
           })
         });
@@ -102,6 +111,7 @@ const RecommendTreatments = () => {
       alert('Suggestion sent successfully!');
       setSuggestionTitle('');
       setSuggestionDescription('');
+      setSelectedType('general');
     } catch (error) {
       alert('Failed to send suggestion. Please try again.');
     }
@@ -124,7 +134,7 @@ const RecommendTreatments = () => {
           showsVerticalScrollIndicator={false}
         >
           <View>
-            <View className="flex-row items-center w-full mb-8">
+            <View className="flex-row items-center w-full mb-4">
               <Icon
                 name="chevron-left"
                 size={32}
@@ -137,6 +147,37 @@ const RecommendTreatments = () => {
             </View>
 
             <View className="space-y-6">
+              <View className="flex-column items-start w-full">
+                <Text className="font-psemibold text-[16px] mb-2">
+                  Suggestion Type
+                </Text>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  className="flex-row gap-1.5"
+                >
+                  {suggestionTypes.map((type) => (
+                    <TouchableOpacity
+                      key={type.id}
+                      onPress={() => setSelectedType(type.id)}
+                      className={`px-3 py-1.5 rounded-lg border ${
+                        selectedType === type.id
+                          ? 'bg-[#006400] border-[#006400]'
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <Text
+                        className={`font-pmedium text-sm ${
+                          selectedType === type.id ? 'text-white' : 'text-gray-700'
+                        }`}
+                      >
+                        {type.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
               <View className="flex-column items-start w-full">
                 <Text className="font-psemibold text-[16px] mb-2">
                   Suggestion Name

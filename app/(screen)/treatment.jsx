@@ -192,11 +192,13 @@ const Treatment = () => {
                         <View className="mb-2 p-4  bg-green-600/50  rounded-lg">
                           <Text className="font-pmedium text-lg mb-2">{item.name}</Text>
                           {item.image && (
-                            <Image
-                              source={{ uri: item.image }}
-                              className="w-full h-[100px] mb-3"
-                              resizeMode="contain"
-                            />
+                            <View className="items-center mb-4">
+                              <Image
+                                source={{ uri: item.image }}
+                                className="w-[205px] h-[130px] rounded-lg"
+                                resizeMode="cover"
+                              />
+                            </View>
                           )}
                           <Text className="font-pregular text-md leading-6">
                             {item.description}

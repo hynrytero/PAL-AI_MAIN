@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TouchableOpacity, TextInput, Alert, Platform, StyleSheet } from 'react-native';
+import { TouchableOpacity, TextInput, Alert, Platform, StyleSheet, Picker } from 'react-native';
 import { router } from "expo-router";
 import {
   View,
@@ -18,6 +18,13 @@ import Feather from "react-native-vector-icons/Feather";
 import { Button } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+import {
+  getAllRegions,
+  getProvincesByRegion,
+  getMunicipalitiesByProvince,
+  getBarangaysByMunicipality,
+} from "@aivangogh/ph-address";
+import { Dropdown } from "react-native-element-dropdown";
 
 const API_URL = API_URL_BCNKEND;
 
@@ -31,6 +38,12 @@ const Profile = () => {
     birthdate: '',
     gender: '',
     image: '',
+    addressId: null,
+    yearsExperience: null,
+    region: '',
+    province: '',
+    city: '',
+    barangay: ''
   });
   const [profileImage, setProfileImage] = useState(null);
   const [error, setError] = useState(null);
@@ -38,7 +51,32 @@ const Profile = () => {
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState(new Date());
   const [contactNumber, setContactNumber] = useState("");
+  const [yearsExperience, setYearsExperience] = useState("");
+  const [region, setRegion] = useState("");
+  const [province, setProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [barangay, setBarangay] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [addressData, setAddressData] = useState({
+    regions: [],
+    provinces: [],
+    cities: [],
+    barangays: [],
+  });
+
+  const [isLoading, setIsLoading] = useState({
+    regions: false,
+    provinces: false,
+    cities: false,
+    barangays: false,
+  });
+
+  const [addressErrors, setAddressErrors] = useState({
+    regions: "",
+    provinces: "",
+    cities: "",
+    barangays: "",
+  });
 
   const fetchUserProfile = async () => {
     try {
@@ -51,7 +89,14 @@ const Profile = () => {
       });
 
       if (response.data.success) {
-        setUserData(response.data.data);
+        const profileData = response.data.data;
+        setUserData({
+          ...profileData,
+          region: profileData.address?.region || '',
+          province: profileData.address?.province || '',
+          city: profileData.address?.city || '',
+          barangay: profileData.address?.barangay || ''
+        });
       } else {
         throw new Error(response.data.message || 'Failed to fetch profile data');
       }
@@ -75,26 +120,215 @@ const Profile = () => {
     setFirstName(userData.firstname);
     setLastName(userData.lastname);
     setContactNumber(userData.contactNumber);
+    setYearsExperience(userData.yearsExperience?.toString() || "");
+    setRegion(userData.region || "");
+    setProvince(userData.province || "");
+    setCity(userData.city || "");
+    setBarangay(userData.barangay || "");
 
     if (userData.birthdate) {
       setBirthDate(new Date(userData.birthdate));
     }
   }, [userData]);
 
+  // Fetch regions on component mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRegions = async () => {
+      if (addressData.regions.length === 0) {
+        try {
+          setIsLoading(prev => ({ ...prev, regions: true }));
+          setAddressErrors(prev => ({ ...prev, regions: "" }));
+          const regionsData = getAllRegions();
+          if (isMounted) {
+            const formattedRegions = regionsData.map(region => ({
+              label: region.name,
+              value: region.name,
+              code: region.psgcCode
+            }));
+            setAddressData(prev => ({ ...prev, regions: formattedRegions }));
+          }
+        } catch (error) {
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, regions: false }));
+          }
+        }
+      }
+    };
+
+    fetchRegions();
+    return () => {
+      isMounted = false;
+    };
+  }, [addressData.regions.length]);
+
+  // Update provinces when region changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProvinces = async () => {
+      if (region && !addressData.provinces.some(p => p.code === region)) {
+        try {
+          setIsLoading(prev => ({ ...prev, provinces: true }));
+          setAddressErrors(prev => ({ ...prev, provinces: "" }));
+          const selectedRegion = addressData.regions.find(r => r.value === region);
+          if (selectedRegion) {
+            const regionCode = selectedRegion.code;
+            const provincesData = getProvincesByRegion(regionCode);
+            if (isMounted) {
+              const formattedProvinces = provincesData.map(province => ({
+                label: province.name,
+                value: province.name,
+                code: province.psgcCode
+              }));
+              setAddressData(prev => ({ ...prev, provinces: formattedProvinces }));
+
+              // If this is a user-initiated change, reset the dependent fields
+              if (region !== userData.region) {
+                setProvince('');
+                setCity('');
+                setBarangay('');
+              }
+            }
+          }
+        } catch (error) {
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, provinces: "Failed to load provinces. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, provinces: false }));
+          }
+        }
+      } else {
+        setAddressData(prev => ({ ...prev, provinces: [] }));
+      }
+    };
+
+    fetchProvinces();
+    return () => {
+      isMounted = false;
+    };
+  }, [region, addressData.regions]);
+
+  // Update cities when province changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCities = async () => {
+      if (province && !addressData.cities.some(c => c.code === province)) {
+        try {
+          setIsLoading(prev => ({ ...prev, cities: true }));
+          setAddressErrors(prev => ({ ...prev, cities: "" }));
+          const selectedProvince = addressData.provinces.find(p => p.value === province);
+          if (selectedProvince) {
+            const provinceCode = selectedProvince.code;
+            const citiesData = getMunicipalitiesByProvince(provinceCode);
+            if (isMounted) {
+              const formattedCities = citiesData.map(city => ({
+                label: city.name,
+                value: city.name,
+                code: city.psgcCode
+              }));
+              setAddressData(prev => ({ ...prev, cities: formattedCities }));
+
+              // If this is a user-initiated change, reset the dependent fields
+              if (province !== userData.province) {
+                setCity('');
+                setBarangay('');
+              }
+            }
+          }
+        } catch (error) {
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, cities: "Failed to load cities. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, cities: false }));
+          }
+        }
+      } else {
+        setAddressData(prev => ({ ...prev, cities: [] }));
+      }
+    };
+
+    fetchCities();
+    return () => {
+      isMounted = false;
+    };
+  }, [province, addressData.provinces]);
+
+  // Update barangays when city changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBarangays = async () => {
+      if (city && !addressData.barangays.some(b => b.code === city)) {
+        try {
+          setIsLoading(prev => ({ ...prev, barangays: true }));
+          setAddressErrors(prev => ({ ...prev, barangays: "" }));
+          const selectedCity = addressData.cities.find(c => c.value === city);
+          if (selectedCity) {
+            const cityCode = selectedCity.code;
+            const barangaysData = getBarangaysByMunicipality(cityCode);
+            if (isMounted) {
+              const formattedBarangays = barangaysData.map(barangay => ({
+                label: barangay.name,
+                value: barangay.name,
+                code: barangay.psgcCode
+              }));
+              setAddressData(prev => ({ ...prev, barangays: formattedBarangays }));
+
+              // If this is a user-initiated change, reset the dependent field
+              if (city !== userData.city) {
+                setBarangay('');
+              }
+            }
+          }
+        } catch (error) {
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, barangays: "Failed to load barangays. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, barangays: false }));
+          }
+        }
+      } else {
+        setAddressData(prev => ({ ...prev, barangays: [] }));
+      }
+    };
+
+    fetchBarangays();
+    return () => {
+      isMounted = false;
+    };
+  }, [city, addressData.cities]);
+
   const formatDateForServer = (date) => {
     const d = new Date(date);
     const timezoneOffset = d.getTimezoneOffset();
     d.setMinutes(d.getMinutes() + timezoneOffset);
-    
+
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-  
 
+  const validateAddress = () => {
+    if (!region || !province || !city || !barangay) {
+      Alert.alert("Error", "Please complete all address fields");
+      return false;
+    }
+    return true;
+  };
 
   const handleApplyChanges = () => {
+    if (!validateAddress()) return;
+
     Alert.alert(
       "Confirm Changes",
       "Are you sure you want to apply these changes?",
@@ -107,9 +341,8 @@ const Profile = () => {
           text: "OK",
           onPress: async () => {
             try {
-              let imageUrl = userData.image; // Default to existing image
+              let imageUrl = userData.image;
 
-              // If there's a new profile image, upload it first
               if (profileImage && profileImage !== userData.image) {
                 const formData = new FormData();
                 formData.append('image', {
@@ -134,17 +367,21 @@ const Profile = () => {
                 imageUrl = uploadResult.imageUrl;
               }
 
-              // Prepare updated profile data
               const updatedProfile = {
                 userId: user.id,
                 firstname: firstName,
                 lastname: lastName,
                 birthdate: formatDateForServer(birthDate),
                 contactNumber: contactNumber,
-                image: imageUrl
+                image: imageUrl,
+                addressId: userData.addressId,
+                yearsExperience: parseInt(yearsExperience) || null,
+                region: region,
+                province: province,
+                city: city,
+                barangay: barangay
               };
 
-              // Send update request
               const updateResponse = await axios.put(
                 `${API_URL}/profile/update`,
                 updatedProfile,
@@ -156,6 +393,15 @@ const Profile = () => {
               );
 
               if (updateResponse.data.success) {
+                // Update the userData state with new address information
+                setUserData(prev => ({
+                  ...prev,
+                  region: region,
+                  province: province,
+                  city: city,
+                  barangay: barangay
+                }));
+
                 Alert.alert(
                   "Success",
                   "Profile updated successfully",
@@ -170,12 +416,11 @@ const Profile = () => {
                 throw new Error(updateResponse.data.message || 'Failed to update profile');
               }
             } catch (error) {
-              console.error('Update failed:', error);
-              Alert.alert(
-                "Error",
-                error.message || "Failed to update profile",
-                [{ text: "OK" }]
-              );
+              let errorMessage = "Failed to update profile";
+              if (error.response?.data?.message?.includes('address')) {
+                errorMessage = "Failed to update address. Please try again.";
+              }
+              Alert.alert("Error", errorMessage, [{ text: "OK" }]);
             }
           }
         }
@@ -243,15 +488,15 @@ const Profile = () => {
           </View>
 
           {/* About Section */}
-          <View className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-            <Text className="text-xl font-semibold text-gray-800 mb-4">About</Text>
+          <View className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
+            <Text className="text-xl font-semibold text-gray-800 mb-2">About</Text>
 
             {/* First and Last Name */}
             <View className="flex-row justify-between mb-4">
               <View className="w-[48%]">
                 <Text className="text-base text-gray-700">First Name</Text>
                 <TextInput
-                  className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800"
+                  className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
                   placeholder="Firstname"
                   placeholderTextColor="#9ca3af"
                   value={firstName}
@@ -261,7 +506,7 @@ const Profile = () => {
               <View className="w-[48%]">
                 <Text className="text-base text-gray-700">Last Name</Text>
                 <TextInput
-                  className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800"
+                  className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
                   placeholder="Lastname"
                   placeholderTextColor="#9ca3af"
                   value={lastName}
@@ -275,7 +520,7 @@ const Profile = () => {
               <Text className="text-base text-gray-700">Birth Date</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(true)}>
                 <TextInput
-                  className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800"
+                  className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
                   placeholder="Birth Date"
                   placeholderTextColor="#9ca3af"
                   value={birthDate ? birthDate.toISOString().split('T')[0] : ""}
@@ -287,7 +532,7 @@ const Profile = () => {
                   value={birthDate || new Date()}
                   mode="date"
                   display="default"
-                  timeZoneOffsetInMinutes={0} 
+                  timeZoneOffsetInMinutes={0}
                   onChange={handleDateChange}
                 />
               )}
@@ -297,7 +542,7 @@ const Profile = () => {
             <View className="mb-2">
               <Text className="text-base text-gray-700">Contact Number</Text>
               <TextInput
-                className="border border-gray-400 rounded-md p-2 mt-2 text-base text-gray-800"
+                className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
                 placeholder="Contact Number"
                 placeholderTextColor="#9ca3af"
                 value={contactNumber}
@@ -305,23 +550,130 @@ const Profile = () => {
                 keyboardType="numeric"
               />
             </View>
+
+            {/* Years of Experience */}
+            <View className="mb-4">
+              <Text className="text-base text-gray-700">Years of Experience</Text>
+              <TextInput
+                className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
+                placeholder="Years of Experience"
+                placeholderTextColor="#9ca3af"
+                value={yearsExperience}
+                onChangeText={setYearsExperience}
+                keyboardType="numeric"
+              />
+            </View>
           </View>
 
-          {/* Apply Changes Button */}
-          <View className="mt-6">
-            <Button
-              mode="contained"
-              style={{ borderRadius: 8, backgroundColor: "forestgreen" }}
-              contentStyle={{ paddingVertical: 10 }}
-              labelStyle={{ fontSize: 16, fontWeight: "bold" }}
-              onPress={handleApplyChanges}
-            >
-              {"Apply Changes"}
-            </Button>
+
+          {/* Address Information */}
+          <View className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <Text className="text-xl font-semibold text-gray-800 mb-2">Address</Text>
+
+            <View className="mb-2">
+              <Text className="text-base text-gray-600">Region</Text>
+              <View className="border border-gray-400 rounded-md p-2 mt-1">
+                <Dropdown
+                  style={{ flex: 1 }}
+                  placeholderStyle={{ fontSize: 14 }}
+                  selectedTextStyle={{ fontSize: 14 }}
+                  inputSearchStyle={{ fontSize: 14 }}
+                  iconStyle={{ marginRight: 8 }}
+                  data={addressData.regions}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={isLoading.regions ? "Loading..." : "Select Region"}
+                  value={region}
+                  onChange={(item) => setRegion(item.value)}
+                  disable={isLoading.regions}
+                  loading={isLoading.regions}
+                  errorMessage={addressErrors.regions}
+                />
+              </View>
+            </View>
+
+            <View className="mb-2">
+              <Text className="text-base text-gray-600">Province</Text>
+              <View className="border border-gray-400 rounded-md p-2 mt-1">
+                <Dropdown
+                  style={{ flex: 1 }}
+                  placeholderStyle={{ fontSize: 14 }}
+                  selectedTextStyle={{ fontSize: 14 }}
+                  inputSearchStyle={{ fontSize: 14 }}
+                  iconStyle={{ marginRight: 8 }}
+                  data={addressData.provinces}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={isLoading.provinces ? "Loading..." : "Select Province"}
+                  value={province}
+                  onChange={(item) => setProvince(item.value)}
+                  disabled={!region || isLoading.provinces}
+                  loading={isLoading.provinces}
+                  errorMessage={addressErrors.provinces}
+                />
+              </View>
+            </View>
+
+            <View className="mb-2">
+              <Text className="text-base text-gray-600">City</Text>
+              <View className="border border-gray-400 rounded-md p-2 mt-1">
+                <Dropdown
+                  style={{ flex: 1 }}
+                  placeholderStyle={{ fontSize: 14 }}
+                  selectedTextStyle={{ fontSize: 14 }}
+                  inputSearchStyle={{ fontSize: 14 }}
+                  iconStyle={{ marginRight: 8 }}
+                  data={addressData.cities}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={isLoading.cities ? "Loading..." : "Select City"}
+                  value={city}
+                  onChange={(item) => setCity(item.value)}
+                  disabled={!province || isLoading.cities}
+                  loading={isLoading.cities}
+                  errorMessage={addressErrors.cities}
+                />
+              </View>
+            </View>
+
+            <View className="mb-2">
+              <Text className="text-base text-gray-600">Barangay</Text>
+              <View className="border border-gray-400 rounded-md p-2 mt-1">
+                <Dropdown
+                  style={{ flex: 1 }}
+                  placeholderStyle={{ fontSize: 14 }}
+                  selectedTextStyle={{ fontSize: 14 }}
+                  inputSearchStyle={{ fontSize: 14 }}
+                  iconStyle={{ marginRight: 8 }}
+                  data={addressData.barangays}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={isLoading.barangays ? "Loading..." : "Select Barangay"}
+                  value={barangay}
+                  onChange={(item) => setBarangay(item.value)}
+                  disabled={!city || isLoading.barangays}
+                  loading={isLoading.barangays}
+                  errorMessage={addressErrors.barangays}
+                />
+              </View>
+            </View>
           </View>
-        </SafeAreaView>
-      </ScrollView>
-    </ImageBackground>
+
+        {/* Apply Changes Button */}
+        <View className="mt-6">
+          <Button
+            mode="contained"
+            style={{ borderRadius: 8, backgroundColor: "forestgreen" }}
+            contentStyle={{ paddingVertical: 10 }}
+            labelStyle={{ fontSize: 16, fontWeight: "bold" }}
+            onPress={handleApplyChanges}
+          >
+            {"Apply Changes"}
+          </Button>
+        </View>
+      </SafeAreaView>
+    </ScrollView>
+    </ImageBackground >
   );
 };
 

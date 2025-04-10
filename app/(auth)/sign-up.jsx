@@ -20,7 +20,12 @@ import { Dropdown } from "react-native-element-dropdown";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
-import { regions, provinces, cities, barangays } from "select-philippines-address";
+import {
+  getAllRegions,
+  getProvincesByRegion,
+  getMunicipalitiesByProvince,
+  getBarangaysByMunicipality,
+} from "@aivangogh/ph-address";
 
 const API_URL = API_URL_BCNKEND;
 const { width, height } = Dimensions.get('window');
@@ -71,26 +76,28 @@ const SignUp = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchRegions = async () => {
-      try {
-        setIsLoading(prev => ({ ...prev, regions: true }));
-        setAddressErrors(prev => ({ ...prev, regions: "" }));
-        const regionsData = await regions();
-        if (isMounted) {
-          const formattedRegions = regionsData.map(region => ({
-            label: region.region_name,
-            value: region.region_name,
-            code: region.region_code
-          }));
-          setAddressData(prev => ({ ...prev, regions: formattedRegions }));
-        }
-      } catch (error) {
-        console.error("Error fetching regions:", error);
-        if (isMounted) {
-          setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(prev => ({ ...prev, regions: false }));
+      if (addressData.regions.length === 0) {
+        try {
+          setIsLoading(prev => ({ ...prev, regions: true }));
+          setAddressErrors(prev => ({ ...prev, regions: "" }));
+          const regionsData = getAllRegions();
+          if (isMounted) {
+            const formattedRegions = regionsData.map(region => ({
+              label: region.name,
+              value: region.name,
+              code: region.psgcCode
+            }));
+            setAddressData(prev => ({ ...prev, regions: formattedRegions }));
+          }
+        } catch (error) {
+          console.error("Error fetching regions:", error);
+          if (isMounted) {
+            setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(prev => ({ ...prev, regions: false }));
+          }
         }
       }
     };
@@ -99,17 +106,16 @@ const SignUp = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [addressData.regions.length]);
 
   // Update provinces when region changes
   useEffect(() => {
     let isMounted = true;
     const fetchProvinces = async () => {
-      if (form.region) {
+      if (form.region && !addressData.provinces.some(p => p.code === form.regionCode)) {
         try {
           setIsLoading(prev => ({ ...prev, provinces: true }));
           setAddressErrors(prev => ({ ...prev, provinces: "" }));
-          // Find the region code from the selected region name
           const selectedRegion = addressData.regions.find(r => r.value === form.region);
           if (selectedRegion) {
             const regionCode = selectedRegion.code;
@@ -117,15 +123,15 @@ const SignUp = () => {
               setForm(prev => ({ ...prev, regionCode }));
             }
 
-            const provincesData = await provinces(regionCode);
+            const provincesData = getProvincesByRegion(regionCode);
             if (isMounted) {
               const formattedProvinces = provincesData.map(province => ({
-                label: province.province_name,
-                value: province.province_name,
-                code: province.province_code
+                label: province.name,
+                value: province.name,
+                code: province.psgcCode
               }));
               setAddressData(prev => ({ ...prev, provinces: formattedProvinces }));
-              setForm(prev => ({ ...prev, province: "", provinceCode: "", city: "" }));
+              setForm(prev => ({ ...prev, province: "", provinceCode: "", city: "", cityCode: "", barangay: "" }));
             }
           }
         } catch (error) {
@@ -138,7 +144,7 @@ const SignUp = () => {
             setIsLoading(prev => ({ ...prev, provinces: false }));
           }
         }
-      } else {
+      } else if (!form.region) {
         setAddressData(prev => ({ ...prev, provinces: [] }));
       }
     };
@@ -153,11 +159,10 @@ const SignUp = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchCities = async () => {
-      if (form.province) {
+      if (form.province && !addressData.cities.some(c => c.code === form.provinceCode)) {
         try {
           setIsLoading(prev => ({ ...prev, cities: true }));
           setAddressErrors(prev => ({ ...prev, cities: "" }));
-          // Find the province code from the selected province name
           const selectedProvince = addressData.provinces.find(p => p.value === form.province);
           if (selectedProvince) {
             const provinceCode = selectedProvince.code;
@@ -165,12 +170,12 @@ const SignUp = () => {
               setForm(prev => ({ ...prev, provinceCode }));
             }
 
-            const citiesData = await cities(provinceCode);
+            const citiesData = getMunicipalitiesByProvince(provinceCode);
             if (isMounted) {
               const formattedCities = citiesData.map(city => ({
-                label: city.city_name,
-                value: city.city_name,
-                code: city.city_code
+                label: city.name,
+                value: city.name,
+                code: city.psgcCode
               }));
               setAddressData(prev => ({ ...prev, cities: formattedCities }));
               setForm(prev => ({ ...prev, city: "", cityCode: "", barangay: "" }));
@@ -186,7 +191,7 @@ const SignUp = () => {
             setIsLoading(prev => ({ ...prev, cities: false }));
           }
         }
-      } else {
+      } else if (!form.province) {
         setAddressData(prev => ({ ...prev, cities: [] }));
       }
     };
@@ -201,11 +206,10 @@ const SignUp = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchBarangays = async () => {
-      if (form.city) {
+      if (form.city && !addressData.barangays.some(b => b.code === form.cityCode)) {
         try {
           setIsLoading(prev => ({ ...prev, barangays: true }));
           setAddressErrors(prev => ({ ...prev, barangays: "" }));
-          // Find the city code from the selected city name
           const selectedCity = addressData.cities.find(c => c.value === form.city);
           if (selectedCity) {
             const cityCode = selectedCity.code;
@@ -213,12 +217,12 @@ const SignUp = () => {
               setForm(prev => ({ ...prev, cityCode }));
             }
 
-            const barangaysData = await barangays(cityCode);
+            const barangaysData = getBarangaysByMunicipality(cityCode);
             if (isMounted) {
               const formattedBarangays = barangaysData.map(barangay => ({
-                label: barangay.brgy_name,
-                value: barangay.brgy_name,
-                code: barangay.brgy_code
+                label: barangay.name,
+                value: barangay.name,
+                code: barangay.psgcCode
               }));
               setAddressData(prev => ({ ...prev, barangays: formattedBarangays }));
               setForm(prev => ({ ...prev, barangay: "" }));
@@ -234,7 +238,7 @@ const SignUp = () => {
             setIsLoading(prev => ({ ...prev, barangays: false }));
           }
         }
-      } else {
+      } else if (!form.city) {
         setAddressData(prev => ({ ...prev, barangays: [] }));
       }
     };
@@ -510,530 +514,528 @@ const SignUp = () => {
     <SafeAreaView style={{
       flex: 1,
     }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+      <ImageBackground
+        source={images.background_signup}
+        style={{
+          flex: 1,
+          width: '100%',
+          height: '100%',
+        }}
+        resizeMode="cover"
       >
-        <ImageBackground
-          source={images.background_signup}
-          style={{
-            flex: 1,
-            width: '100%',
-          }}
-          resizeMode="cover"
-        >
-          <TouchableWithoutFeedback onPress={dismissKeyboard}>
-            <ScrollView
-              contentContainerStyle={{
-                flexGrow: 1,
-                justifyContent: 'center',
-                paddingVertical: height * 0.04,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: 'center',
+              paddingVertical: height * 0.04,
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={{
+              width: '100%',
+              paddingHorizontal: width * 0.05,
+              maxWidth: 500,
+              alignSelf: 'center',
+            }}>
               <View style={{
-                width: '100%',
-                paddingHorizontal: width * 0.05,
-                maxWidth: 500,
-                alignSelf: 'center',
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: height * 0.01,
+                marginTop: height * 0.03,
               }}>
+                <Image
+                  source={images.logo}
+                  resizeMode="contain"
+                  style={{
+                    width: width * 0.3,
+                    height: width * 0.3,
+                    maxWidth: 100,
+                    maxHeight: 100,
+                    marginRight: 10,
+                  }}
+                />
+                <Text style={{
+                  fontSize: Math.min(width * 0.06, 28),
+                  fontWeight: '700',
+                }}>PAL-AI</Text>
+              </View>
+              <Text style={{
+                fontSize: Math.min(width * 0.8, 28),
+                fontWeight: '600',
+                marginBottom: 2,
+              }}>Sign-Up</Text>
+              <Text style={{
+                fontSize: Math.min(width * 0.04, 18),
+                marginBottom: height * 0.02,
+              }}>Please enter the details.</Text>
+
+              <Text style={{
+                fontSize: Math.min(width * 0.045, 18),
+                fontWeight: '600',
+                marginTop: 5,
+                marginBottom: 5,
+              }}>User Information</Text>
+
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+
+                <TextInput
+                  label="First Name"
+                  value={form.firstname}
+                  onChangeText={handleChangeFirstName}
+                  style={{ width: '48%' }}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  dense={width < 360}
+                  error={!!firstNameError}
+                />
+                <TextInput
+                  label="Last Name"
+                  value={form.lastname}
+                  onChangeText={handleChangeLastName}
+                  style={{ width: '48%' }}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  dense={width < 360}
+                  error={!!lastNameError}
+                />
+              </View>
+
+              {firstNameError && form.firstname.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{firstNameError}</Text>
+              )}
+
+              {lastNameError && form.lastname.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{lastNameError}</Text>
+              )}
+
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+                <TextInput
+                  label="Birthdate (MM/DD/YYYY)"
+                  value={form.birthdate}
+                  keyboardType="numeric"
+                  onChangeText={handleBirthdate}
+                  style={{ width: '48%' }}
+                  mode="outlined"
+                  activeOutlineColor="#006400"
+                  outlineColor="#CBD2E0"
+                  textColor="#2D3648"
+                  error={!!birthdateError}
+                  maxLength={10}
+                  dense={width < 360}
+                />
+
                 <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: height * 0.02,
+                  width: '48%',
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: '#CBD2E0',
+                  borderRadius: 5,
+                  padding: 8,
+                  justifyContent: 'center',
+                  height: width < 360 ? 48 : 56,
                 }}>
-                  <Image
-                    source={images.logo}
-                    resizeMode="contain"
-                    style={{
-                      width: width * 0.3,
-                      height: width * 0.3,
-                      maxWidth: 100,
-                      maxHeight: 100,
-                      marginRight: 10,
+                  <Dropdown
+                    style={{ flex: 1 }}
+                    placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    iconStyle={{ marginRight: 8 }}
+                    data={data}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Gender"
+                    value={selectedGender}
+                    onChange={(item) => {
+                      setSelectedGender(item.value);
+                      setValue(item.value);
                     }}
                   />
-                  <Text style={{
-                    fontSize: Math.min(width * 0.06, 28),
-                    fontWeight: '700',
-                  }}>PAL-AI</Text>
-                </View>
-                <Text style={{
-                  fontSize: Math.min(width * 0.8, 28),
-                  fontWeight: '600',
-                  marginBottom: 2,
-                }}>Sign-Up</Text>
-                <Text style={{
-                  fontSize: Math.min(width * 0.04, 18),
-                  marginBottom: height * 0.02,
-                }}>Please enter the details.</Text>
-
-                <Text style={{
-                  fontSize: Math.min(width * 0.045, 18),
-                  fontWeight: '600',
-                  marginTop: 5,
-                  marginBottom: 5,
-                }}>User Information</Text>
-
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginBottom: 8,
-                }}>
-
-                  <TextInput
-                    label="First Name"
-                    value={form.firstname}
-                    onChangeText={handleChangeFirstName}
-                    style={{ width: '48%' }}
-                    mode="outlined"
-                    activeOutlineColor="#006400"
-                    outlineColor="#CBD2E0"
-                    textColor="#2D3648"
-                    dense={width < 360}
-                    error={!!firstNameError}
-                  />
-                  <TextInput
-                    label="Last Name"
-                    value={form.lastname}
-                    onChangeText={handleChangeLastName}
-                    style={{ width: '48%' }}
-                    mode="outlined"
-                    activeOutlineColor="#006400"
-                    outlineColor="#CBD2E0"
-                    textColor="#2D3648"
-                    dense={width < 360}
-                    error={!!lastNameError}
-                  />
-                </View>
-
-                {firstNameError && form.firstname.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{firstNameError}</Text>
-                )}
-
-                {lastNameError && form.lastname.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{lastNameError}</Text>
-                )}
-
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginBottom: 8,
-                }}>
-                  <TextInput
-                    label="Birthdate (MM/DD/YYYY)"
-                    value={form.birthdate}
-                    keyboardType="numeric"
-                    onChangeText={handleBirthdate}
-                    style={{ width: '48%' }}
-                    mode="outlined"
-                    activeOutlineColor="#006400"
-                    outlineColor="#CBD2E0"
-                    textColor="#2D3648"
-                    error={!!birthdateError}
-                    maxLength={10}
-                    dense={width < 360}
-                  />
-
-                  <View style={{
-                    width: '48%',
-                    backgroundColor: 'white',
-                    borderWidth: 1,
-                    borderColor: '#CBD2E0',
-                    borderRadius: 5,
-                    padding: 8,
-                    justifyContent: 'center',
-                    height: width < 360 ? 48 : 56,
-                  }}>
-                    <Dropdown
-                      style={{ flex: 1 }}
-                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      iconStyle={{ marginRight: 8 }}
-                      data={data}
-                      labelField="label"
-                      valueField="value"
-                      placeholder="Gender"
-                      value={selectedGender}
-                      onChange={(item) => {
-                        setSelectedGender(item.value);
-                        setValue(item.value);
-                      }}
-                    />
-                  </View>
-                </View>
-
-                {birthdateError && form.birthdate.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{birthdateError}</Text>
-                )}
-
-                <TextInput
-                  label="Email"
-                  value={form.email}
-                  onChangeText={handleChangeEmail}
-                  style={{ width: '100%', marginBottom: 8 }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!error}
-                  dense={width < 360}
-                />
-
-                {error && form.email.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{error}</Text>
-                )}
-
-                <TextInput
-                  label="Mobile Number"
-                  value={form.mobilenumber}
-                  keyboardType="numeric"
-                  onChangeText={handleChangeMobile}
-                  style={{ width: '100%', marginBottom: 8 }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!mobileError}
-                  dense={width < 360}
-                />
-
-                {mobileError && form.mobilenumber.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{mobileError}</Text>
-                )}
-
-                <TextInput
-                  label="Username"
-                  value={form.username}
-                  onChangeText={handleChangeUsername}
-                  style={{ width: '100%', marginBottom: 8 }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!usernameError}
-                  dense={width < 360}
-                />
-
-                {usernameError && form.username.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{usernameError}</Text>
-                )}
-
-                <TextInput
-                  label="Years of Experience"
-                  value={form.yearsOfExperience}
-                  onChangeText={handleChangeYearsOfExperience}
-                  keyboardType="numeric"
-                  style={{ width: '100%', marginBottom: 8 }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!yearsOfExperienceError}
-                  dense={width < 360}
-                />
-
-                {yearsOfExperienceError && form.yearsOfExperience.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{yearsOfExperienceError}</Text>
-                )}
-
-                <Text style={{
-                  fontSize: Math.min(width * 0.045, 18),
-                  fontWeight: '600',
-                  marginTop: 16,
-                  marginBottom: 12,
-                }}>Address Information</Text>
-
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginBottom: 8,
-                }}>
-                  <View style={{
-                    width: '48%',
-                    backgroundColor: 'white',
-                    borderWidth: 1,
-                    borderColor: '#CBD2E0',
-                    borderRadius: 5,
-                    padding: 8,
-                    justifyContent: 'center',
-                    height: width < 360 ? 48 : 56,
-                  }}>
-                    <Dropdown
-                      style={{ flex: 1 }}
-                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      iconStyle={{ marginRight: 8 }}
-                      data={addressData.regions}
-                      labelField="label"
-                      valueField="value"
-                      placeholder={isLoading.regions ? "Loading..." : "Region"}
-                      value={form.region}
-                      onChange={(item) => {
-                        setForm({ ...form, region: item.value, regionCode: item.code, province: "", provinceCode: "", city: "" });
-                      }}
-                      disable={isLoading.regions}
-                      loading={isLoading.regions}
-                      errorMessage={addressErrors.regions}
-                    />
-                  </View>
-
-                  <View style={{
-                    width: '48%',
-                    backgroundColor: 'white',
-                    borderWidth: 1,
-                    borderColor: '#CBD2E0',
-                    borderRadius: 5,
-                    padding: 8,
-                    justifyContent: 'center',
-                    height: width < 360 ? 48 : 56,
-                  }}>
-                    <Dropdown
-                      style={{ flex: 1 }}
-                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      iconStyle={{ marginRight: 8 }}
-                      data={addressData.provinces}
-                      labelField="label"
-                      valueField="value"
-                      placeholder={isLoading.provinces ? "Loading..." : "Province"}
-                      value={form.province}
-                      onChange={(item) => {
-                        setForm({ ...form, province: item.value, provinceCode: item.code, city: "" });
-                      }}
-                      disabled={!form.region || isLoading.provinces}
-                      loading={isLoading.provinces}
-                      errorMessage={addressErrors.provinces}
-                    />
-                  </View>
-                </View>
-
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginBottom: 8,
-                }}>
-                  <View style={{
-                    width: '48%',
-                    backgroundColor: 'white',
-                    borderWidth: 1,
-                    borderColor: '#CBD2E0',
-                    borderRadius: 5,
-                    padding: 8,
-                    justifyContent: 'center',
-                    height: width < 360 ? 48 : 56,
-                  }}>
-                    <Dropdown
-                      style={{ flex: 1 }}
-                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      iconStyle={{ marginRight: 8 }}
-                      data={addressData.cities}
-                      labelField="label"
-                      valueField="value"
-                      placeholder={isLoading.cities ? "Loading..." : "City/Municipality"}
-                      value={form.city}
-                      onChange={(item) => {
-                        setForm({ ...form, city: item.value, cityCode: item.code });
-                      }}
-                      disabled={!form.province || isLoading.cities}
-                      loading={isLoading.cities}
-                      errorMessage={addressErrors.cities}
-                    />
-                  </View>
-
-                  <View style={{
-                    width: '48%',
-                    backgroundColor: 'white',
-                    borderWidth: 1,
-                    borderColor: '#CBD2E0',
-                    borderRadius: 5,
-                    padding: 8,
-                    justifyContent: 'center',
-                    height: width < 360 ? 48 : 56,
-                  }}>
-                    <Dropdown
-                      style={{ flex: 1 }}
-                      placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                      iconStyle={{ marginRight: 8 }}
-                      data={addressData.barangays}
-                      labelField="label"
-                      valueField="value"
-                      placeholder={isLoading.barangays ? "Loading..." : "Barangay"}
-                      value={form.barangay}
-                      onChange={(item) => {
-                        setForm({ ...form, barangay: item.value });
-                      }}
-                      disabled={!form.city || isLoading.barangays}
-                      loading={isLoading.barangays}
-                      errorMessage={addressErrors.barangays}
-                    />
-                  </View>
-                </View>
-
-                <Text style={{
-                  fontSize: Math.min(width * 0.045, 18),
-                  fontWeight: '600',
-                  marginTop: 16,
-                  marginBottom: 5,
-                }}>User Password</Text>
-
-                <TextInput
-                  label="Password"
-                  value={form.password}
-                  onChangeText={handleChangePassword}
-                  secureTextEntry={!passwordVisible}
-                  right={
-                    <TextInput.Icon
-                      icon={passwordVisible ? "eye-off" : "eye"}
-                      color="#006400"
-                      onPress={() => setPasswordVisible(!passwordVisible)}
-                    />
-                  }
-                  style={{ width: '100%', marginBottom: 8 }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!passwordError}
-                  dense={width < 360}
-                />
-
-                {passwordError && form.password.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{passwordError}</Text>
-                )}
-
-                <TextInput
-                  label="Confirm Password"
-                  value={form.confirmpassword}
-                  onChangeText={handleConfirmPassword}
-                  secureTextEntry={!conPasswordVisible}
-                  right={
-                    <TextInput.Icon
-                      icon={conPasswordVisible ? "eye-off" : "eye"}
-                      color="#006400"
-                      onPress={() => setConPasswordVisible(!conPasswordVisible)}
-                    />
-                  }
-                  style={{ width: '100%', marginBottom: 20 }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!confirmPasswordError}
-                  dense={width < 360}
-                />
-
-                {confirmPasswordError && form.confirmpassword.length > 0 && (
-                  <Text style={{
-                    color: 'red',
-                    fontSize: Math.min(width * 0.03, 14),
-                    marginBottom: 8,
-                  }}>{confirmPasswordError}</Text>
-                )}
-
-                <View style={{
-                  marginTop: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}>
-                  <Checkbox
-                    status={isChecked ? "checked" : "unchecked"}
-                    onPress={() => setIsChecked(!isChecked)}
-                    color="#006400"
-                  />
-                  <Text style={{
-                    marginLeft: 8,
-                    fontSize: Math.min(width * 0.035, 16),
-                  }}>
-                    I agree to the{" "}
-                    <Link
-                      href="/terms-and-condition"
-                      style={{
-                        color: '#006400',
-                        fontWeight: '500',
-                      }}
-                    >
-                      Terms and Conditions
-                    </Link>
-                  </Text>
-                </View>
-
-                <CustomButton
-                  title="Sign Up"
-                  handlePress={handleSignUp}
-                  containerStyles={{
-                    width: '100%',
-                    marginTop: height * 0.03,
-                    height: Math.min(height * 0.06, 50),
-                  }}
-                  isLoading={isSubmitting}
-                  disabled={!isFormValid}
-                />
-
-                <View style={{
-                  alignItems: 'center',
-                  marginTop: height * 0.02,
-                }}>
-                  <Text style={{
-                    fontSize: Math.min(width * 0.035, 16),
-                    color: '#4B4B4B',
-                  }}>
-                    Already a user?{" "}
-                    <Link
-                      href="/sign-in"
-                      style={{
-                        fontWeight: '600',
-                        color: '#006400',
-                      }}
-                    >
-                      Log in
-                    </Link>
-                  </Text>
                 </View>
               </View>
-            </ScrollView>
-          </TouchableWithoutFeedback>
-        </ImageBackground>
-      </KeyboardAvoidingView>
+
+              {birthdateError && form.birthdate.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{birthdateError}</Text>
+              )}
+
+              <TextInput
+                label="Email"
+                value={form.email}
+                onChangeText={handleChangeEmail}
+                style={{ width: '100%', marginBottom: 8 }}
+                mode="outlined"
+                activeOutlineColor="#006400"
+                outlineColor="#CBD2E0"
+                textColor="#2D3648"
+                error={!!error}
+                dense={width < 360}
+              />
+
+              {error && form.email.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{error}</Text>
+              )}
+
+              <TextInput
+                label="Mobile Number"
+                value={form.mobilenumber}
+                keyboardType="numeric"
+                onChangeText={handleChangeMobile}
+                style={{ width: '100%', marginBottom: 8 }}
+                mode="outlined"
+                activeOutlineColor="#006400"
+                outlineColor="#CBD2E0"
+                textColor="#2D3648"
+                error={!!mobileError}
+                dense={width < 360}
+              />
+
+              {mobileError && form.mobilenumber.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{mobileError}</Text>
+              )}
+
+              <TextInput
+                label="Username"
+                value={form.username}
+                onChangeText={handleChangeUsername}
+                style={{ width: '100%', marginBottom: 8 }}
+                mode="outlined"
+                activeOutlineColor="#006400"
+                outlineColor="#CBD2E0"
+                textColor="#2D3648"
+                error={!!usernameError}
+                dense={width < 360}
+              />
+
+              {usernameError && form.username.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{usernameError}</Text>
+              )}
+
+              <TextInput
+                label="Years of Farming Experience"
+                value={form.yearsOfExperience}
+                onChangeText={handleChangeYearsOfExperience}
+                keyboardType="numeric"
+                style={{ width: '100%', marginBottom: 8 }}
+                mode="outlined"
+                activeOutlineColor="#006400"
+                outlineColor="#CBD2E0"
+                textColor="#2D3648"
+                error={!!yearsOfExperienceError}
+                dense={width < 360}
+              />
+
+              {yearsOfExperienceError && form.yearsOfExperience.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{yearsOfExperienceError}</Text>
+              )}
+
+              <Text style={{
+                fontSize: Math.min(width * 0.045, 18),
+                fontWeight: '600',
+                marginTop: 16,
+                marginBottom: 12,
+              }}>Address Information</Text>
+
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+                <View style={{
+                  width: '48%',
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: '#CBD2E0',
+                  borderRadius: 5,
+                  padding: 8,
+                  justifyContent: 'center',
+                  height: width < 360 ? 48 : 56,
+                }}>
+                  <Dropdown
+                    style={{ flex: 1 }}
+                    placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    iconStyle={{ marginRight: 8 }}
+                    data={addressData.regions}
+                    labelField="label"
+                    valueField="value"
+                    placeholder={isLoading.regions ? "Loading..." : "Region"}
+                    value={form.region}
+                    onChange={(item) => {
+                      setForm({ ...form, region: item.value, regionCode: item.code, province: "", provinceCode: "", city: "" });
+                    }}
+                    disable={isLoading.regions}
+                    loading={isLoading.regions}
+                    errorMessage={addressErrors.regions}
+                  />
+                </View>
+
+                <View style={{
+                  width: '48%',
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: '#CBD2E0',
+                  borderRadius: 5,
+                  padding: 8,
+                  justifyContent: 'center',
+                  height: width < 360 ? 48 : 56,
+                }}>
+                  <Dropdown
+                    style={{ flex: 1 }}
+                    placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    iconStyle={{ marginRight: 8 }}
+                    data={addressData.provinces}
+                    labelField="label"
+                    valueField="value"
+                    placeholder={isLoading.provinces ? "Loading..." : "Province"}
+                    value={form.province}
+                    onChange={(item) => {
+                      setForm({ ...form, province: item.value, provinceCode: item.code, city: "" });
+                    }}
+                    disabled={!form.region || isLoading.provinces}
+                    loading={isLoading.provinces}
+                    errorMessage={addressErrors.provinces}
+                  />
+                </View>
+              </View>
+
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+                <View style={{
+                  width: '48%',
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: '#CBD2E0',
+                  borderRadius: 5,
+                  padding: 8,
+                  justifyContent: 'center',
+                  height: width < 360 ? 48 : 56,
+                }}>
+                  <Dropdown
+                    style={{ flex: 1 }}
+                    placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    iconStyle={{ marginRight: 8 }}
+                    data={addressData.cities}
+                    labelField="label"
+                    valueField="value"
+                    placeholder={isLoading.cities ? "Loading..." : "City/Municipality"}
+                    value={form.city}
+                    onChange={(item) => {
+                      setForm({ ...form, city: item.value, cityCode: item.code });
+                    }}
+                    disabled={!form.province || isLoading.cities}
+                    loading={isLoading.cities}
+                    errorMessage={addressErrors.cities}
+                  />
+                </View>
+
+                <View style={{
+                  width: '48%',
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: '#CBD2E0',
+                  borderRadius: 5,
+                  padding: 8,
+                  justifyContent: 'center',
+                  height: width < 360 ? 48 : 56,
+                }}>
+                  <Dropdown
+                    style={{ flex: 1 }}
+                    placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    iconStyle={{ marginRight: 8 }}
+                    data={addressData.barangays}
+                    labelField="label"
+                    valueField="value"
+                    placeholder={isLoading.barangays ? "Loading..." : "Barangay"}
+                    value={form.barangay}
+                    onChange={(item) => {
+                      setForm({ ...form, barangay: item.value });
+                    }}
+                    disabled={!form.city || isLoading.barangays}
+                    loading={isLoading.barangays}
+                    errorMessage={addressErrors.barangays}
+                  />
+                </View>
+              </View>
+
+              <Text style={{
+                fontSize: Math.min(width * 0.045, 18),
+                fontWeight: '600',
+                marginTop: 16,
+                marginBottom: 5,
+              }}>User Password</Text>
+
+              <TextInput
+                label="Password"
+                value={form.password}
+                onChangeText={handleChangePassword}
+                secureTextEntry={!passwordVisible}
+                right={
+                  <TextInput.Icon
+                    icon={passwordVisible ? "eye-off" : "eye"}
+                    color="#006400"
+                    onPress={() => setPasswordVisible(!passwordVisible)}
+                  />
+                }
+                style={{ width: '100%', marginBottom: 8 }}
+                mode="outlined"
+                activeOutlineColor="#006400"
+                outlineColor="#CBD2E0"
+                textColor="#2D3648"
+                error={!!passwordError}
+                dense={width < 360}
+              />
+
+              {passwordError && form.password.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{passwordError}</Text>
+              )}
+
+              <TextInput
+                label="Confirm Password"
+                value={form.confirmpassword}
+                onChangeText={handleConfirmPassword}
+                secureTextEntry={!conPasswordVisible}
+                right={
+                  <TextInput.Icon
+                    icon={conPasswordVisible ? "eye-off" : "eye"}
+                    color="#006400"
+                    onPress={() => setConPasswordVisible(!conPasswordVisible)}
+                  />
+                }
+                style={{ width: '100%', marginBottom: 20 }}
+                mode="outlined"
+                activeOutlineColor="#006400"
+                outlineColor="#CBD2E0"
+                textColor="#2D3648"
+                error={!!confirmPasswordError}
+                dense={width < 360}
+              />
+
+              {confirmPasswordError && form.confirmpassword.length > 0 && (
+                <Text style={{
+                  color: 'red',
+                  fontSize: Math.min(width * 0.03, 14),
+                  marginBottom: 8,
+                }}>{confirmPasswordError}</Text>
+              )}
+
+              <View style={{
+                marginTop: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                <Checkbox
+                  status={isChecked ? "checked" : "unchecked"}
+                  onPress={() => setIsChecked(!isChecked)}
+                  color="#006400"
+                />
+                <Text style={{
+                  marginLeft: 8,
+                  fontSize: Math.min(width * 0.035, 16),
+                }}>
+                  I agree to the{" "}
+                  <Link
+                    href="/terms-and-condition"
+                    style={{
+                      color: '#006400',
+                      fontWeight: '500',
+                    }}
+                  >
+                    Terms and Conditions
+                  </Link>
+                </Text>
+              </View>
+
+              <CustomButton
+                title="Sign Up"
+                handlePress={handleSignUp}
+                containerStyles={{
+                  width: '100%',
+                  marginTop: height * 0.03,
+                  height: Math.min(height * 0.06, 50),
+                }}
+                isLoading={isSubmitting}
+                disabled={!isFormValid}
+              />
+
+              <View style={{
+                alignItems: 'center',
+                marginTop: height * 0.02,
+              }}>
+                <Text style={{
+                  fontSize: Math.min(width * 0.035, 16),
+                  color: '#4B4B4B',
+                }}>
+                  Already a user?{" "}
+                  <Link
+                    href="/sign-in"
+                    style={{
+                      fontWeight: '600',
+                      color: '#006400',
+                    }}
+                  >
+                    Log in
+                  </Link>
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </ImageBackground>
     </SafeAreaView>
   );
 };
