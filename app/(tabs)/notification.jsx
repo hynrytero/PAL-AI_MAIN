@@ -11,7 +11,8 @@ import {
   Modal,
   TouchableOpacity,
   Dimensions,
-  StatusBar
+  StatusBar,
+  Image,
 } from "react-native";
 import { Avatar, Card, IconButton, Menu, Button, Divider, Surface } from "react-native-paper";
 import { images } from "../../constants";
@@ -90,7 +91,7 @@ const Notification = () => {
       setNotifications(notifications.map(note =>
         note.id === notificationId ? { ...note, read: true } : note
       ));
-      
+
       // Trigger refresh for badge counter
       triggerRefresh();
     } catch (error) {
@@ -112,7 +113,7 @@ const Notification = () => {
       setNotifications(notifications.map(note =>
         note.id === notificationId ? { ...note, read: false } : note
       ));
-      
+
       // Trigger refresh for badge counter
       triggerRefresh();
     } catch (error) {
@@ -135,7 +136,7 @@ const Notification = () => {
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: true })));
       Alert.alert("Success", "All notifications marked as read");
-      
+
       // Trigger refresh for badge counter
       triggerRefresh();
     } catch (error) {
@@ -159,7 +160,7 @@ const Notification = () => {
       // Update local state
       setNotifications(notifications.map(note => ({ ...note, read: false })));
       Alert.alert("Success", "All notifications marked as unread");
-      
+
       // Trigger refresh for badge counter
       triggerRefresh();
     } catch (error) {
@@ -178,7 +179,7 @@ const Notification = () => {
 
       // Remove from local state
       setNotifications(notifications.filter(note => note.id !== notificationId));
-      
+
       // Trigger refresh for badge counter
       triggerRefresh();
     } catch (error) {
@@ -199,7 +200,7 @@ const Notification = () => {
 
       setNotifications([]);
       Alert.alert("Success", "All notifications cleared");
-      
+
       // Trigger refresh for badge counter
       triggerRefresh();
     } catch (error) {
@@ -267,99 +268,112 @@ const Notification = () => {
         onRequestClose={closeModal}
         statusBarTranslucent={true}
       >
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
-          activeOpacity={1}
-          onPress={closeModal}
-        >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <View className="flex-1 justify-end">
-            <TouchableOpacity activeOpacity={1}>
-              <Surface className="bg-white rounded-t-3xl overflow-hidden elevation-5" style={{ maxHeight: height * 0.85 }}>
-                {/* Colorful header based on notification type */}
-                <View style={{ backgroundColor: getModalHeaderColor(), padding: 16 }}>
-                  <View className="flex-row justify-between items-center">
-                    <View className="flex-row items-center">
-                      <Avatar.Icon
-                        size={36}
-                        icon={getIconName(selectedNotification.icon)}
-                        color="white"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.3)' }}
-                      />
-                      <Text className="text-white font-psemibold text-lg ml-2">Notification</Text>
-                    </View>
-                    <IconButton
-                      icon="close"
-                      iconColor="white"
-                      onPress={closeModal}
+            <Surface className="bg-white rounded-t-3xl overflow-hidden elevation-5" style={{ maxHeight: height * 0.85 }}>
+              {/* Colorful header based on notification type */}
+              <View style={{ backgroundColor: getModalHeaderColor(), padding: 16 }}>
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <Avatar.Icon
+                      size={36}
+                      icon={getIconName(selectedNotification.icon)}
+                      color="white"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.3)' }}
                     />
+                    <Text className="text-white font-psemibold text-lg ml-2">Notification</Text>
                   </View>
-                </View>
-
-                {/* Pull handle */}
-                <View className="items-center py-2">
-                  <View className="w-10 h-1 rounded-full bg-gray-300" />
-                </View>
-
-                {/* Notification content section */}
-                <ScrollView className="px-5" contentContainerStyle={{ paddingBottom: 20 }}>
-                  {/* Title */}
-                  <Text className="font-psemibold text-xl mt-2 mb-3">{selectedNotification.title}</Text>
-
-                  {/* Timestamp in nice format */}
-                  <View className="flex-row items-center mb-4">
-                    <IconButton icon="clock-outline" size={20} style={{ margin: 0 }} />
-                    <Text className="text-gray-500 text-xs ml-1">{formattedTime}</Text>
-                  </View>
-
-                  <Divider className="mb-5" />
-
-                  {/* Subtitle/content in a card for better visual separation */}
-                  <Surface className="bg-gray-50 p-4 rounded-lg mb-5 elevation-1">
-                    <Text className="text-base">{selectedNotification.subtitle}</Text>
-                  </Surface>
-
-                  {/* If there are any additional details */}
-                  {selectedNotification.details && (
-                    <View className="mb-5">
-                      <Text className="font-pmedium mb-2">Additional Information</Text>
-                      <Surface className="bg-gray-50 p-4 rounded-lg elevation-1">
-                        <Text>{selectedNotification.details}</Text>
-                      </Surface>
-                    </View>
-                  )}
-                </ScrollView>
-
-                {/* Action buttons */}
-                <Surface className="p-4 bg-white border-t border-gray-300 flex-row justify-end space-x-3 elevation-2">
-
-                  <Button
-                    mode="outlined"
-                    icon="delete-outline"
-                    onPress={() => {
-                      deleteNotification(selectedNotification.id);
-                      closeModal();
-                    }}
-                    textColor="#228B22"
-                    style={{
-                      borderColor: '#228B22',
-                      borderWidth: 2
-                    }}
-                  >
-                    Delete
-                  </Button>
-                  <Button
-                    mode="contained"
-                    icon="check"
+                  <IconButton
+                    icon="close"
+                    iconColor="white"
                     onPress={closeModal}
-                    buttonColor="#228B22"
-                  >
-                    Done
-                  </Button>
+                  />
+                </View>
+              </View>
+
+              {/* Pull handle */}
+              <View className="items-center py-2">
+                <View className="w-10 h-1 rounded-full bg-gray-300" />
+              </View>
+
+              {/* Notification content section */}
+              <ScrollView 
+                className="px-5" 
+                contentContainerStyle={{ paddingBottom: 20 }}
+                showsVerticalScrollIndicator={true}
+                bounces={true}
+              >
+                {/* Title */}
+                <Text className="font-psemibold text-xl mt-2 mb-3">{selectedNotification.title}</Text>
+
+                {/* Timestamp in nice format */}
+                <View className="flex-row items-center mb-4">
+                  <IconButton icon="clock-outline" size={20} style={{ margin: 0 }} />
+                  <Text className="text-gray-500 text-xs ml-1">{formattedTime}</Text>
+                </View>
+
+                <Divider className="mb-5" />
+
+                {/* Subtitle/content in a card for better visual separation */}
+                <Surface className="bg-gray-50 p-4 rounded-lg mb-5 elevation-1">
+                  <Text className="text-base">{selectedNotification.subtitle}</Text>
                 </Surface>
+
+                {/* Display image from data column if available */}
+                {selectedNotification.data && selectedNotification.data.imageUrl && (
+                  <View className="mb-5">
+                    <Text className="font-pmedium mb-1">Notification Image</Text>
+                    <Surface className="bg-gray-50 p-4 rounded-lg elevation-1">
+                      <Image
+                        source={{ uri: selectedNotification.data.imageUrl }}
+                        className="w-full h-48 rounded-lg"
+                        resizeMode="cover"
+                      />
+                    </Surface>
+                  </View>
+                )}
+
+                {/* If there are any additional details */}
+                {selectedNotification.details && (
+                  <View className="mb-5">
+                    <Text className="font-pmedium mb-2">Additional Information</Text>
+                    <Surface className="bg-gray-50 p-4 rounded-lg elevation-1">
+                      <Text>{selectedNotification.details}</Text>
+                    </Surface>
+                  </View>
+                )}
+              </ScrollView>
+
+              {/* Action buttons */}
+              <Surface className="p-4 bg-white border-t border-gray-300 flex-row justify-end space-x-3 elevation-2">
+
+                <Button
+                  mode="outlined"
+                  icon="delete-outline"
+                  onPress={() => {
+                    deleteNotification(selectedNotification.id);
+                    closeModal();
+                  }}
+                  textColor="#228B22"
+                  style={{
+                    borderColor: '#228B22',
+                    borderWidth: 2
+                  }}
+                >
+                  Delete
+                </Button>
+                <Button
+                  mode="contained"
+                  icon="check"
+                  onPress={closeModal}
+                  buttonColor="#228B22"
+                >
+                  Done
+                </Button>
               </Surface>
-            </TouchableOpacity>
+            </Surface>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     );
   };
@@ -485,7 +499,7 @@ const Notification = () => {
                               onPress={() => showMenu(notification.id)}
                             />
                           }
-                          contentStyle={{ backgroundColor: 'white' }} 
+                          contentStyle={{ backgroundColor: 'white' }}
                         >
                           {notification.read ? (
                             <Menu.Item

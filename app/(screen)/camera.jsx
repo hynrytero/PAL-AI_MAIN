@@ -292,7 +292,7 @@ export default function App() {
           body: JSON.stringify({
             user_id: admin.userId,
             title: 'Urgent: Possible Tungro Disease Detected',
-            body: `Farmer ${user.username} (${user.email}) has detected a possible ${disease} in their field on ${currentDate}. Immediate attention required.`,
+            body: `Farmer ${user.username} (${user.email}) has detected a ${disease} in their field on ${currentDate}. Immediate attention required.`,
             icon: 'warning',
             icon_bg_color: 'red',
             type: 'alert',
@@ -355,7 +355,7 @@ export default function App() {
         savePredictionToDB(predictionsResult, uploadImage);
 
         // Check if the disease is Tungro and send notification to admin
-        if (result.rice_leaf_disease === "Tungro") {
+        if (result.rice_leaf_disease === "Possible Tungro") {
           await sendTungroNotificationToAdmins(uploadImage, result.rice_leaf_disease);
         }
 

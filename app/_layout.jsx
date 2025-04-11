@@ -4,6 +4,7 @@ import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import { AuthProvider } from '../context/AuthContext';
+import { PaperProvider } from 'react-native-paper';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +37,8 @@ const RootLayout = () => {
   });
 
   return (
-    <AuthProvider>
+    <PaperProvider>
+      <AuthProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -45,7 +47,8 @@ const RootLayout = () => {
           <Stack.Screen name="(screen)" options={{ headerShown: false }} />
           <Stack.Screen name="(admin-screen)" options={{ headerShown: false }} />
         </Stack>
-    </AuthProvider>
+      </AuthProvider>
+    </PaperProvider>
   );
 };
 

@@ -12,7 +12,8 @@ import {
     Platform,
     ActivityIndicator,
     FlatList,
-    Modal
+    Modal,
+    Image
 } from "react-native";
 import {
     TextInput,
@@ -32,6 +33,7 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 import { debounce } from 'lodash'; // Make sure to import lodash
+import * as ImagePicker from 'expo-image-picker';
 
 const API_URL = API_URL_BCNKEND;
 
@@ -275,6 +277,7 @@ const NotificationManager = () => {
     const [iconBgColor, setIconBgColor] = useState("#4285F4");
     const [type, setType] = useState("general");
     const [notificationType, setNotificationType] = useState("multiple");
+    const [imageUri, setImageUri] = useState(null);
 
     // Multi-user selection
     const [selectedUsers, setSelectedUsers] = useState([]);
@@ -371,6 +374,20 @@ const NotificationManager = () => {
         ));
     };
 
+    // Image picker function
+    const pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
+
     // Reset form function
     const resetForm = () => {
         setTitle("");
@@ -379,12 +396,24 @@ const NotificationManager = () => {
         setIconBgColor("#4285F4");
         setType("general");
         setSelectedUsers([]);
+        setImageUri(null);
     };
 
     // Form validation
     const validateForm = () => {
         if (!title.trim()) {
             Alert.alert("Error", "Title is required");
+            return false;
+        }
+
+        // Validate field lengths according to database schema
+        if (title.length > 255) {
+            Alert.alert("Error", "Title must be less than 255 characters");
+            return false;
+        }
+
+        if (body.length > 500) {
+            Alert.alert("Error", "Body must be less than 500 characters");
             return false;
         }
 
@@ -396,43 +425,127 @@ const NotificationManager = () => {
         return true;
     };
 
+    // Image upload function
+    const uploadImageToCloud = async (imageUri) => {
+        const formData = new FormData();
+        formData.append('image', {
+            uri: imageUri,
+            type: 'image/jpeg',
+            name: 'photo.jpg'
+        });
+
+        try {
+            console.log('Starting image upload...');
+            console.log('FormData contents:', {
+                uri: imageUri,
+                type: 'image/jpeg',
+                name: 'photo.jpg'
+            });
+
+            const response = await fetch(`${API_URL}/admin/notif/upload`, {
+                method: 'POST',
+                headers: {
+                    'X-API-Key': AUTH_KEY,
+                    'Accept': 'application/json',
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Upload failed with response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    responseText: errorText
+                });
+                throw new Error(`Upload failed with status: ${response.status} - ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('Upload response data:', data);
+            
+            if (!data || !data.imageUrl) {
+                console.error('Invalid response format:', data);
+                throw new Error('No image URL received from server. Response format: ' + JSON.stringify(data));
+            }
+
+            return data.imageUrl;
+        } catch (error) {
+            console.error('Upload failed with details:', {
+                error: error.message,
+                stack: error.stack,
+                imageUri: imageUri,
+                formData: formData
+            });
+            throw error;
+        }
+    };
+
     // Handle sending notification
     const handleSendNotification = async () => {
         if (!validateForm()) return;
-    
         setLoading(true);
-    
         try {
             let endpoint, pushEndpoint;
-    
+            let imageUrl = null;
+
+            if (imageUri) {
+                try {
+                    console.log('Attempting to upload image:', imageUri);
+                    imageUrl = await uploadImageToCloud(imageUri);
+                    console.log('Image uploaded successfully. URL:', imageUrl);
+                } catch (error) {
+                    console.error('Image upload error details:', {
+                        error: error.message,
+                        stack: error.stack,
+                        imageUri: imageUri
+                    });
+                    Alert.alert(
+                        "Upload Error",
+                        `Failed to upload image: ${error.message}\n\nPlease try again or contact support if the problem persists.`
+                    );
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            console.log("Final imageUrl:", imageUrl);
+
             if (notificationType === "all") {
                 endpoint = `${API_URL}/notifications/store-notification-all`;
                 pushEndpoint = `${API_URL}/admin/push-notify/broadcast`;
-    
-                const payload = {
-                    title,
-                    body,
-                    icon,
+
+                // Prepare notification data
+                const notificationData = {
+                    title: title.trim(),
+                    body: body.trim(),
+                    icon: icon,
                     icon_bg_color: iconBgColor,
-                    type
+                    type: type,
+                    data: {
+                        imageUrl: imageUrl,
+                        type: type,
+                        timestamp: new Date().toISOString()
+                    }
                 };
-    
+
                 // Store notification in database
-                await axios.post(endpoint, payload, {
+                await axios.post(endpoint, notificationData, {
                     headers: {
                         'X-API-Key': AUTH_KEY,
                         'Content-Type': 'application/json'
                     }
                 });
-    
+
                 // Send push notification to all users
                 await axios.post(pushEndpoint, {
-                    title,  
-                    body,
+                    title: title.trim(),
+                    body: body.trim(),
                     data: {
-                        type,  
-                        icon,
-                        icon_bg_color: iconBgColor
+                        type: type,
+                        icon: icon,
+                        icon_bg_color: iconBgColor,
+                        imageUrl: imageUrl
                     }
                 }, {
                     headers: {
@@ -440,7 +553,7 @@ const NotificationManager = () => {
                         'Content-Type': 'application/json'
                     }
                 });
-    
+
                 Alert.alert(
                     "Success",
                     "Notification sent to all users successfully"
@@ -448,33 +561,42 @@ const NotificationManager = () => {
             } else if (notificationType === "multiple") {
                 endpoint = `${API_URL}/notifications/store-notification`;
                 pushEndpoint = `${API_URL}/admin/push-notify/notify`;
-    
+
                 // Send database notifications and push notifications to each selected user
                 const promises = selectedUsers.map(async user => {
-                    await axios.post(endpoint, {
+                    // Prepare notification data
+                    const notificationData = {
                         user_id: parseInt(user.user_id),
-                        title,
-                        body,
-                        icon,
+                        title: title.trim(),
+                        body: body.trim(),
+                        icon: icon,
                         icon_bg_color: iconBgColor,
-                        type
-                    }, {
+                        type: type,
+                        data: {
+                            imageUrl: imageUrl,
+                            type: type,
+                            timestamp: new Date().toISOString()
+                        }
+                    };
+
+                    await axios.post(endpoint, notificationData, {
                         headers: {
                             'X-API-Key': AUTH_KEY,
                             'Content-Type': 'application/json'
                         }
                     });
-    
+
                     // Then send push notification if the user has a push token
                     if (user.push_token) {
                         await axios.post(pushEndpoint, {
                             user_id: parseInt(user.user_id),
-                            title,  
-                            body,
+                            title: title.trim(),
+                            body: body.trim(),
                             data: {
-                                type,  
-                                icon,
-                                icon_bg_color: iconBgColor
+                                type: type,
+                                icon: icon,
+                                icon_bg_color: iconBgColor,
+                                imageUrl: imageUrl
                             }
                         }, {
                             headers: {
@@ -484,21 +606,26 @@ const NotificationManager = () => {
                         });
                     }
                 });
-    
+
                 await Promise.all(promises);
-    
+
                 Alert.alert(
                     "Success",
                     `Notifications sent successfully to ${selectedUsers.length} users`
                 );
             }
-    
+
             resetForm();
         } catch (error) {
-            console.error("Error sending notification:", error);
+            console.error("Error sending notification:", {
+                error: error.message,
+                stack: error.stack,
+                response: error.response?.data,
+                status: error.response?.status
+            });
             Alert.alert(
                 "Error",
-                `Failed to send notification: ${error.response?.data?.error || error.message}`
+                `Failed to send notification: ${error.response?.data?.error || error.message}\n\nPlease try again or contact support if the problem persists.`
             );
         } finally {
             setLoading(false);
@@ -518,7 +645,7 @@ const NotificationManager = () => {
         <View style={{
             width: 25,
             height: 25,
-            borderRadius: 18,
+            borderRadius: 12.5,
             backgroundColor: backgroundColor,
             justifyContent: 'center',
             alignItems: 'center',
@@ -540,7 +667,7 @@ const NotificationManager = () => {
     );
 
     const SmallColorCircle = ({ color }) => (
-        <View style={{ width: 25, height: 25, borderRadius: 10, marginRight: 8, backgroundColor: color }} />
+        <View style={{ width: 25, height: 25, borderRadius: 12.5, backgroundColor: color, marginRight: 8 }} />
     );
 
     return (
@@ -649,6 +776,54 @@ const NotificationManager = () => {
                                 theme={TEXT_INPUT_THEME}
                             />
 
+                            {/* Image Selection */}
+                            <View className="mb-3">
+                                <Text className="mb-1">Image (Optional)</Text>
+                                <TouchableOpacity
+                                    onPress={pickImage}
+                                    className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
+                                >
+                                    <View className="flex-row items-center">
+                                        <IconButton
+                                            icon="image"
+                                            size={24}
+                                            color={PRIMARY_COLOR}
+                                            style={{ margin: 0 }}
+                                        />
+                                        <Text className={imageUri ? "font-pmedium" : "text-gray-500"}>
+                                            {imageUri ? "Image selected" : "Select an image"}
+                                        </Text>
+                                    </View>
+                                    <IconButton
+                                        icon="chevron-right"
+                                        size={24}
+                                        color="#666"
+                                    />
+                                </TouchableOpacity>
+
+                                {imageUri && (
+                                    <View className="mt-2">
+                                        <Image
+                                            source={{ uri: imageUri }}
+                                            style={{ width: '100%', height: 200, borderRadius: 8 }}
+                                            resizeMode="cover"
+                                        />
+                                        <TouchableOpacity
+                                            onPress={() => setImageUri(null)}
+                                            className="absolute top-2 right-2 bg-gray-400 p-1 flex items-center justify-center"
+                                            style={{ width: 24, height: 24 }}
+                                        >
+                                            <IconButton
+                                                icon="close"
+                                                size={16}
+                                                color="white"
+                                                style={{ margin: 0 }}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                            </View>
+
                             <View className="flex-row justify-between items-start mb-3">
                                 {/* Icon Selection */}
                                 <View className="flex-1 mr-2">
@@ -659,7 +834,7 @@ const NotificationManager = () => {
                                         anchor={
                                             <TouchableOpacity
                                                 onPress={() => setIconMenuVisible(true)}
-                                                className="flex-row items-center border border-gray-500 p-2 rounded-lg"
+                                                className="flex-row items-center border border-gray-300 p-2 rounded-lg"
                                             >
                                                 <IconWithBackground
                                                     iconName={icon}
@@ -692,7 +867,7 @@ const NotificationManager = () => {
                                         anchor={
                                             <TouchableOpacity
                                                 onPress={() => setColorMenuVisible(true)}
-                                                className="flex-row items-center border border-gray-500 p-2 rounded-lg"
+                                                className="flex-row items-center border border-gray-300 p-2 rounded-lg"
                                             >
                                                 <SmallColorCircle color={iconBgColor} />
                                                 <Text className="ml-2">{COMMON_COLORS.find(color => color.value === iconBgColor)?.label || iconBgColor}</Text>

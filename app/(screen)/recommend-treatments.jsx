@@ -5,11 +5,14 @@ import {
   ImageBackground,
   Text,
   TouchableOpacity,
+  Image,
+  Alert,
 } from "react-native";
-import { TextInput } from "react-native-paper";
-import React, { useState } from "react";
+import { TextInput, Menu } from "react-native-paper";
+import React, { useState, useEffect } from "react";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { router } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
 import images from "../../constants/images";
 import CustomButton from "../../components/CustomButton";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +25,21 @@ const RecommendTreatments = () => {
   const [suggestionTitle, setSuggestionTitle] = useState('');
   const [suggestionDescription, setSuggestionDescription] = useState('');
   const [selectedType, setSelectedType] = useState('general');
+  const [imageUri, setImageUri] = useState(null);
+  const [imageMenuVisible, setImageMenuVisible] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Sorry, we need camera permissions to take photos.',
+          [{ text: 'OK' }]
+        );
+      }
+    })();
+  }, []);
 
   const suggestionTypes = [
     { id: 'general', label: 'General' },
@@ -30,9 +48,90 @@ const RecommendTreatments = () => {
     { id: 'disease', label: 'Disease' },
   ];
 
+  // Image picker function for gallery
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  // Camera capture function
+  const takePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  // Upload image to cloud storage
+  const uploadImageToCloud = async (imageUri) => {
+    const formData = new FormData();
+    formData.append('image', {
+      uri: imageUri,
+      type: 'image/jpeg',
+      name: 'photo.jpg'
+    });
+
+    try {
+      const response = await fetch(`${API_URL}/admin/notif/upload`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': AUTH_KEY,
+          'Accept': 'application/json',
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed with response:', {
+          status: response.status,
+          statusText: response.statusText,
+          responseText: errorText
+        });
+        throw new Error(`Upload failed with status: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data || !data.imageUrl) {
+        console.error('Invalid response format:', data);
+        throw new Error('No image URL received from server. Response format: ' + JSON.stringify(data));
+      }
+
+      return data.imageUrl;
+    } catch (error) {
+      console.error('Upload failed with details:', {
+        error: error.message,
+        stack: error.stack,
+        imageUri: imageUri,
+        formData: formData
+      });
+      throw error;
+    }
+  };
+
   // send suggestion to admin
   const sendSuggestionNotificationToAdmins = async () => {
     try {
+      let imageUrl = null;
+      if (imageUri) {
+        imageUrl = await uploadImageToCloud(imageUri);
+      }
+
       // Fetch all admin users with push tokens
       const response = await fetch(`${API_URL}/notifications/fetch-admin`, {
         method: 'GET',
@@ -57,7 +156,6 @@ const RecommendTreatments = () => {
 
       // For each admin, store notification and send push notification
       for (const admin of adminUsers) {
-
         //Store notification in database
         await fetch(`${API_URL}/notifications/store-notification`, {
           method: 'POST',
@@ -71,11 +169,16 @@ const RecommendTreatments = () => {
             body: `Description: ${suggestionDescription}`,
             icon: 'warning',
             icon_bg_color: 'green',
-            type: 'suggestion'
+            type: 'suggestion',
+            data: {
+              imageUrl: imageUrl,
+              suggestionType: selectedType,
+              timestamp: currentDate
+            }
           })
         });
 
-        // 2. Send push notification
+        // Send push notification
         await fetch(`${API_URL}/push-notify/notify`, {
           method: 'POST',
           headers: {
@@ -85,7 +188,11 @@ const RecommendTreatments = () => {
           body: JSON.stringify({
             user_id: admin.userId,
             title: `${suggestionTypes.find(type => type.id === selectedType)?.label || 'General'} Suggestion: From Farmer ${user.username} (${user.email})`,
-            body: `Description: ${suggestionDescription}`
+            body: `Description: ${suggestionDescription}`,
+            data: {
+              imageUrl: imageUrl,
+              suggestionType: selectedType
+            }
           })
         });
       }
@@ -93,6 +200,7 @@ const RecommendTreatments = () => {
       console.log(`Suggestion notification sent to ${adminUsers.length} admins`);
     } catch (error) {
       console.error('Error sending suggestion notifications:', error);
+      throw error;
     }
   };
 
@@ -112,6 +220,7 @@ const RecommendTreatments = () => {
       setSuggestionTitle('');
       setSuggestionDescription('');
       setSelectedType('general');
+      setImageUri(null);
     } catch (error) {
       alert('Failed to send suggestion. Please try again.');
     }
@@ -195,7 +304,7 @@ const RecommendTreatments = () => {
               </View>
 
               <View className="flex-column items-start w-full">
-                <Text className="font-psemibold text-[16px] mb-2 ">
+                <Text className="font-psemibold text-[16px] mb-2">
                   Description
                 </Text>
                 <TextInput
@@ -211,6 +320,67 @@ const RecommendTreatments = () => {
                   onChangeText={setSuggestionDescription}
                 />
               </View>
+
+              {/* Image Picker Section */}
+              <View className="flex-column items-start w-full">
+                <Text className="font-psemibold text-[16px] mb-2">
+                  Add Image (Optional)
+                </Text>
+                <Menu
+                  visible={imageMenuVisible}
+                  onDismiss={() => setImageMenuVisible(false)}
+                  anchor={
+                    <TouchableOpacity
+                      onPress={() => setImageMenuVisible(true)}
+                      className="flex-row items-center border border-gray-300 p-2 rounded-lg w-full"
+                    >
+                      <View className="flex-row items-center">
+                        <Icon name="add-photo-alternate" size={24} color="#666" />
+                        <Text className="ml-2 text-gray-600">
+                          {imageUri ? "Change Image" : "Select an Image"}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  }
+                >
+                  <Menu.Item
+                    title="Take Photo"
+                    leadingIcon="camera"
+                    onPress={() => {
+                      setImageMenuVisible(false);
+                      takePhoto();
+                    }}
+                  />
+                  <Menu.Item
+                    title="Choose from Gallery"
+                    leadingIcon="image-multiple"
+                    onPress={() => {
+                      setImageMenuVisible(false);
+                      pickImage();
+                    }}
+                  />
+                  {imageUri && (
+                    <Menu.Item
+                      title="Remove Image"
+                      leadingIcon="delete"
+                      onPress={() => {
+                        setImageMenuVisible(false);
+                        setImageUri(null);
+                      }}
+                    />
+                  )}
+                </Menu>
+
+                {imageUri && (
+                  <View className="mt-2 w-full">
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={{ width: '100%', height: 200, borderRadius: 8 }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                )}
+              </View>
             </View>
 
             <View className="mt-8">
@@ -222,7 +392,6 @@ const RecommendTreatments = () => {
               />
             </View>
           </View>
-
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>
