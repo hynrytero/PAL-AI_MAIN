@@ -435,13 +435,6 @@ const NotificationManager = () => {
         });
 
         try {
-            console.log('Starting image upload...');
-            console.log('FormData contents:', {
-                uri: imageUri,
-                type: 'image/jpeg',
-                name: 'photo.jpg'
-            });
-
             const response = await fetch(`${API_URL}/admin/notif/upload`, {
                 method: 'POST',
                 headers: {
@@ -462,7 +455,6 @@ const NotificationManager = () => {
             }
 
             const data = await response.json();
-            console.log('Upload response data:', data);
             
             if (!data || !data.imageUrl) {
                 console.error('Invalid response format:', data);
@@ -491,19 +483,13 @@ const NotificationManager = () => {
 
             if (imageUri) {
                 try {
-                    console.log('Attempting to upload image:', imageUri);
                     imageUrl = await uploadImageToCloud(imageUri);
-                    console.log('Image uploaded successfully. URL:', imageUrl);
                 } catch (error) {
                     console.error('Image upload error details:', {
                         error: error.message,
                         stack: error.stack,
                         imageUri: imageUri
                     });
-                    Alert.alert(
-                        "Upload Error",
-                        `Failed to upload image: ${error.message}\n\nPlease try again or contact support if the problem persists.`
-                    );
                     setLoading(false);
                     return;
                 }
