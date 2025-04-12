@@ -15,7 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { images } from "../../constants";
 import Feather from "react-native-vector-icons/Feather";
-import { Button } from "react-native-paper";
+import { Button, Menu } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
 import { AUTH_KEY, API_URL_BCNKEND } from '@env';
 import {
@@ -77,6 +77,8 @@ const Profile = () => {
     cities: "",
     barangays: "",
   });
+
+  const [imageMenuVisible, setImageMenuVisible] = useState(false);
 
   const fetchUserProfile = async () => {
     try {
@@ -428,6 +430,21 @@ const Profile = () => {
     );
   };
 
+  // Camera capture function
+  const takePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  // Image picker function for gallery
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -466,22 +483,71 @@ const Profile = () => {
 
           {/* Profile Picture */}
           <View className="items-center mb-8">
-            <TouchableOpacity onPress={pickImage} className="relative">
-              <Image
-                source={
-                  profileImage
-                    ? { uri: profileImage }
-                    : userData.image
-                      ? { uri: userData.image }
-                      : images.Default_Profile
-                }
-                resizeMode="cover"
-                className="w-[140px] h-[140px] rounded-full border-4 border-gray-300 shadow-md"
+            <Menu
+              visible={imageMenuVisible}
+              onDismiss={() => setImageMenuVisible(false)}
+              anchor={
+                <TouchableOpacity onPress={() => setImageMenuVisible(true)} className="relative">
+                  <Image
+                    source={
+                      profileImage
+                        ? { uri: profileImage }
+                        : userData.image
+                          ? { uri: userData.image }
+                          : images.Default_Profile
+                    }
+                    resizeMode="cover"
+                    className="w-[140px] h-[140px] rounded-full border-4 border-gray-300 shadow-md"
+                  />
+                  <View className="absolute bottom-0 right-0 bg-gray-800 rounded-full p-2">
+                    <Icon name="camera-alt" size={20} color="white" />
+                  </View>
+                </TouchableOpacity>
+              }
+              contentStyle={{
+                marginTop: 150,
+                marginLeft: -80,
+                width: 180,
+                paddingVertical: 4,
+                backgroundColor: 'white',
+                borderRadius: 8,
+                elevation: 4,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+              }}
+            >
+              <Menu.Item
+                title="Take Photo"
+                leadingIcon="camera"
+                onPress={() => {
+                  setImageMenuVisible(false);
+                  takePhoto();
+                }}
+                titleStyle={{ fontSize: 13 }}
               />
-              <View className="absolute bottom-0 right-0 bg-gray-800 rounded-full p-2">
-                <Icon name="camera-alt" size={20} color="white" />
-              </View>
-            </TouchableOpacity>
+              <Menu.Item
+                title="Choose from Gallery"
+                leadingIcon="image-multiple"
+                onPress={() => {
+                  setImageMenuVisible(false);
+                  pickImage();
+                }}
+                titleStyle={{ fontSize: 13 }}
+              />
+              {profileImage && (
+                <Menu.Item
+                  title="Remove Photo"
+                  leadingIcon="delete"
+                  onPress={() => {
+                    setImageMenuVisible(false);
+                    setProfileImage(null);
+                  }}
+                  titleStyle={{ fontSize: 13 }}
+                />
+              )}
+            </Menu>
             <Text className="text-2xl font-semibold text-gray-900 mt-4">
               {userData.firstname}
             </Text>
@@ -564,7 +630,6 @@ const Profile = () => {
               />
             </View>
           </View>
-
 
           {/* Address Information */}
           <View className="bg-white rounded-lg shadow-md p-4 border border-gray-200">

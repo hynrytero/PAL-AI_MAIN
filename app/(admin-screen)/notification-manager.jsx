@@ -286,6 +286,7 @@ const NotificationManager = () => {
     const [iconMenuVisible, setIconMenuVisible] = useState(false);
     const [colorMenuVisible, setColorMenuVisible] = useState(false);
     const [userModalVisible, setUserModalVisible] = useState(false);
+    const [imageMenuVisible, setImageMenuVisible] = useState(false);
 
     // User selection states
     const [searchQuery, setSearchQuery] = useState("");
@@ -377,6 +378,20 @@ const NotificationManager = () => {
     // Image picker function
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
+
+    // Camera capture function
+    const takePhoto = async () => {
+        let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
@@ -765,27 +780,60 @@ const NotificationManager = () => {
                             {/* Image Selection */}
                             <View className="mb-3">
                                 <Text className="mb-1">Image (Optional)</Text>
-                                <TouchableOpacity
-                                    onPress={pickImage}
-                                    className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
+                                <Menu
+                                    visible={imageMenuVisible}
+                                    onDismiss={() => setImageMenuVisible(false)}
+                                    anchor={
+                                        <TouchableOpacity
+                                            onPress={() => setImageMenuVisible(true)}
+                                            className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
+                                        >
+                                            <View className="flex-row items-center">
+                                                <IconButton
+                                                    icon="image"
+                                                    size={24}
+                                                    color={PRIMARY_COLOR}
+                                                    style={{ margin: 0 }}
+                                                />
+                                                <Text className={imageUri ? "font-pmedium" : "text-gray-500"}>
+                                                    {imageUri ? "Image selected" : "Select an image"}
+                                                </Text>
+                                            </View>
+                                            <IconButton
+                                                icon="chevron-right"
+                                                size={24}
+                                                color="#666"
+                                            />
+                                        </TouchableOpacity>
+                                    }
                                 >
-                                    <View className="flex-row items-center">
-                                        <IconButton
-                                            icon="image"
-                                            size={24}
-                                            color={PRIMARY_COLOR}
-                                            style={{ margin: 0 }}
-                                        />
-                                        <Text className={imageUri ? "font-pmedium" : "text-gray-500"}>
-                                            {imageUri ? "Image selected" : "Select an image"}
-                                        </Text>
-                                    </View>
-                                    <IconButton
-                                        icon="chevron-right"
-                                        size={24}
-                                        color="#666"
+                                    <Menu.Item
+                                        title="Take Photo"
+                                        leadingIcon="camera"
+                                        onPress={() => {
+                                            setImageMenuVisible(false);
+                                            takePhoto();
+                                        }}
                                     />
-                                </TouchableOpacity>
+                                    <Menu.Item
+                                        title="Choose from Gallery"
+                                        leadingIcon="image-multiple"
+                                        onPress={() => {
+                                            setImageMenuVisible(false);
+                                            pickImage();
+                                        }}
+                                    />
+                                    {imageUri && (
+                                        <Menu.Item
+                                            title="Remove Image"
+                                            leadingIcon="delete"
+                                            onPress={() => {
+                                                setImageMenuVisible(false);
+                                                setImageUri(null);
+                                            }}
+                                        />
+                                    )}
+                                </Menu>
 
                                 {imageUri && (
                                     <View className="mt-2">
@@ -909,7 +957,7 @@ const NotificationManager = () => {
                             className="mt-3"
                             style={{ backgroundColor: PRIMARY_COLOR, borderRadius: 16 }}
                         >
-                            Send NotificationF
+                            Send Notification
                         </Button>
 
                         <Button
