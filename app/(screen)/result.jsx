@@ -218,6 +218,7 @@ const Result = () => {
           ) : (
             <View>
               <Text className="font-pbold text-xl mb-2">No Disease Detected:</Text>
+              <Text className="font-pregular text-md leading-6 mb-2">However, please note that this does not rule out the possibility of a disease that is outside the scope of our system.</Text>
               <Text className="font-pregular text-md leading-6">{description}</Text>
             </View>
           )}

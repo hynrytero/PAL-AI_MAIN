@@ -72,6 +72,8 @@ const SignUp = () => {
     barangays: "",
   });
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
   // Fetch regions on component mount
   useEffect(() => {
     let isMounted = true;
@@ -339,16 +341,125 @@ const SignUp = () => {
     return !isNaN(yearsNum) && yearsNum >= 0;
   };
 
-  // Form handlers
-  const handleChangeEmail = (e) => {
-    setForm({ ...form, email: e });
+  // Separate useEffect for form validation
+  useEffect(() => {
+    const validateForm = () => {
+      const isValid = 
+        form.firstname.trim() !== "" &&
+        form.lastname.trim() !== "" &&
+        validateText(form.firstname) &&
+        validateText(form.lastname) &&
+        validateText(form.username) &&
+        validateBirthdate(form.birthdate) &&
+        validateEmail(form.email) &&
+        validateMobileNumber(form.mobilenumber) &&
+        form.username.trim() !== "" &&
+        validatePassword(form.password) &&
+        form.password === form.confirmpassword &&
+        validateYearsOfExperience(form.yearsOfExperience) &&
+        form.region !== "" &&
+        form.province !== "" &&
+        form.city !== "" &&
+        form.barangay !== "" &&
+        isChecked;
 
+      setIsFormValid(isValid);
+    };
+
+    validateForm();
+  }, [form, isChecked]);
+
+  // Simplified form update function
+  const updateForm = (updates) => {
+    setForm(prev => {
+      const newForm = { ...prev, ...updates };
+      return newForm;
+    });
+  };
+
+  // Update form handlers to use batched updates
+  const handleChangeFirstName = (e) => {
+    updateForm({ firstname: e });
+    if (!validateText(e)) {
+      setFirstNameError("Firstname can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setFirstNameError("");
+    }
+  };
+
+  const handleChangeLastName = (e) => {
+    updateForm({ lastname: e });
+    if (!validateText(e)) {
+      setLastNameError("Lastname can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setLastNameError("");
+    }
+  };
+
+  const handleChangeUsername = (e) => {
+    updateForm({ username: e });
+    if (!validateText(e)) {
+      setUsernameError("Username can only contain letters, spaces, hyphens, and apostrophes");
+    } else {
+      setUsernameError("");
+    }
+  };
+
+  const handleChangeEmail = (e) => {
+    updateForm({ email: e });
     if (!validateEmail(e)) {
       setError("Invalid email format");
     } else {
       setError("");
     }
+  };
 
+  const handleChangeMobile = (e) => {
+    if (/^\d*$/.test(e) && e.length <= 11) {
+      updateForm({ mobilenumber: e });
+      if (!validateMobileNumber(e)) {
+        setMobileError("Invalid mobile number.");
+      } else {
+        setMobileError("");
+      }
+    }
+  };
+
+  const handleChangePassword = (e) => {
+    updateForm({ password: e });
+    if (!validatePassword(e)) {
+      setPasswordError(
+        "Password must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character."
+      );
+    } else {
+      setPasswordError("");
+    }
+    if (!validatePasswordIdentity(e) && form.confirmpassword !== "") {
+      setConfirmPasswordError("Password doesn't match.");
+    } else {
+      setConfirmPasswordError("");
+    }
+  };
+
+  const handleConfirmPassword = (e) => {
+    updateForm({ confirmpassword: e });
+    if (!validateConfirmPassword(e)) {
+      setConfirmPasswordError("Password doesn't match.");
+    } else {
+      setConfirmPasswordError("");
+    }
+  };
+
+  const handleChangeYearsOfExperience = (e) => {
+    if (e.length <= 2) {
+      updateForm({ yearsOfExperience: e });
+      const num = parseInt(e);
+      if (isNaN(num) || num < 0) {
+        setYearsOfExperienceError("Please enter a valid number");
+      } else {
+        setYearsOfExperienceError("");
+      }
+    }
   };
 
   const handleBirthdate = (e) => {
@@ -359,7 +470,7 @@ const SignUp = () => {
       if (e.length === 2 && form.birthdate.length === 1) formatted += '/';
       if (e.length === 5 && form.birthdate.length === 4) formatted += '/';
 
-      setForm({ ...form, birthdate: formatted });
+      updateForm({ birthdate: formatted });
 
       if (formatted.length === 10) {
         if (!validateBirthdate(formatted)) {
@@ -368,105 +479,6 @@ const SignUp = () => {
           setBirthdateError("");
         }
       }
-    }
-  };
-
-  const handleChangeFirstName = (e) => {
-    setForm({ ...form, firstname: e });
-    if (!validateText(e)) {
-      setFirstNameError("Firtsname can only contain letters, spaces, hyphens, and apostrophes");
-    } else {
-      setFirstNameError("");
-    }
-  };
-
-  const handleChangeLastName = (e) => {
-    setForm({ ...form, lastname: e });
-    if (!validateText(e)) {
-      setLastNameError("Lastname can only contain letters, spaces, hyphens, and apostrophes");
-    } else {
-      setLastNameError("");
-    }
-  };
-
-  const handleChangeUsername = (e) => {
-    setForm({ ...form, username: e });
-    if (!validateText(e)) {
-      setUsernameError("Username can only contain letters, spaces, hyphens, and apostrophes");
-    } else {
-      setUsernameError("");
-    }
-  };
-
-  const handleChangeYearsOfExperience = (e) => {
-    if (e.length <= 2) {
-      const num = parseInt(e);
-      setForm({ ...form, yearsOfExperience: e });
-
-      if (isNaN(num) || num < 0) {
-        setYearsOfExperienceError("Please enter a valid number");
-      } else {
-        setYearsOfExperienceError("");
-      }
-    }
-  };
-
-  const isFormValid =
-    form.firstname.trim() !== "" &&
-    form.lastname.trim() !== "" &&
-    validateText(form.firstname) &&
-    validateText(form.lastname) &&
-    validateText(form.username) &&
-    validateBirthdate(form.birthdate) &&
-    validateEmail(form.email) &&
-    validateMobileNumber(form.mobilenumber) &&
-    form.username.trim() !== "" &&
-    validatePassword(form.password) &&
-    form.password === form.confirmpassword &&
-    validateYearsOfExperience(form.yearsOfExperience) &&
-    form.region !== "" &&
-    form.province !== "" &&
-    form.city !== "" &&
-    form.barangay !== "" &&
-    isChecked;
-
-  const handleChangeMobile = (e) => {
-    if (/^\d*$/.test(e) && e.length <= 11) {
-      setForm({ ...form, mobilenumber: e });
-      if (!validateMobileNumber(e)) {
-        setMobileError("Invalid mobile number.");
-      } else {
-        setMobileError("");
-      }
-    }
-  };
-
-  const handleChangePassword = (e) => {
-    setForm({ ...form, password: e });
-
-    if (!validatePassword(e)) {
-      setPasswordError(
-        "Password must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character."
-      );
-    } else {
-      setPasswordError("");
-    }
-
-    if (!validatePasswordIdentity(e) && form.confirmpassword !== "") {
-      setConfirmPasswordError("Password doesn't match.");
-    } else {
-      setConfirmPasswordError("");
-    }
-
-  };
-
-  const handleConfirmPassword = (e) => {
-    setForm({ ...form, confirmpassword: e });
-
-    if (!validateConfirmPassword(e)) {
-      setConfirmPasswordError("Password doesn't match.");
-    } else {
-      setConfirmPasswordError("");
     }
   };
 

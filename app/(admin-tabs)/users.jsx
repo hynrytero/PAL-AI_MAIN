@@ -282,11 +282,11 @@ const Users = () => {
                   fontSize: 11,
                   fontWeight: '600',
                   paddingVertical: 3,
-                  paddingHorizontal: 8,
+                  paddingHorizontal: 7,
                   borderRadius: 12,
                   color: "white",
                   backgroundColor: item.gender.toLowerCase() === "male" ? "#2196F3" : "#E91E63",
-                  marginRight: 6,
+                  marginRight: 3,
                   marginBottom: 4
                 }}>
                   {item.gender}
@@ -302,7 +302,7 @@ const Users = () => {
                   borderRadius: 12,
                   color: "white",
                   backgroundColor: "#FF9800",
-                  marginRight: 6,
+                  marginRight: 3,
                   marginBottom: 4
                 }}>
                   {item.age} yrs old
