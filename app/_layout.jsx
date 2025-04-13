@@ -3,8 +3,8 @@ import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import * as Notifications from "expo-notifications";
-import { AuthProvider } from '../context/AuthContext';
-import { PaperProvider } from 'react-native-paper';
+import { AuthProvider } from "../context/AuthContext";
+import { Provider as PaperProvider, DefaultTheme } from "react-native-paper";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,9 +35,19 @@ const RootLayout = () => {
       shouldSetBadge: true,
     }),
   });
+  const lightTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: "white",
+      surface: "white",
+      text: "black",
+      // You can customize more if needed
+    },
+  };
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={lightTheme}>
       <AuthProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -45,7 +55,10 @@ const RootLayout = () => {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(admin-tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(screen)" options={{ headerShown: false }} />
-          <Stack.Screen name="(admin-screen)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(admin-screen)"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </AuthProvider>
     </PaperProvider>
