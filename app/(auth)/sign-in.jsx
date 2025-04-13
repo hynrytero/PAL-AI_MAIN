@@ -169,6 +169,8 @@ const SignIn = () => {
             activeOutlineColor="#006400"
             outlineColor="#CBD2E0"
             textColor="#2D3648"
+            theme={{ colors: { background: 'white' } }}
+            style={{ backgroundColor: 'white' }}
           />
           <TextInput
             label="Password"
@@ -187,6 +189,8 @@ const SignIn = () => {
             activeOutlineColor="#006400"
             outlineColor="#CBD2E0"
             textColor="#2D3648"
+            theme={{ colors: { background: 'white' } }}
+            style={{ backgroundColor: 'white' }}
           />
           <View className="flex-row justify-between items-center mt-4">
             <View className="flex-row items-center">
