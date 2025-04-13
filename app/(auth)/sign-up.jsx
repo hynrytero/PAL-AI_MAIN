@@ -11,6 +11,7 @@ import {
   Platform,
   SafeAreaView,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Link, router } from "expo-router";
@@ -26,6 +27,7 @@ import {
   getMunicipalitiesByProvince,
   getBarangaysByMunicipality,
 } from "@aivangogh/ph-address";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const API_URL = API_URL_BCNKEND;
 const { width, height } = Dimensions.get('window');
@@ -73,6 +75,9 @@ const SignUp = () => {
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Fetch regions on component mount
   useEffect(() => {
@@ -462,22 +467,24 @@ const SignUp = () => {
     }
   };
 
-  const handleBirthdate = (e) => {
-    // Allow only numbers and forward slash
-    if (/^[\d/]*$/.test(e)) {
-      // Auto-format the date as user types
-      let formatted = e;
-      if (e.length === 2 && form.birthdate.length === 1) formatted += '/';
-      if (e.length === 5 && form.birthdate.length === 4) formatted += '/';
-
-      updateForm({ birthdate: formatted });
-
-      if (formatted.length === 10) {
-        if (!validateBirthdate(formatted)) {
-          setBirthdateError("Invalid birthdate. Must be at least 18 years old.");
-        } else {
-          setBirthdateError("");
-        }
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || selectedDate;
+    setShowDatePicker(Platform.OS === 'ios');
+    setSelectedDate(currentDate);
+    
+    // Format the date as MM/DD/YYYY
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const year = currentDate.getFullYear();
+    const formattedDate = `${month}/${day}/${year}`;
+    
+    updateForm({ birthdate: formattedDate });
+    
+    if (formattedDate.length === 10) {
+      if (!validateBirthdate(formattedDate)) {
+        setBirthdateError("Invalid birthdate. Must be at least 18 years old.");
+      } else {
+        setBirthdateError("");
       }
     }
   };
@@ -643,20 +650,33 @@ const SignUp = () => {
                 justifyContent: 'space-between',
                 marginBottom: 8,
               }}>
-                <TextInput
-                  label="Birthdate (MM/DD/YYYY)"
-                  value={form.birthdate}
-                  keyboardType="numeric"
-                  onChangeText={handleBirthdate}
+                <TouchableOpacity 
+                  onPress={() => setShowDatePicker(true)}
                   style={{ width: '48%' }}
-                  mode="outlined"
-                  activeOutlineColor="#006400"
-                  outlineColor="#CBD2E0"
-                  textColor="#2D3648"
-                  error={!!birthdateError}
-                  maxLength={10}
-                  dense={width < 360}
-                />
+                >
+                  <TextInput
+                    label="Birthdate"
+                    value={form.birthdate}
+                    editable={false}
+                    style={{ width: '100%' }}
+                    mode="outlined"
+                    activeOutlineColor="#006400"
+                    outlineColor="#CBD2E0"
+                    textColor="#2D3648"
+                    error={!!birthdateError}
+                    dense={width < 360}
+                  />
+                </TouchableOpacity>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                  />
+                )}
 
                 <View style={{
                   width: '48%',

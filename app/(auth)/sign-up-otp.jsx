@@ -24,6 +24,8 @@ const SignUpOTP = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [canResend, setCanResend] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingNewOtp, setPendingNewOtp] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const otpRefs = useRef([]);
   const router = useRouter();
   const { email } = useLocalSearchParams();
@@ -38,16 +40,30 @@ const SignUpOTP = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
+  // Check if OTP is complete to determine if verify button should be enabled
+  const isOtpComplete = () => {
+    return otp.every(digit => digit !== "") && !pendingNewOtp;
+  };
+
   const handleApiError = (error) => {
     const errorMessage = error.response?.data?.message || "An error occurred";
-    Alert.alert("Error", errorMessage);
+    Alert.alert("Invalid OTP","Please enter the correct OTP code");
     console.log('Error: ', error);
   };
 
   const handleResend = async () => {
-    if (!canResend) return;
+    // Check if already resending or in cooldown period
+    if (!canResend || isResending) return;
 
     try {
+      // Immediately disable the resend button to prevent spam
+      setIsResending(true);
+      setCanResend(false);
+      
+      // Reset OTP fields and set pending flag
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setPendingNewOtp(true);
+      
       await axios.post(
         `${API_URL}/signup/resend-verification-code`,
         { email },
@@ -56,14 +72,20 @@ const SignUpOTP = () => {
 
       Alert.alert("Success", "Verification code resent successfully");
       setTimeLeft(RESEND_COOLDOWN);
-      setCanResend(false);
 
       setTimeout(() => {
         setCanResend(true);
       }, RESEND_COOLDOWN * 1000);
 
     } catch (error) {
+      setPendingNewOtp(false);
+      // If there's an error, re-enable the resend button after a short delay to prevent spam
+      setTimeout(() => {
+        setCanResend(true);
+      }, 3000);
       handleApiError(error);
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -72,6 +94,11 @@ const SignUpOTP = () => {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
+
+      // If any digit is entered, we consider the user as starting to enter the new OTP
+      if (value !== "") {
+        setPendingNewOtp(false);
+      }
 
       // Auto-focus next input if a digit was entered
       if (value && index < OTP_LENGTH - 1) {
@@ -157,14 +184,18 @@ const SignUpOTP = () => {
     return (
       <TouchableOpacity
         onPress={handleResend}
-        disabled={!canResend}
+        disabled={!canResend || isResending}
         style={{ marginTop: 16 }}
       >
         <Text style={{ color: '#777777', fontSize: 16 }}>
-          {canResend ? (
+          {canResend && !isResending ? (
             <>
               Didn't receive the code?{' '}
               <Text style={{ color: '#2E8B57', fontWeight: '600' }}>Resend</Text>
+            </>
+          ) : isResending ? (
+            <>
+              Sending new OTP code...
             </>
           ) : (
             <>
@@ -270,7 +301,7 @@ const SignUpOTP = () => {
         {/* Verify Button */}
         <TouchableOpacity
           style={{
-            backgroundColor: 'forestgreen',
+            backgroundColor: isOtpComplete() ? 'forestgreen' : '#a0cfa0',
             width: '100%',
             paddingVertical: 16,
             borderRadius: 8,
@@ -278,10 +309,10 @@ const SignUpOTP = () => {
             marginTop: 36,
           }}
           onPress={handleVerification}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isOtpComplete()}
         >
           <Text style={{ color: 'white', fontWeight: '600', fontSize: 18 }}>
-            {isSubmitting ? "Verifying..." : "Verify"}
+            {isSubmitting ? "Verifying..." : pendingNewOtp ? "Enter New Code" : "Verify"}
           </Text>
         </TouchableOpacity>
       </View>
