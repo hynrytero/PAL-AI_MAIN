@@ -306,7 +306,7 @@ const TreatmentDetailScreen = () => {
             <TouchableOpacity onPress={handleBackNavigation} className="p-2">
               <FontAwesome name="chevron-left" size={24} color="black" />
             </TouchableOpacity>
-            <Text className="font-pmedium text-[25px] flex-1 text-center mr-3">
+            <Text className="font-pmedium text-[24px] flex-1 text-left">
               {isEditing ? 'Edit Treatment' : 'Treatment Details'}
             </Text>
             <TouchableOpacity

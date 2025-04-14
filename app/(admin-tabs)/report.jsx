@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, ImageBackground, ActivityIndicator, TouchableOpacity, TextInput } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, ImageBackground, ActivityIndicator, TouchableOpacity, TextInput, RefreshControl } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { router } from "expo-router";
 import ReportCard from "../../components/ReportCard";
@@ -27,6 +27,7 @@ const ReportScreen = () => {
   const [selectedConfidenceFilter, setSelectedConfidenceFilter] = useState("All");
   const [activeFilterType, setActiveFilterType] = useState("disease"); // 'disease', 'date', 'confidence'
   const ITEMS_PER_PAGE = 5;
+  const [refreshing, setRefreshing] = useState(false);
 
   // Disease mapping for colors and filters
   const diseaseMapping = {
@@ -276,6 +277,13 @@ const ReportScreen = () => {
     selectedDateFilter !== "All Time" ||
     selectedConfidenceFilter !== "All";
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchReports().finally(() => {
+      setRefreshing(false);
+    });
+  }, []);
+
   if (loading) {
     return (
       <ImageBackground
@@ -310,7 +318,17 @@ const ReportScreen = () => {
       source={images.background_profile}
       className="flex-1 h-full w-full bg-white"
     >
-      <ScrollView className="flex-1">
+      <ScrollView 
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#000064"]}
+            tintColor="#000064"
+          />
+        }
+      >
         <SafeAreaView className="px-4 pt-10 pb-8">
           <View className="flex-row items-center w-full mb-3 mt-5">
             <Text className="font-pmedium text-3xl">Reports</Text>

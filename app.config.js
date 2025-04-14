@@ -7,7 +7,7 @@ export default {
     scheme: "pal-ai",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./assets/splash.png",
     userInterfaceStyle: "light",
     splash: {
       image: "./assets/splash.png",
@@ -24,7 +24,7 @@ export default {
     android: {
       "softwareKeyboardLayoutMode": "pan",
       adaptiveIcon: {
-        foregroundImage: "./assets/images/app_icon.png",
+        foregroundImage: "./assets/splash.png",
         backgroundColor: "#ffffff"
       },
       package: "dev.expo.palai",

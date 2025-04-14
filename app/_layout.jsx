@@ -42,7 +42,6 @@ const RootLayout = () => {
       background: "white",
       surface: "white",
       text: "black",
-      // You can customize more if needed
     },
   };
 
@@ -55,10 +54,7 @@ const RootLayout = () => {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(admin-tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(screen)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="(admin-screen)"
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="(admin-screen)" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </PaperProvider>
