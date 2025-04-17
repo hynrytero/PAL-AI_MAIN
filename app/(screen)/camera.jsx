@@ -206,6 +206,10 @@ export default function App() {
   // Save Prediction to database
   async function savePredictionToDB(predictionsResult, uploadImage) {
     try {
+      // Calculate confidence score if below 40, set to 4 else set to the prediction
+      const confidenceScore = predictionsResult[0].confidence * 100;
+      const diseasePrediction = confidenceScore < 40 && confidenceScore > 0 ? 4 : predictionsResult[0].class_number;
+
       const response = await fetch(`${API_URL}/scan/save`, {
         method: "POST",
         headers: {
@@ -214,7 +218,7 @@ export default function App() {
         },
         body: JSON.stringify({
           user_profile_id: user.id,
-          disease_prediction: predictionsResult[0].class_number,
+          disease_prediction: diseasePrediction,
           disease_prediction_score: predictionsResult[0].confidence,
           scan_image: uploadImage,
         }),
@@ -351,6 +355,15 @@ export default function App() {
         // Get Disease Info
         const result = await getDiseaseInfo(predictionsResult[0].class_number);
 
+        // Check confidence threshold
+        const confidenceScore = predictionsResult[0].confidence * 100;
+        let diseaseName;
+        if (confidenceScore < 40 && confidenceScore > 0 ) {
+          diseaseName = `Possible Disease`;
+        } else {
+          diseaseName = result.rice_leaf_disease;
+        }
+
         // Send prediction to database
         savePredictionToDB(predictionsResult, uploadImage);
 
@@ -364,8 +377,8 @@ export default function App() {
           pathname: "/result",
           params: {
             imageUri: uploadImage,
-            disease: result.rice_leaf_disease,
-            confidence: `${(predictionsResult[0]?.confidence * 100).toFixed(2)}%`,
+            disease: diseaseName,
+            confidence: `${confidenceScore.toFixed(2)}%`,
             date: new Date().toLocaleDateString(),
             description: result.disease_description,
             treatments: JSON.stringify(result.treatments),

@@ -169,10 +169,41 @@ const Result = () => {
           {/* Confidence */}
           <Text className="font-pregular text-lg mb-4">{confidence}</Text>
 
+          {/* Low Confidence Warning */}
+          {parseFloat(confidence) < 50 && parseFloat(confidence) > 0 && (
+            <View className="bg-yellow-100 p-3 rounded-lg mb-4">
+              {parseFloat(confidence) < 40 ? (
+                <Text className="font-pbold text-yellow-800">Warning: Unknown Disease</Text>
+              ) : (
+                <Text className="font-pbold text-yellow-800">Warning: Low Confidence</Text>
+              )}
+              {parseFloat(confidence) < 40 ? (
+                <Text className="font-pregular text-yellow-800">
+                  The system detected a possible disease, but it may not be covered by our system's scope. Please consult with an expert for proper diagnosis.
+                </Text>
+              ) : (
+                <Text className="font-pregular text-yellow-800">
+                  The system is not very confident about this prediction. Please consult with an expert for verification.
+                </Text>
+              )}
+            </View>
+          )}
+
           {/* Description */}
           {isLoading ? (
             <Text className="font-pregular text-md text-center">Loading disease information...</Text>
-          ) : disease !== "No Disease" ? (
+          ) : disease === "No Disease" ? (
+            <View>
+              <Text className="font-pbold text-xl mb-2">No Disease Detected:</Text>
+              <Text className="font-pregular text-md leading-6 mb-2">Our system did not detect any known rice diseases in your image. However, please continue to monitor your plants regularly for any changes in their health.</Text>
+              <Text className="font-pregular text-md leading-6">{description}</Text>
+            </View>
+          ) : disease === "Possible Disease" ? (
+            <View>
+              <Text className="font-pbold text-xl mb-2">Possible Disease Detected:</Text>
+              <Text className="font-pregular text-md leading-6">{description}</Text>
+            </View>
+          ) : (
             <View>
               <Text className="font-pbold text-xl mb-2">What it does:</Text>
               <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.whatItDoes.text}</Text>
@@ -215,17 +246,11 @@ const Result = () => {
 
               <Text className="font-pregular text-[12px] mt-2 leading-2 text-right mr-3">- IRRI Knowledge Bank 2025</Text>
             </View>
-          ) : (
-            <View>
-              <Text className="font-pbold text-xl mb-2">No Disease Detected:</Text>
-              <Text className="font-pregular text-md leading-6 mb-2">However, please note that this does not rule out the possibility of a disease that is outside the scope of our system.</Text>
-              <Text className="font-pregular text-md leading-6">{description}</Text>
-            </View>
           )}
         </ScrollView>
 
         {/* Fixed Button at bottom */}
-        {disease !== "No Disease" && (
+        {disease !== "No Disease" && disease !== "Possible Disease" && (
           <View className="px-5 pb-5 bg-white">
             <CustomButton
               title="Treatments"

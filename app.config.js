@@ -24,7 +24,7 @@ export default {
     android: {
       "softwareKeyboardLayoutMode": "pan",
       adaptiveIcon: {
-        foregroundImage: "./assets/splash.png",
+        foregroundImage: "./assets/images/app_icon.png",
         backgroundColor: "#ffffff"
       },
       package: "dev.expo.palai",
@@ -36,7 +36,7 @@ export default {
       }
     },
     web: {
-      favicon: "./assets/favicon.png"
+      favicon: "./assets/splash.png"
     },
     plugins: [
       "expo-router",

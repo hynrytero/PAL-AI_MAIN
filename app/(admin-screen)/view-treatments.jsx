@@ -141,19 +141,51 @@ const Viewresult = () => {
           {/* Confidence */}
           <Text className="font-pregular text-lg mb-6">{confidence}</Text>
 
+          {/* Low Confidence Warning */}
+          {parseFloat(confidence) < 50 && parseFloat(confidence) > 0 && (
+            <View className="bg-yellow-100 p-3 rounded-lg mb-4">
+              {parseFloat(confidence) < 40 ? (
+                <Text className="font-pbold text-yellow-800">Warning: Unknown Disease</Text>
+              ) : (
+                <Text className="font-pbold text-yellow-800">Warning: Low Confidence</Text>
+              )}
+              {parseFloat(confidence) < 40 ? (
+                <Text className="font-pregular text-yellow-800">
+                  The system detected a possible disease, but it may not be covered by our system's scope. Please consult with an expert for proper diagnosis.
+                </Text>
+              ) : (
+                <Text className="font-pregular text-yellow-800">
+                  The system is not very confident about this prediction. Please consult with an expert for verification.
+                </Text>
+              )}
+            </View>
+          )}
+
           {/* Description */}
           {isLoading ? (
-            <Text className="font-pregular text-md">Loading disease information...</Text>
+            <Text className="font-pregular text-md text-center">Loading disease information...</Text>
+          ) : disease === "No Disease" ? (
+            <View>
+              <Text className="font-pbold text-xl mb-2">No Disease Detected:</Text>
+              <Text className="font-pregular text-md leading-6 mb-2">Our system did not detect any known rice diseases in your image. However, please continue to monitor your plants regularly for any changes in their health.</Text>
+              <Text className="font-pregular text-md leading-6">{description}</Text>
+            </View>
+          ) : disease === "Possible Disease" ? (
+            <View>
+              <Text className="font-pbold text-xl mb-2">Possible Disease Detected:</Text>
+              <Text className="font-pregular text-md leading-6">{description}</Text>
+            </View>
           ) : (
             <View>
               <Text className="font-pbold text-xl mb-2">What it does:</Text>
               <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.whatItDoes.text}</Text>
               {diseaseInfo.whatItDoes.lists.map((list, listIndex) => (
-                <View key={`what-list-${listIndex}`} className="mb-4">
+                <View key={`what-list-${listIndex}`} className="mb-4 ml-4">
                   {list.map((item, itemIndex) => (
-                    <Text key={`what-item-${itemIndex}`} className="font-pregular text-md leading-6 ml-4">
-                      • {item}
-                    </Text>
+                    <View key={`what-item-${itemIndex}`} className="flex-row mb-1">
+                      <Text className="mr-2">•</Text>
+                      <Text className="font-pregular text-md flex-1">{item}</Text>
+                    </View>
                   ))}
                 </View>
               ))}
@@ -161,11 +193,12 @@ const Viewresult = () => {
               <Text className="font-pbold text-xl mb-2 mt-2">Why and where it occurs:</Text>
               <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.whyAndWhereItOccurs.text}</Text>
               {diseaseInfo.whyAndWhereItOccurs.lists.map((list, listIndex) => (
-                <View key={`why-list-${listIndex}`} className="mb-4">
+                <View key={`why-list-${listIndex}`} className="mb-4 ml-4">
                   {list.map((item, itemIndex) => (
-                    <Text key={`why-item-${itemIndex}`} className="font-pregular text-md leading-6 ml-4">
-                      • {item}
-                    </Text>
+                    <View key={`why-item-${itemIndex}`} className="flex-row mb-1">
+                      <Text className="mr-2">•</Text>
+                      <Text className="font-pregular text-md flex-1">{item}</Text>
+                    </View>
                   ))}
                 </View>
               ))}
@@ -173,14 +206,16 @@ const Viewresult = () => {
               <Text className="font-pbold text-xl mb-2 mt-2">How to identify:</Text>
               <Text className="font-pregular text-md leading-6 mb-2">{diseaseInfo.howToIdentify.text}</Text>
               {diseaseInfo.howToIdentify.lists.map((list, listIndex) => (
-                <View key={`identify-list-${listIndex}`} className="mb-4">
+                <View key={`identify-list-${listIndex}`} className="mb-4 ml-4">
                   {list.map((item, itemIndex) => (
-                    <Text key={`identify-item-${itemIndex}`} className="font-pregular text-md leading-6 ml-4">
-                      • {item}
-                    </Text>
+                    <View key={`identify-item-${itemIndex}`} className="flex-row mb-1">
+                      <Text className="mr-2">•</Text>
+                      <Text className="font-pregular text-md flex-1">{item}</Text>
+                    </View>
                   ))}
                 </View>
               ))}
+
               <Text className="font-pregular text-[12px] mt-2 leading-2 text-right mr-3">- IRRI Knowledge Bank 2025</Text>
             </View>
           )}
