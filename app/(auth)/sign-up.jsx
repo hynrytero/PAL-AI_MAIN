@@ -679,6 +679,7 @@ const SignUp = () => {
                 }}
               >
                 <TextInput
+                  testID="inputFirstname"
                   label="First Name"
                   value={form.firstname}
                   onChangeText={handleChangeFirstName}
@@ -691,6 +692,7 @@ const SignUp = () => {
                   error={!!firstNameError}
                 />
                 <TextInput
+                  testID="inputLastname"
                   label="Last Name"
                   value={form.lastname}
                   onChangeText={handleChangeLastName}
@@ -736,10 +738,17 @@ const SignUp = () => {
                 }}
               >
                 <TouchableOpacity
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+                <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
                   style={{ width: "48%" }}
                 >
                   <TextInput
+                    testID="inputBirthdate"
                     label="Birthdate"
                     value={form.birthdate}
                     editable={false}
@@ -776,6 +785,7 @@ const SignUp = () => {
                   }}
                 >
                   <Dropdown
+                    testID="inputGender"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{
@@ -809,6 +819,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputEmail"
                 label="Email"
                 value={form.email}
                 onChangeText={handleChangeEmail}
@@ -834,6 +845,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputNumber"
                 label="Mobile Number"
                 value={form.mobilenumber}
                 keyboardType="numeric"
@@ -860,6 +872,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputUsername"
                 label="Username"
                 value={form.username}
                 onChangeText={handleChangeUsername}
@@ -885,6 +898,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputEXp"
                 label="Years of Farming Experience"
                 value={form.yearsOfExperience}
                 onChangeText={handleChangeYearsOfExperience}
@@ -941,6 +955,7 @@ const SignUp = () => {
                   }}
                 >
                   <Dropdown
+                    testID="inputRegion"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{
@@ -982,6 +997,7 @@ const SignUp = () => {
                   }}
                 >
                   <Dropdown
+                    testID="inputProvince"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{
@@ -1031,6 +1047,7 @@ const SignUp = () => {
                   }}
                 >
                   <Dropdown
+                    testID="inputCity"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{
@@ -1071,6 +1088,7 @@ const SignUp = () => {
                   }}
                 >
                   <Dropdown
+                    testID="inputBarangay"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{
@@ -1107,6 +1125,7 @@ const SignUp = () => {
               </Text>
 
               <TextInput
+                testID="inputPassword"
                 label="Password"
                 value={form.password}
                 onChangeText={handleChangePassword}
@@ -1140,6 +1159,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputConfirmPassword"
                 label="Confirm Password"
                 value={form.confirmpassword}
                 onChangeText={handleConfirmPassword}
@@ -1181,6 +1201,7 @@ const SignUp = () => {
               >
                 <Checkbox
                   testID="tncCheckbox"
+                  testID="tapTOC"
                   status={isChecked ? "checked" : "unchecked"}
                   onPress={() => setIsChecked(!isChecked)}
                   color="#006400"
@@ -1205,7 +1226,7 @@ const SignUp = () => {
               </View>
 
               <CustomButton
-                testID={!isFormValid ? "signUpButton" : "disabledSignUpButton"}
+                testID="signinButton"
                 title="Sign Up"
                 handlePress={handleSignUp}
                 containerStyles={{

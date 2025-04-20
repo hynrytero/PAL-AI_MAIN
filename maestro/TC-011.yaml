@@ -1,0 +1,72 @@
+#appId: "host.exp.Exponent"
+appId: "dev.expo.palai"
+---
+# Launch the app and clear its state
+- launchApp
+
+# Test the GET STARTED button flow
+- extendedWaitUntil:
+    visible: "GET STARTED.*"
+- tapOn: "GET STARTED"
+
+# assertVisible will wait for the "Sign Up" 
+- assertVisible: "Sign-Up.*"
+
+# Test input values
+- tapOn: {id : "inputFirstname"}
+- inputText: "John Henry"
+
+- tapOn: {id : "inputLastname"}
+- inputText: "Tero"
+
+- tapOn: {id : "inputGender"}
+- tapOn: "Male"
+
+- tapOn: {id : "inputBirthdate"}
+- tapOn: "2025"
+- scrollUntilVisible:
+    element: "2002" 
+    direction: UP
+- tapOn: "2002"
+- tapOn: "Ok"
+
+- tapOn: {id : "inputEmail"}
+- inputText: "SampleEmail@gmail.com"
+
+- tapOn: {id : "inputNumber"}
+- inputText: "09123456789"
+
+- tapOn: {id : "inputUsername"}
+- inputText: "Tatan"
+
+#- tapOn: {id : "inputEXp"}
+#- inputText: "5"
+
+- scroll
+
+- tapOn: {id : "inputRegion"}
+- tapOn: "National Capital Region"
+
+- tapOn: {id : "inputProvince"}
+- tapOn: "NCR, Fourth District"
+
+- tapOn: {id : "inputCity"}
+- tapOn: "Makati City"
+
+- tapOn: {id : "inputBarangay"}
+- tapOn: "Bangkal"
+
+- tapOn: {id : "inputPassword"}
+- inputText: "Admin@123"
+
+- tapOn: {id : "inputConfirmPassword"}
+- inputText: "Admin@123"
+
+- tapOn: {id : "tapTOC"}
+
+- assertNotVisible:
+    text: "Sign Up"
+    enabled: false
+
+
+# End of the test flow

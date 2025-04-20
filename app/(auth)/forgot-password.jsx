@@ -108,6 +108,7 @@ const SignUpOTP = () => {
 
           {/* Email Input */}
           <TextInput
+            testID="emailInput"
             label="Email"
             mode="outlined"
             style={{ width: "100%", marginTop: 10 }}

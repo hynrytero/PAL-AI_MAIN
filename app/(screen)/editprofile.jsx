@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TouchableOpacity, TextInput, Alert, Platform, StyleSheet, Picker } from 'react-native';
+import { TouchableOpacity, TextInput, Alert, Platform, StyleSheet } from 'react-native'; // Removed Picker, added StyleSheet
 import { router } from "expo-router";
 import {
   View,
@@ -33,10 +33,10 @@ const Profile = () => {
   const [userData, setUserData] = useState({
     firstname: '',
     lastname: '',
-    email: '',
+    email: '', 
     contactNumber: '',
     birthdate: '',
-    gender: '',
+    gender: '', 
     image: '',
     addressId: null,
     yearsExperience: null,
@@ -47,11 +47,12 @@ const Profile = () => {
   });
   const [profileImage, setProfileImage] = useState(null);
   const [error, setError] = useState(null);
+  // State variables for editable fields, initialized from userData in a useEffect
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthDate, setBirthDate] = useState(new Date()); // Initialize with a default date
   const [contactNumber, setContactNumber] = useState("");
-  const [yearsExperience, setYearsExperience] = useState("");
+  const [yearsExperience, setYearsExperience] = useState(""); // Stored as string for TextInput
   const [region, setRegion] = useState("");
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
@@ -100,7 +101,16 @@ const Profile = () => {
           barangay: profileData.address?.barangay || ''
         });
       } else {
-        throw new Error(response.data.message || 'Failed to fetch profile data');
+        if (response.data.message === 'Profile data not found') {
+           console.log("Profile data not found for user, initializing with defaults.");
+           setUserData(prev => ({
+             ...prev,
+             email: user.email 
+           }));
+
+        } else {
+           throw new Error(response.data.message || 'Failed to fetch profile data');
+        }
       }
     } catch (error) {
       setError(error.message || 'Failed to load profile data');
@@ -129,207 +139,229 @@ const Profile = () => {
     setBarangay(userData.barangay || "");
 
     if (userData.birthdate) {
-      setBirthDate(new Date(userData.birthdate));
+      try {
+         const date = new Date(userData.birthdate);
+         if (!isNaN(date.getTime())) {
+            setBirthDate(date);
+         } else {
+            console.error("Invalid birthdate received:", userData.birthdate);
+            setBirthDate(new Date()); 
+         }
+      } catch (e) {
+         console.error("Error parsing birthdate:", e);
+         setBirthDate(new Date()); 
+      }
+    } else {
+        setBirthDate(new Date()); 
     }
+
+    if (userData.image) {
+        setProfileImage(userData.image);
+    } else {
+        setProfileImage(null); 
+    }
+
   }, [userData]);
 
-  // Fetch regions on component mount
-  useEffect(() => {
-    let isMounted = true;
-    const fetchRegions = async () => {
-      if (addressData.regions.length === 0) {
-        try {
-          setIsLoading(prev => ({ ...prev, regions: true }));
-          setAddressErrors(prev => ({ ...prev, regions: "" }));
-          const regionsData = getAllRegions();
+ // Fetch regions on component mount
+ useEffect(() => {
+  let isMounted = true;
+  const fetchRegions = async () => {
+    if (addressData.regions.length === 0) {
+      try {
+        setIsLoading(prev => ({ ...prev, regions: true }));
+        setAddressErrors(prev => ({ ...prev, regions: "" }));
+        const regionsData = getAllRegions();
+        if (isMounted) {
+          const formattedRegions = regionsData.map(region => ({
+            label: region.name,
+            value: region.name,
+            code: region.psgcCode
+          }));
+          setAddressData(prev => ({ ...prev, regions: formattedRegions }));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(prev => ({ ...prev, regions: false }));
+        }
+      }
+    }
+  };
+
+  fetchRegions();
+  return () => {
+    isMounted = false;
+  };
+}, [addressData.regions.length]);
+
+// Update provinces when region changes
+useEffect(() => {
+  let isMounted = true;
+  const fetchProvinces = async () => {
+    if (region && !addressData.provinces.some(p => p.code === region)) {
+      try {
+        setIsLoading(prev => ({ ...prev, provinces: true }));
+        setAddressErrors(prev => ({ ...prev, provinces: "" }));
+        const selectedRegion = addressData.regions.find(r => r.value === region);
+        if (selectedRegion) {
+          const regionCode = selectedRegion.code;
+          const provincesData = getProvincesByRegion(regionCode);
           if (isMounted) {
-            const formattedRegions = regionsData.map(region => ({
-              label: region.name,
-              value: region.name,
-              code: region.psgcCode
+            const formattedProvinces = provincesData.map(province => ({
+              label: province.name,
+              value: province.name,
+              code: province.psgcCode
             }));
-            setAddressData(prev => ({ ...prev, regions: formattedRegions }));
-          }
-        } catch (error) {
-          if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
-          }
-        } finally {
-          if (isMounted) {
-            setIsLoading(prev => ({ ...prev, regions: false }));
-          }
-        }
-      }
-    };
+            setAddressData(prev => ({ ...prev, provinces: formattedProvinces }));
 
-    fetchRegions();
-    return () => {
-      isMounted = false;
-    };
-  }, [addressData.regions.length]);
-
-  // Update provinces when region changes
-  useEffect(() => {
-    let isMounted = true;
-    const fetchProvinces = async () => {
-      if (region && !addressData.provinces.some(p => p.code === region)) {
-        try {
-          setIsLoading(prev => ({ ...prev, provinces: true }));
-          setAddressErrors(prev => ({ ...prev, provinces: "" }));
-          const selectedRegion = addressData.regions.find(r => r.value === region);
-          if (selectedRegion) {
-            const regionCode = selectedRegion.code;
-            const provincesData = getProvincesByRegion(regionCode);
-            if (isMounted) {
-              const formattedProvinces = provincesData.map(province => ({
-                label: province.name,
-                value: province.name,
-                code: province.psgcCode
-              }));
-              setAddressData(prev => ({ ...prev, provinces: formattedProvinces }));
-
-              // If this is a user-initiated change, reset the dependent fields
-              if (region !== userData.region) {
-                setProvince('');
-                setCity('');
-                setBarangay('');
-              }
+            // If this is a user-initiated change, reset the dependent fields
+            if (region !== userData.region) {
+              setProvince('');
+              setCity('');
+              setBarangay('');
             }
           }
-        } catch (error) {
-          if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, provinces: "Failed to load provinces. Please try again." }));
-          }
-        } finally {
-          if (isMounted) {
-            setIsLoading(prev => ({ ...prev, provinces: false }));
-          }
         }
-      } else {
-        setAddressData(prev => ({ ...prev, provinces: [] }));
+      } catch (error) {
+        if (isMounted) {
+          setAddressErrors(prev => ({ ...prev, provinces: "Failed to load provinces. Please try again." }));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(prev => ({ ...prev, provinces: false }));
+        }
       }
-    };
+    } else {
+      setAddressData(prev => ({ ...prev, provinces: [] }));
+    }
+  };
 
-    fetchProvinces();
-    return () => {
-      isMounted = false;
-    };
-  }, [region, addressData.regions]);
+  fetchProvinces();
+  return () => {
+    isMounted = false;
+  };
+}, [region, addressData.regions]);
 
-  // Update cities when province changes
-  useEffect(() => {
-    let isMounted = true;
-    const fetchCities = async () => {
-      if (province && !addressData.cities.some(c => c.code === province)) {
-        try {
-          setIsLoading(prev => ({ ...prev, cities: true }));
-          setAddressErrors(prev => ({ ...prev, cities: "" }));
-          const selectedProvince = addressData.provinces.find(p => p.value === province);
-          if (selectedProvince) {
-            const provinceCode = selectedProvince.code;
-            const citiesData = getMunicipalitiesByProvince(provinceCode);
-            if (isMounted) {
-              const formattedCities = citiesData.map(city => ({
-                label: city.name,
-                value: city.name,
-                code: city.psgcCode
-              }));
-              setAddressData(prev => ({ ...prev, cities: formattedCities }));
+// Update cities when province changes
+useEffect(() => {
+  let isMounted = true;
+  const fetchCities = async () => {
+    if (province && !addressData.cities.some(c => c.code === province)) {
+      try {
+        setIsLoading(prev => ({ ...prev, cities: true }));
+        setAddressErrors(prev => ({ ...prev, cities: "" }));
+        const selectedProvince = addressData.provinces.find(p => p.value === province);
+        if (selectedProvince) {
+          const provinceCode = selectedProvince.code;
+          const citiesData = getMunicipalitiesByProvince(provinceCode);
+          if (isMounted) {
+            const formattedCities = citiesData.map(city => ({
+              label: city.name,
+              value: city.name,
+              code: city.psgcCode
+            }));
+            setAddressData(prev => ({ ...prev, cities: formattedCities }));
 
-              // If this is a user-initiated change, reset the dependent fields
-              if (province !== userData.province) {
-                setCity('');
-                setBarangay('');
-              }
+            // If this is a user-initiated change, reset the dependent fields
+            if (province !== userData.province) {
+              setCity('');
+              setBarangay('');
             }
           }
-        } catch (error) {
-          if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, cities: "Failed to load cities. Please try again." }));
-          }
-        } finally {
-          if (isMounted) {
-            setIsLoading(prev => ({ ...prev, cities: false }));
-          }
         }
-      } else {
-        setAddressData(prev => ({ ...prev, cities: [] }));
+      } catch (error) {
+        if (isMounted) {
+          setAddressErrors(prev => ({ ...prev, cities: "Failed to load cities. Please try again." }));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(prev => ({ ...prev, cities: false }));
+        }
       }
-    };
+    } else {
+      setAddressData(prev => ({ ...prev, cities: [] }));
+    }
+  };
 
-    fetchCities();
-    return () => {
-      isMounted = false;
-    };
-  }, [province, addressData.provinces]);
+  fetchCities();
+  return () => {
+    isMounted = false;
+  };
+}, [province, addressData.provinces]);
 
-  // Update barangays when city changes
-  useEffect(() => {
-    let isMounted = true;
-    const fetchBarangays = async () => {
-      if (city && !addressData.barangays.some(b => b.code === city)) {
-        try {
-          setIsLoading(prev => ({ ...prev, barangays: true }));
-          setAddressErrors(prev => ({ ...prev, barangays: "" }));
-          const selectedCity = addressData.cities.find(c => c.value === city);
-          if (selectedCity) {
-            const cityCode = selectedCity.code;
-            const barangaysData = getBarangaysByMunicipality(cityCode);
-            if (isMounted) {
-              const formattedBarangays = barangaysData.map(barangay => ({
-                label: barangay.name,
-                value: barangay.name,
-                code: barangay.psgcCode
-              }));
-              setAddressData(prev => ({ ...prev, barangays: formattedBarangays }));
+// Update barangays when city changes
+useEffect(() => {
+  let isMounted = true;
+  const fetchBarangays = async () => {
+    if (city && !addressData.barangays.some(b => b.code === city)) {
+      try {
+        setIsLoading(prev => ({ ...prev, barangays: true }));
+        setAddressErrors(prev => ({ ...prev, barangays: "" }));
+        const selectedCity = addressData.cities.find(c => c.value === city);
+        if (selectedCity) {
+          const cityCode = selectedCity.code;
+          const barangaysData = getBarangaysByMunicipality(cityCode);
+          if (isMounted) {
+            const formattedBarangays = barangaysData.map(barangay => ({
+              label: barangay.name,
+              value: barangay.name,
+              code: barangay.psgcCode
+            }));
+            setAddressData(prev => ({ ...prev, barangays: formattedBarangays }));
 
-              // If this is a user-initiated change, reset the dependent field
-              if (city !== userData.city) {
-                setBarangay('');
-              }
+            // If this is a user-initiated change, reset the dependent field
+            if (city !== userData.city) {
+              setBarangay('');
             }
           }
-        } catch (error) {
-          if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, barangays: "Failed to load barangays. Please try again." }));
-          }
-        } finally {
-          if (isMounted) {
-            setIsLoading(prev => ({ ...prev, barangays: false }));
-          }
         }
-      } else {
-        setAddressData(prev => ({ ...prev, barangays: [] }));
+      } catch (error) {
+        if (isMounted) {
+          setAddressErrors(prev => ({ ...prev, barangays: "Failed to load barangays. Please try again." }));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(prev => ({ ...prev, barangays: false }));
+        }
       }
-    };
+    } else {
+      setAddressData(prev => ({ ...prev, barangays: [] }));
+    }
+  };
 
-    fetchBarangays();
-    return () => {
-      isMounted = false;
-    };
-  }, [city, addressData.cities]);
-
+  fetchBarangays();
+  return () => {
+    isMounted = false;
+  };
+}, [city, addressData.cities]);
   const formatDateForServer = (date) => {
+    if (!date) return '';
     const d = new Date(date);
-    const timezoneOffset = d.getTimezoneOffset();
-    d.setMinutes(d.getMinutes() + timezoneOffset);
-
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
 
+  // Validation for address fields before submitting
   const validateAddress = () => {
     if (!region || !province || !city || !barangay) {
-      Alert.alert("Error", "Please complete all address fields");
       return false;
     }
     return true;
   };
 
   const handleApplyChanges = () => {
-    if (!validateAddress()) return;
+     // Basic validation for required fields before confirming
+    if (!firstName || !lastName || !birthDate || !contactNumber || !yearsExperience || !validateAddress()) {
+        Alert.alert("Error", "Please fill out all required fields.");
+        return;
+    }
+
 
     Alert.alert(
       "Confirm Changes",
@@ -343,14 +375,14 @@ const Profile = () => {
           text: "OK",
           onPress: async () => {
             try {
-              let imageUrl = userData.image;
+              let imageUrl = userData.image; 
 
               if (profileImage && profileImage !== userData.image) {
                 const formData = new FormData();
                 formData.append('image', {
                   uri: profileImage,
-                  type: 'image/jpeg',
-                  name: 'profile.jpg'
+                  type: 'image/jpeg', 
+                  name: `profile_${user.id}.jpg` 
                 });
 
                 const uploadResponse = await fetch(`${API_URL}/profile/upload-profile`, {
@@ -362,11 +394,16 @@ const Profile = () => {
                 });
 
                 if (!uploadResponse.ok) {
-                  throw new Error('Failed to upload image');
+                  const errorBody = await uploadResponse.text(); 
+                  console.error("Image upload failed:", uploadResponse.status, errorBody);
+                  throw new Error(`Failed to upload image: ${uploadResponse.statusText}`);
                 }
 
                 const uploadResult = await uploadResponse.json();
-                imageUrl = uploadResult.imageUrl;
+                imageUrl = uploadResult.imageUrl; 
+              } else if (!profileImage && userData.image) {
+              
+                 imageUrl = null; 
               }
 
               const updatedProfile = {
@@ -375,15 +412,16 @@ const Profile = () => {
                 lastname: lastName,
                 birthdate: formatDateForServer(birthDate),
                 contactNumber: contactNumber,
-                image: imageUrl,
-                addressId: userData.addressId,
-                yearsExperience: parseInt(yearsExperience) || null,
+                image: imageUrl, 
+                addressId: userData.addressId, 
+                yearsExperience: parseInt(yearsExperience) || null, 
                 region: region,
                 province: province,
                 city: city,
                 barangay: barangay
               };
 
+               // Make the API call to update the profile
               const updateResponse = await axios.put(
                 `${API_URL}/profile/update`,
                 updatedProfile,
@@ -395,14 +433,23 @@ const Profile = () => {
               );
 
               if (updateResponse.data.success) {
-                // Update the userData state with new address information
-                setUserData(prev => ({
-                  ...prev,
-                  region: region,
-                  province: province,
-                  city: city,
-                  barangay: barangay
-                }));
+                 // Update the local userData state to reflect changes, including address and image
+                 setUserData(prev => ({
+                   ...prev,
+                   firstname: firstName,
+                   lastname: lastName,
+                   birthdate: birthDate, 
+                   contactNumber: contactNumber,
+                   image: imageUrl, 
+                   addressId: updateResponse.data.data.addressId, 
+                   yearsExperience: parseInt(yearsExperience) || null,
+                   region: region,
+                   province: province,
+                   city: city,
+                   barangay: barangay
+                 }));
+                 setProfileImage(imageUrl);
+
 
                 Alert.alert(
                   "Success",
@@ -410,7 +457,10 @@ const Profile = () => {
                   [
                     {
                       text: "OK",
-                      onPress: () => router.back()
+                      onPress: () => {
+                         router.back();
+                         fetchUserProfile(); 
+                      }
                     }
                   ]
                 );
@@ -418,10 +468,13 @@ const Profile = () => {
                 throw new Error(updateResponse.data.message || 'Failed to update profile');
               }
             } catch (error) {
-              let errorMessage = "Failed to update profile";
-              if (error.response?.data?.message?.includes('address')) {
-                errorMessage = "Failed to update address. Please try again.";
-              }
+              let errorMessage = "Failed to update profile. Please try again.";
+               console.error("Update error:", error.response?.data || error.message);
+               // Check for specific error messages from the backend
+               if (error.response?.data?.message) {
+                   errorMessage = error.response.data.message;
+               }
+
               Alert.alert("Error", errorMessage, [{ text: "OK" }]);
             }
           }
@@ -432,6 +485,12 @@ const Profile = () => {
 
   // Camera capture function
   const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission Required", "Please grant camera permission to take a photo.");
+      return;
+    }
+
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -446,6 +505,12 @@ const Profile = () => {
 
   // Image picker function for gallery
   const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission Required", "Please grant gallery permission to pick an image.");
+      return;
+    }
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -460,13 +525,25 @@ const Profile = () => {
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || birthDate;
-    setShowDatePicker(Platform.OS === 'ios');
-    setBirthDate(currentDate);
+    setShowDatePicker(Platform.OS === 'ios'); 
+    if (currentDate) { 
+        setBirthDate(currentDate);
+    }
   };
 
   const handleBack = () => {
     router.back();
   };
+
+  const isButtonDisabled = !firstName ||
+                           !lastName ||
+                           !birthDate || 
+                           !contactNumber ||
+                           !yearsExperience || 
+                           !region ||
+                           !province ||
+                           !city ||
+                           !barangay;
 
   return (
     <ImageBackground
@@ -486,10 +563,12 @@ const Profile = () => {
             <Menu
               visible={imageMenuVisible}
               onDismiss={() => setImageMenuVisible(false)}
+               // Adjust anchor position based on where the menu should appear relative to the image
               anchor={
                 <TouchableOpacity onPress={() => setImageMenuVisible(true)} className="relative">
                   <Image
                     source={
+                       // Use the local profileImage state if available, otherwise userData.image, otherwise default
                       profileImage
                         ? { uri: profileImage }
                         : userData.image
@@ -504,19 +583,20 @@ const Profile = () => {
                   </View>
                 </TouchableOpacity>
               }
+               // Adjust contentStyle for menu positioning
               contentStyle={{
-                marginTop: 150,
-                marginLeft: -80,
-                width: 180,
-                paddingVertical: 4,
-                backgroundColor: 'white',
-                borderRadius: 8,
-                elevation: 4,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-              }}
+                 marginTop: 10, // Adjust vertical position relative to anchor
+                 marginLeft: 20, // Adjust horizontal position
+                 width: 180,
+                 paddingVertical: 4,
+                 backgroundColor: 'white',
+                 borderRadius: 8,
+                 elevation: 4,
+                 shadowColor: '#000',
+                 shadowOffset: { width: 0, height: 2 },
+                 shadowOpacity: 0.25,
+                 shadowRadius: 3.84,
+               }}
             >
               <Menu.Item
                 title="Take Photo"
@@ -536,21 +616,26 @@ const Profile = () => {
                 }}
                 titleStyle={{ fontSize: 13 }}
               />
-              {profileImage && (
-                <Menu.Item
-                  title="Remove Photo"
-                  leadingIcon="delete"
-                  onPress={() => {
-                    setImageMenuVisible(false);
-                    setProfileImage(null);
-                  }}
-                  titleStyle={{ fontSize: 13 }}
-                />
+              {/* Show Remove Photo option only if there's an image to remove */}
+              {(profileImage || userData.image) && (
+                 <Menu.Item
+                   title="Remove Photo"
+                   leadingIcon="delete"
+                   onPress={() => {
+                     setImageMenuVisible(false);
+                     setProfileImage(null); // Set local state to null
+                     // Note: The actual removal from the backend will happen on "Apply Changes"
+                   }}
+                   titleStyle={{ fontSize: 13 }}
+                 />
               )}
             </Menu>
+            {/* Display user's full name */}
             <Text className="text-2xl font-semibold text-gray-900 mt-4">
-              {userData.firstname}
+              {`${firstName} ${lastName}`}
             </Text>
+             {/* Display user's email (read-only) */}
+            <Text className="text-base text-gray-600">{userData.email}</Text>
           </View>
 
           {/* About Section */}
@@ -562,6 +647,7 @@ const Profile = () => {
               <View className="w-[48%]">
                 <Text className="text-base text-gray-700">First Name</Text>
                 <TextInput
+                  testID="inputFirstname"
                   className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
                   placeholder="Firstname"
                   placeholderTextColor="#9ca3af"
@@ -589,16 +675,18 @@ const Profile = () => {
                   className="border border-gray-400 rounded-md p-1 pl-3 mt-2 text-sm text-gray-800"
                   placeholder="Birth Date"
                   placeholderTextColor="#9ca3af"
-                  value={birthDate ? birthDate.toISOString().split('T')[0] : ""}
-                  editable={false}
+                  // Display the date in a user-friendly format (e.g., YYYY-MM-DD)
+                  value={birthDate instanceof Date && !isNaN(birthDate.getTime()) ? birthDate.toISOString().split('T')[0] : ""}
+                  editable={false} // Make the TextInput non-editable
                 />
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
-                  value={birthDate || new Date()}
+                   // Use current date if birthDate is null or invalid
+                  value={birthDate instanceof Date && !isNaN(birthDate.getTime()) ? birthDate : new Date()}
                   mode="date"
-                  display="default"
-                  timeZoneOffsetInMinutes={0}
+                  display={Platform.OS === 'ios' ? "spinner" : "default"} // Use spinner on iOS for better UX
+                  timeZoneOffsetInMinutes={0} // Ensure UTC or handle timezones appropriately
                   onChange={handleDateChange}
                 />
               )}
@@ -613,7 +701,7 @@ const Profile = () => {
                 placeholderTextColor="#9ca3af"
                 value={contactNumber}
                 onChangeText={setContactNumber}
-                keyboardType="numeric"
+                keyboardType="numeric" // Suggest numeric keyboard
               />
             </View>
 
@@ -626,7 +714,7 @@ const Profile = () => {
                 placeholderTextColor="#9ca3af"
                 value={yearsExperience}
                 onChangeText={setYearsExperience}
-                keyboardType="numeric"
+                keyboardType="numeric" // Suggest numeric keyboard
               />
             </View>
           </View>
@@ -637,149 +725,154 @@ const Profile = () => {
 
             <View className="mb-2">
               <Text className="text-base text-gray-600">Region</Text>
-              <View className="border border-gray-400 rounded-md p-2 mt-1">
-                <Dropdown
-                  style={{ flex: 1 }}
-                  placeholderStyle={{ fontSize: 14 }}
-                  selectedTextStyle={{ fontSize: 14 }}
-                  inputSearchStyle={{ fontSize: 14 }}
-                  iconStyle={{ marginRight: 8 }}
-                  data={addressData.regions}
-                  labelField="label"
-                  valueField="value"
-                  placeholder={isLoading.regions ? "Loading..." : "Select Region"}
-                  value={region}
-                  onChange={(item) => setRegion(item.value)}
-                  disable={isLoading.regions}
-                  loading={isLoading.regions}
-                  errorMessage={addressErrors.regions}
-                />
-              </View>
+               {/* Apply styling directly to Dropdown or its container if needed */}
+              <Dropdown
+                 style={styles.dropdown} // Add style for dropdown container if needed
+                 placeholderStyle={styles.placeholderStyle}
+                 selectedTextStyle={styles.selectedTextStyle}
+                 inputSearchStyle={styles.inputSearchStyle}
+                 iconStyle={styles.iconStyle}
+                 data={addressData.regions}
+                 labelField="label"
+                 valueField="value"
+                 placeholder={isLoading.regions ? "Loading..." : "Select Region"}
+                 value={region}
+                 onChange={(item) => setRegion(item.value)}
+                 disable={isLoading.regions} // Disable while loading
+                 loading={isLoading.regions}
+                 // errorMessage prop isn't standard for Dropdown, handle error text separately
+               />
+              {addressErrors.regions ? (
+                 <Text style={styles.errorText}>{addressErrors.regions}</Text>
+               ) : null}
             </View>
 
             <View className="mb-2">
               <Text className="text-base text-gray-600">Province</Text>
-              <View className="border border-gray-400 rounded-md p-2 mt-1">
-                <Dropdown
-                  style={{ flex: 1 }}
-                  placeholderStyle={{ fontSize: 14 }}
-                  selectedTextStyle={{ fontSize: 14 }}
-                  inputSearchStyle={{ fontSize: 14 }}
-                  iconStyle={{ marginRight: 8 }}
-                  data={addressData.provinces}
-                  labelField="label"
-                  valueField="value"
-                  placeholder={isLoading.provinces ? "Loading..." : "Select Province"}
-                  value={province}
-                  onChange={(item) => setProvince(item.value)}
-                  disabled={!region || isLoading.provinces}
-                  loading={isLoading.provinces}
-                  errorMessage={addressErrors.provinces}
-                />
-              </View>
+              <Dropdown
+                 style={styles.dropdown}
+                 placeholderStyle={styles.placeholderStyle}
+                 selectedTextStyle={styles.selectedTextStyle}
+                 inputSearchStyle={styles.inputSearchStyle}
+                 iconStyle={styles.iconStyle}
+                 data={addressData.provinces}
+                 labelField="label"
+                 valueField="value"
+                 placeholder={isLoading.provinces ? "Loading..." : "Select Province"}
+                 value={province}
+                 onChange={(item) => setProvince(item.value)}
+                 disabled={!region || isLoading.provinces} // Disable if no region selected or loading
+                 loading={isLoading.provinces}
+               />
+              {addressErrors.provinces ? (
+                 <Text style={styles.errorText}>{addressErrors.provinces}</Text>
+               ) : null}
             </View>
 
             <View className="mb-2">
               <Text className="text-base text-gray-600">City</Text>
-              <View className="border border-gray-400 rounded-md p-2 mt-1">
-                <Dropdown
-                  style={{ flex: 1 }}
-                  placeholderStyle={{ fontSize: 14 }}
-                  selectedTextStyle={{ fontSize: 14 }}
-                  inputSearchStyle={{ fontSize: 14 }}
-                  iconStyle={{ marginRight: 8 }}
-                  data={addressData.cities}
-                  labelField="label"
-                  valueField="value"
-                  placeholder={isLoading.cities ? "Loading..." : "Select City"}
-                  value={city}
-                  onChange={(item) => setCity(item.value)}
-                  disabled={!province || isLoading.cities}
-                  loading={isLoading.cities}
-                  errorMessage={addressErrors.cities}
-                />
-              </View>
+              <Dropdown
+                 style={styles.dropdown}
+                 placeholderStyle={styles.placeholderStyle}
+                 selectedTextStyle={styles.selectedTextStyle}
+                 inputSearchStyle={styles.inputSearchStyle}
+                 iconStyle={styles.iconStyle}
+                 data={addressData.cities}
+                 labelField="label"
+                 valueField="value"
+                 placeholder={isLoading.cities ? "Loading..." : "Select City"}
+                 value={city}
+                 onChange={(item) => setCity(item.value)}
+                 disabled={!province || isLoading.cities} // Disable if no province selected or loading
+                 loading={isLoading.cities}
+               />
+              {addressErrors.cities ? (
+                 <Text style={styles.errorText}>{addressErrors.cities}</Text>
+               ) : null}
             </View>
 
             <View className="mb-2">
               <Text className="text-base text-gray-600">Barangay</Text>
-              <View className="border border-gray-400 rounded-md p-2 mt-1">
-                <Dropdown
-                  style={{ flex: 1 }}
-                  placeholderStyle={{ fontSize: 14 }}
-                  selectedTextStyle={{ fontSize: 14 }}
-                  inputSearchStyle={{ fontSize: 14 }}
-                  iconStyle={{ marginRight: 8 }}
-                  data={addressData.barangays}
-                  labelField="label"
-                  valueField="value"
-                  placeholder={isLoading.barangays ? "Loading..." : "Select Barangay"}
-                  value={barangay}
-                  onChange={(item) => setBarangay(item.value)}
-                  disabled={!city || isLoading.barangays}
-                  loading={isLoading.barangays}
-                  errorMessage={addressErrors.barangays}
-                />
-              </View>
+              <Dropdown
+                 style={styles.dropdown}
+                 placeholderStyle={styles.placeholderStyle}
+                 selectedTextStyle={styles.selectedTextStyle}
+                 inputSearchStyle={styles.inputSearchStyle}
+                 iconStyle={styles.iconStyle}
+                 data={addressData.barangays}
+                 labelField="label"
+                 valueField="value"
+                 placeholder={isLoading.barangays ? "Loading..." : "Select Barangay"}
+                 value={barangay}
+                 onChange={(item) => setBarangay(item.value)}
+                 disabled={!city || isLoading.barangays} // Disable if no city selected or loading
+                 loading={isLoading.barangays}
+               />
+               {addressErrors.barangays ? (
+                 <Text style={styles.errorText}>{addressErrors.barangays}</Text>
+               ) : null}
             </View>
           </View>
 
-        {/* Apply Changes Button */}
-        <View className="mt-6">
-          <Button
-            mode="contained"
-            style={{ borderRadius: 8, backgroundColor: "forestgreen" }}
-            contentStyle={{ paddingVertical: 10 }}
-            labelStyle={{ fontSize: 16, fontWeight: "bold" }}
-            onPress={handleApplyChanges}
-          >
-            {"Apply Changes"}
-          </Button>
-        </View>
-      </SafeAreaView>
-    </ScrollView>
+          {/* Apply Changes Button */}
+          <View className="mt-6">
+            <Button
+              mode="contained"
+              style={{ borderRadius: 8, backgroundColor: "forestgreen" }} 
+              contentStyle={{ paddingVertical: 10 }}
+              labelStyle={{ fontSize: 16, fontWeight: "bold" }}
+              onPress={handleApplyChanges}
+              disabled={isButtonDisabled} 
+            >
+              {"Apply Changes"}
+            </Button>
+          </View>
+
+           {/* Display error message if any */}
+          {error && (
+             <View className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                <Text className="text-red-700 text-sm">{error}</Text>
+             </View>
+          )}
+
+        </SafeAreaView>
+      </ScrollView>
     </ImageBackground >
   );
 };
 
 const styles = StyleSheet.create({
-  profileImageContainer: {
-    position: 'relative',
-    width: 150,
-    height: 150,
+  dropdown: {
+    height: 50,
+    borderColor: 'gray',
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginTop: 4,
+    backgroundColor: 'white', 
   },
-  imageWrapper: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#9ca3af', 
   },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 75,
+  selectedTextStyle: {
+    fontSize: 14,
+    color: '#1f2937', 
   },
-  editIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#2196F3',
-    borderRadius: 20,
-    width: 40,
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
+  inputSearchStyle: {
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
+    fontSize: 14,
   },
-  editOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 75,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
+   errorText: {
+     fontSize: 12,
+     color: 'red',
+     marginTop: 4,
+   },
+  
 });
 
 export default Profile;

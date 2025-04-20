@@ -88,7 +88,7 @@ const SignIn = () => {
     }
     console.log(`Logged In`);
     setIsSubmitting(true);
-   // console.log(AUTH_KEY);
+    // console.log(AUTH_KEY);
     try {
       const response = await axios.post(
         `${API_URL}/auth/login`,
@@ -161,6 +161,7 @@ const SignIn = () => {
           <Text className="font-psemibold text-3xl mt-6">Log in</Text>
           <Text className="text-lg">Welcome! Please enter your details.</Text>
           <TextInput
+            testID="userLOGIN"
             label="Username / Email"
             value={form.identifier}
             onChangeText={(text) => setForm({ ...form, identifier: text })}
@@ -173,6 +174,7 @@ const SignIn = () => {
             style={{ backgroundColor: 'white' }}
           />
           <TextInput
+            testID="passLOGIN"
             label="Password"
             value={form.password}
             onChangeText={(text) => setForm({ ...form, password: text })}
@@ -202,15 +204,13 @@ const SignIn = () => {
               <Text className="ml-2">Remember me</Text>
             </View>
             <Text className="font-semibold text-secondary">
-              <Link href="/forgot-password">Forgot password?</Link>
+              <Link testID="forgotPassword" href="/forgot-password">Forgot password?</Link>
             </Text>
           </View>
           <CustomButton
+            testID="inputLOGIN"
             title="Log in"
             handlePress={handleLogin}
-            // handlePress={() => router.push("report")}
-            // handlePress={() => router.push("recommend-treatments")}
-            // handlePress={() => router.push("farmers-treatment")}
             containerStyles="w-full mt-5"
             isLoading={isSubmitting}
           />
