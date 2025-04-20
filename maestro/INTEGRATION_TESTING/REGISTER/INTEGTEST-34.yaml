@@ -1,0 +1,56 @@
+# Admin creates announcement
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "Admin"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Admin@123"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on Notifications
+- tapOn: "Notification"
+
+#Tap on Create Announcement
+- tapOn: "Create Announcement"
+
+# Tap on All User
+- tapOn:
+    id: "allUser"
+
+# Tap on Notification Title
+- tapOn: "Title"
+- inputText: "Test Announcement"
+
+- hideKeyboard
+
+# Tap on Notification Description
+- tapOn: "Body"
+- inputText: "Test Announcement Description"
+
+- hideKeyboard
+
+# Tap on Send Notification
+- tapOn: "Send Notification"
+
+# Check if the notification is sent successfully
+- assertVisible: "Notification sent to all users successfully"

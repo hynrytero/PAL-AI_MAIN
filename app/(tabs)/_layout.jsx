@@ -1,15 +1,25 @@
 // user
-import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { router, Tabs, usePathname } from "expo-router";
 import { AuthProvider } from "../../context/AuthContext";
 import { icons } from "../../constants";
 import CustomFAB from "../../components/CustomFloatingActionButton";
-import { NotificationProvider, useNotification } from "../../context/NotificationContext";
-import { Provider as PaperProvider } from 'react-native-paper';
+import {
+  NotificationProvider,
+  useNotification,
+} from "../../context/NotificationContext";
+import { Provider as PaperProvider } from "react-native-paper";
 
 // Get screen dimensions
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 
 const TabIcon = ({ icon, color, name, focused, showBadge = false }) => {
   return (
@@ -22,10 +32,10 @@ const TabIcon = ({ icon, color, name, focused, showBadge = false }) => {
           className="w-6 h-6"
         />
         {showBadge && (
-          <View 
-          className="absolute -top-1 -right-1 bg-red-500 rounded-full w-3 h-3"
-          style={styles.badge}
-        />
+          <View
+            className="absolute -top-1 -right-1 bg-red-500 rounded-full w-3 h-3"
+            style={styles.badge}
+          />
         )}
       </View>
       <Text
@@ -41,7 +51,7 @@ const TabIcon = ({ icon, color, name, focused, showBadge = false }) => {
 // Wrapper for notification tab that includes badge
 const NotificationTabWithBadge = ({ color, focused }) => {
   const { unreadCount } = useNotification();
-  
+
   return (
     <TabIcon
       icon={icons.bell}
@@ -55,7 +65,7 @@ const NotificationTabWithBadge = ({ color, focused }) => {
 
 const CustomMapsButton = ({ onPress }) => {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.mapsButton}
       onPress={onPress}
       activeOpacity={0.8}
@@ -85,7 +95,7 @@ const TabsContent = () => {
           <CustomMapsButton onPress={() => router.push("maps")} />
         </View>
       )}
-      
+
       {/* This code is for bottom navigation bar */}
       <Tabs
         screenOptions={{
@@ -97,7 +107,7 @@ const TabsContent = () => {
             borderTopWidth: 1,
             borderTopColor: "#C8C8C8",
             height: 84,
-            justifyContent: "space-between", 
+            justifyContent: "space-between",
           },
         }}
       >
@@ -139,11 +149,12 @@ const TabsContent = () => {
           options={{
             title: "Maps",
             headerShown: false,
-            tabBarButton: () => null, 
+            tabBarButton: () => null,
           }}
         />
         {/* Dummy tab for spacing */}
         <Tabs.Screen
+          testID="captureBtn"
           name="empty"
           options={{
             title: "Camera",
@@ -154,18 +165,18 @@ const TabsContent = () => {
                 style={[
                   props.style,
                   {
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: 57, 
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: 57,
                   },
                 ]}
               >
                 <TabIcon color="#2C9C4B" />
-                <Text 
-                  style={{ 
-                    color: "#2C9C4B", 
-                    fontWeight: "bold", 
-                    fontSize: 12, 
+                <Text
+                  style={{
+                    color: "#2C9C4B",
+                    fontWeight: "bold",
+                    fontSize: 12,
                     marginTop: 5,
                   }}
                 >
@@ -181,10 +192,7 @@ const TabsContent = () => {
             title: "Notification",
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <NotificationTabWithBadge
-                color={color}
-                focused={focused}
-              />
+              <NotificationTabWithBadge color={color} focused={focused} />
             ),
           }}
         />
@@ -246,9 +254,9 @@ const styles = StyleSheet.create({
   },
   mapsContainer: {
     position: "absolute",
-    bottom: 93, 
+    bottom: 93,
     right: 20,
-    zIndex: 999, 
+    zIndex: 999,
   },
   mapsButton: {
     backgroundColor: "#2C9C4B",
@@ -281,7 +289,7 @@ const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
     elevation: 4,
     zIndex: 999,
-  }
+  },
 });
 
 export default TabsLayout;

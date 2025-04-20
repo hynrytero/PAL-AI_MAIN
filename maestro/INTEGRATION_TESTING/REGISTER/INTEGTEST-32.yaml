@@ -1,0 +1,27 @@
+# User requests password reset with unregistered email
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Login button
+- tapOn: "Forgot password?"
+
+# Tap on Email
+- tapOn: "Email"
+- inputText: "joemarygot123@gmail.com"
+
+- hideKeyboard
+
+# Tap on Send OTP
+- tapOn: "Send OTP"
+
+- assertVisible: "No account found with this email address"

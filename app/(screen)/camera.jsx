@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { StyleSheet, Text, View, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as ImagePicker from "expo-image-picker";
@@ -8,7 +16,7 @@ import Button from "../../components/CameraButton";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../context/AuthContext";
-import { AUTH_KEY, API_URL_AI, API_URL_BCNKEND } from '@env';
+import { AUTH_KEY, API_URL_AI, API_URL_BCNKEND } from "@env";
 
 const API_URL = API_URL_BCNKEND;
 const API_URL_PREDICT = API_URL_AI;
@@ -59,10 +67,10 @@ export default function App() {
       }
 
       const formData = new FormData();
-      formData.append('file', {
+      formData.append("file", {
         uri: imageUri,
-        type: 'image/jpeg',
-        name: 'image.jpg'
+        type: "image/jpeg",
+        name: "image.jpg",
       });
 
       const response = await fetch(`${API_URL_PREDICT}/predict`, {
@@ -70,12 +78,12 @@ export default function App() {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        body: formData
+        body: formData,
       });
 
       const data = await response.json();
 
-      // Handle non-rice leaf case 
+      // Handle non-rice leaf case
       if (!data.is_rice_leaf) {
         Alert.alert(
           "Not a Rice Leaf",
@@ -88,7 +96,7 @@ export default function App() {
                 setPredictions(null);
                 router.push("/home");
               },
-              style: "cancel"
+              style: "cancel",
             },
             {
               text: "Try Again",
@@ -96,8 +104,8 @@ export default function App() {
                 setImage(null);
                 setPredictions(null);
               },
-              style: "default"
-            }
+              style: "default",
+            },
           ]
         );
         return null;
@@ -119,7 +127,6 @@ export default function App() {
       // array predictions
       setPredictions(data.predictions);
       return data.predictions;
-
     } catch (error) {
       console.error("Error sending image to API:", error);
       Alert.alert(
@@ -135,24 +142,24 @@ export default function App() {
   // upload image to google storage
   const uploadImageToCloud = async (imageUri) => {
     const formData = new FormData();
-    formData.append('image', {
+    formData.append("image", {
       uri: imageUri,
-      type: 'image/jpeg',
-      name: 'photo.jpg'
+      type: "image/jpeg",
+      name: "photo.jpg",
     });
 
     try {
       const response = await fetch(`${API_URL}/scan/upload`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'X-API-Key': AUTH_KEY,
+          "X-API-Key": AUTH_KEY,
         },
-        body: formData
+        body: formData,
       });
       const data = await response.json();
       return data.imageUrl;
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error("Upload failed:", error);
       throw error;
     }
   };
@@ -208,12 +215,15 @@ export default function App() {
     try {
       // Calculate confidence score if below 40, set to 4 else set to the prediction
       const confidenceScore = predictionsResult[0].confidence * 100;
-      const diseasePrediction = confidenceScore < 40 && confidenceScore > 0 ? 4 : predictionsResult[0].class_number;
+      const diseasePrediction =
+        confidenceScore < 40 && confidenceScore > 0
+          ? 4
+          : predictionsResult[0].class_number;
 
       const response = await fetch(`${API_URL}/scan/save`, {
         method: "POST",
         headers: {
-          'X-API-Key': AUTH_KEY,
+          "X-API-Key": AUTH_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -229,8 +239,15 @@ export default function App() {
       if (response.ok) {
         console.log("Data saved to the database successfully");
       } else {
-        console.error("Error saving data to the database:", response.status, data);
-        Alert.alert("Error", data.message || "Failed to save data to the database");
+        console.error(
+          "Error saving data to the database:",
+          response.status,
+          data
+        );
+        Alert.alert(
+          "Error",
+          data.message || "Failed to save data to the database"
+        );
       }
     } catch (error) {
       console.error("Network error:", error);
@@ -240,21 +257,24 @@ export default function App() {
   // Get disease Information
   const getDiseaseInfo = async (classNumber) => {
     try {
-      const response = await fetch(`${API_URL}/scan/disease-info/${classNumber}`, {
-        headers: {
-          'X-API-Key': AUTH_KEY
+      const response = await fetch(
+        `${API_URL}/scan/disease-info/${classNumber}`,
+        {
+          headers: {
+            "X-API-Key": AUTH_KEY,
+          },
         }
-      });
+      );
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('Disease information not found');
+          throw new Error("Disease information not found");
         }
-        throw new Error('Failed to fetch disease information');
+        throw new Error("Failed to fetch disease information");
       }
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching disease info:', error);
+      console.error("Error fetching disease info:", error);
       throw error;
     }
   };
@@ -264,11 +284,11 @@ export default function App() {
     try {
       // Fetch all admin users with push tokens
       const response = await fetch(`${API_URL}/notifications/fetch-admin`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'X-API-Key': AUTH_KEY,
-          'Content-Type': 'application/json'
-        }
+          "X-API-Key": AUTH_KEY,
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -278,7 +298,7 @@ export default function App() {
       const adminUsers = await response.json();
 
       if (!adminUsers || adminUsers.length === 0) {
-        console.log('No admin users found with push tokens');
+        console.log("No admin users found with push tokens");
         return;
       }
 
@@ -288,52 +308,52 @@ export default function App() {
       for (const admin of adminUsers) {
         // 1. Store notification in database
         await fetch(`${API_URL}/notifications/store-notification`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'X-API-Key': AUTH_KEY,
-            'Content-Type': 'application/json'
+            "X-API-Key": AUTH_KEY,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             user_id: admin.userId,
-            title: 'Urgent: Possible Tungro Disease Detected',
+            title: "Urgent: Possible Tungro Disease Detected",
             body: `Farmer ${user.username} (${user.email}) has detected a ${disease} in their field on ${currentDate}. Immediate attention required.`,
-            icon: 'warning',
-            icon_bg_color: 'red',
-            type: 'alert',
+            icon: "warning",
+            icon_bg_color: "red",
+            type: "alert",
             data: {
               imageUrl: imageUrl,
               disease: disease,
               detectedAt: currentDate,
-              scanBy: user.id
-            }
-          })
+              scanBy: user.id,
+            },
+          }),
         });
 
         // 2. Send push notification
         await fetch(`${API_URL}/push-notify/notify`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'X-API-Key': AUTH_KEY,
-            'Content-Type': 'application/json'
+            "X-API-Key": AUTH_KEY,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             user_id: admin.userId,
-            title: 'Urgent: Possible Tungro Disease Detected',
+            title: "Urgent: Possible Tungro Disease Detected",
             body: `A farmer has detected ${disease} in their field. Immediate attention required.`,
             data: {
-              type: 'disease_alert',
+              type: "disease_alert",
               imageUrl: imageUrl,
               disease: disease,
               detectedAt: currentDate,
-              scanBy: user.id
-            }
-          })
+              scanBy: user.id,
+            },
+          }),
         });
       }
 
       console.log(`Tungro notification sent to ${adminUsers.length} admins`);
     } catch (error) {
-      console.error('Error sending Tungro notifications:', error);
+      console.error("Error sending Tungro notifications:", error);
     }
   };
 
@@ -358,7 +378,7 @@ export default function App() {
         // Check confidence threshold
         const confidenceScore = predictionsResult[0].confidence * 100;
         let diseaseName;
-        if (confidenceScore < 40 && confidenceScore > 0 ) {
+        if (confidenceScore < 40 && confidenceScore > 0) {
           diseaseName = `Possible Disease`;
         } else {
           diseaseName = result.rice_leaf_disease;
@@ -369,7 +389,10 @@ export default function App() {
 
         // Check if the disease is Tungro and send notification to admin
         if (result.rice_leaf_disease === "Possible Tungro") {
-          await sendTungroNotificationToAdmins(uploadImage, result.rice_leaf_disease);
+          await sendTungroNotificationToAdmins(
+            uploadImage,
+            result.rice_leaf_disease
+          );
         }
 
         // Navigate to result screen with the data
@@ -382,10 +405,9 @@ export default function App() {
             date: new Date().toLocaleDateString(),
             description: result.disease_description,
             treatments: JSON.stringify(result.treatments),
-            medicines: JSON.stringify(result.medicines)
+            medicines: JSON.stringify(result.medicines),
           },
         });
-
       } catch (err) {
         console.log("Error details:", err.message, err.stack);
         Alert.alert("Error", `Upload failed: ${err.message}`);
@@ -530,6 +552,7 @@ export default function App() {
               size={40}
             />
             <Button
+              testID="capture"
               icon="camera"
               size={60}
               style={{ height: 60 }}
@@ -567,6 +590,7 @@ export default function App() {
               }}
             />
             <Button
+              testID="check"
               icon="check"
               onPress={async () => {
                 try {

@@ -1,0 +1,113 @@
+# User enters a text that does not matched the password
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to registration
+- tapOn: "GET STARTED"
+
+# Fill out user details
+- tapOn: "First Name"
+- inputText: "Test"
+
+- hideKeyboard
+
+- tapOn: "Last Name"
+- inputText: "Automation"
+
+- hideKeyboard
+
+# Set Birthdate
+- tapOn: "Birthdate"
+- tapOn: "2025"
+
+# Corrected scrollUntilVisible block
+- scrollUntilVisible:
+    element:
+      text: "2003"
+    direction: UP
+    speed: 40
+
+- tapOn: "2003"
+- tapOn: "OK"
+
+# Choose gender
+- tapOn: "Gender"
+- tapOn: "Male"
+
+# Enter invalid email
+- tapOn: "Email"
+- inputText: "testemail@gmail.com"
+
+- hideKeyboard
+
+# Enter mobile number
+- tapOn: "Mobile Number"
+- inputText: "09123456789"
+
+- hideKeyboard
+
+# Enter username
+- tapOn: "Username"
+- inputText: "testautomation"
+
+- hideKeyboard
+
+# Scroll to the bottom of the screen
+- scrollUntilVisible:
+    element:
+      text: "Already a user? Log in"
+    direction: DOWN
+    speed: 40
+
+# Enter years of experience
+- tapOn: "Years of Farming Experience"
+- inputText: "5"
+
+- hideKeyboard
+
+# Enter Region
+- tapOn: "Region"
+- tapOn: "Ilocos Region"
+
+# Enter Province
+- tapOn: "Province"
+- tapOn: "Ilocos Norte"
+
+# Enter City/Municipality
+- tapOn: "City/Municipality"
+- tapOn: "Adams"
+
+# Enter Barangay
+- tapOn: "Barangay"
+- tapOn: "Adams"
+
+# Enter password
+- tapOn: "Password"
+- inputText: "TestingAutomation123#"
+
+- hideKeyboard
+
+# Enter confirm password
+- tapOn: "Confirm Password"
+- inputText: "TestingAuto123#"
+
+- hideKeyboard
+
+- assertVisible: "Password doesn't match."
+
+# Checking T&C
+- tapOn:
+    id: "tncCheckbox"
+
+#- tapOn: "Sign Up"
+
+# Check if the Sign Up button is disabled
+- assertVisible:
+    text: "Sign Up"
+    enabled: false

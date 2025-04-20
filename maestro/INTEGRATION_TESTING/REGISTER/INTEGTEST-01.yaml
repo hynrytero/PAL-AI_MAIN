@@ -1,0 +1,44 @@
+# User inputs invalid email format
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to registration
+- tapOn: "GET STARTED"
+
+# Fill out user details
+- tapOn: "First Name"
+- inputText: "Test"
+
+- tapOn: "Last Name"
+- inputText: "Automation"
+
+# Set Birthdate
+- tapOn: "Birthdate"
+- tapOn: "2025"
+
+# Corrected scrollUntilVisible block
+- scrollUntilVisible:
+    element:
+      text: "2003"
+    direction: UP
+    speed: 40
+
+- tapOn: "2003"
+- tapOn: "OK"
+
+# Choose gender
+- tapOn: "Gender"
+- tapOn: "Male"
+
+# Enter invalid email
+- tapOn: "Email"
+- inputText: "testemail"
+- hideKeyboard
+
+- assertVisible: "Please enter a valid email address"

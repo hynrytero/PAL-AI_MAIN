@@ -738,12 +738,6 @@ const SignUp = () => {
                 }}
               >
                 <TouchableOpacity
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-                <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
                   style={{ width: "48%" }}
                 >
@@ -1200,7 +1194,6 @@ const SignUp = () => {
                 }}
               >
                 <Checkbox
-                  testID="tncCheckbox"
                   testID="tapTOC"
                   status={isChecked ? "checked" : "unchecked"}
                   onPress={() => setIsChecked(!isChecked)}
