@@ -349,7 +349,7 @@ const SignUp = () => {
   // Separate useEffect for form validation
   useEffect(() => {
     const validateForm = () => {
-      const isValid = 
+      const isValid =
         form.firstname.trim() !== "" &&
         form.lastname.trim() !== "" &&
         validateText(form.firstname) &&
@@ -471,15 +471,15 @@ const SignUp = () => {
     const currentDate = selectedDate || selectedDate;
     setShowDatePicker(Platform.OS === 'ios');
     setSelectedDate(currentDate);
-    
+
     // Format the date as MM/DD/YYYY
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const day = String(currentDate.getDate()).padStart(2, '0');
     const year = currentDate.getFullYear();
     const formattedDate = `${month}/${day}/${year}`;
-    
+
     updateForm({ birthdate: formattedDate });
-    
+
     if (formattedDate.length === 10) {
       if (!validateBirthdate(formattedDate)) {
         setBirthdateError("Invalid birthdate. Must be at least 18 years old.");
@@ -604,6 +604,7 @@ const SignUp = () => {
               }}>
 
                 <TextInput
+                  testID="inputFirstname"
                   label="First Name"
                   value={form.firstname}
                   onChangeText={handleChangeFirstName}
@@ -616,6 +617,7 @@ const SignUp = () => {
                   error={!!firstNameError}
                 />
                 <TextInput
+                  testID="inputLastname"
                   label="Last Name"
                   value={form.lastname}
                   onChangeText={handleChangeLastName}
@@ -650,11 +652,12 @@ const SignUp = () => {
                 justifyContent: 'space-between',
                 marginBottom: 8,
               }}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
                   style={{ width: '48%' }}
                 >
                   <TextInput
+                    testID="inputBirthdate"
                     label="Birthdate"
                     value={form.birthdate}
                     editable={false}
@@ -689,6 +692,7 @@ const SignUp = () => {
                   height: width < 360 ? 48 : 56,
                 }}>
                   <Dropdown
+                    testID="inputGender"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
@@ -716,6 +720,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputEmail"
                 label="Email"
                 value={form.email}
                 onChangeText={handleChangeEmail}
@@ -737,6 +742,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputNumber"
                 label="Mobile Number"
                 value={form.mobilenumber}
                 keyboardType="numeric"
@@ -759,6 +765,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputUsername"
                 label="Username"
                 value={form.username}
                 onChangeText={handleChangeUsername}
@@ -780,6 +787,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputEXp"
                 label="Years of Farming Experience"
                 value={form.yearsOfExperience}
                 onChangeText={handleChangeYearsOfExperience}
@@ -824,6 +832,7 @@ const SignUp = () => {
                   height: width < 360 ? 48 : 56,
                 }}>
                   <Dropdown
+                    testID="inputRegion"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
@@ -854,6 +863,7 @@ const SignUp = () => {
                   height: width < 360 ? 48 : 56,
                 }}>
                   <Dropdown
+                    testID="inputProvince"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
@@ -890,6 +900,7 @@ const SignUp = () => {
                   height: width < 360 ? 48 : 56,
                 }}>
                   <Dropdown
+                    testID="inputCity"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
@@ -920,6 +931,7 @@ const SignUp = () => {
                   height: width < 360 ? 48 : 56,
                 }}>
                   <Dropdown
+                    testID="inputBarangay"
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
@@ -948,6 +960,7 @@ const SignUp = () => {
               }}>User Password</Text>
 
               <TextInput
+                testID="inputPassword"
                 label="Password"
                 value={form.password}
                 onChangeText={handleChangePassword}
@@ -977,6 +990,7 @@ const SignUp = () => {
               )}
 
               <TextInput
+                testID="inputConfirmPassword"
                 label="Confirm Password"
                 value={form.confirmpassword}
                 onChangeText={handleConfirmPassword}
@@ -1011,6 +1025,7 @@ const SignUp = () => {
                 alignItems: 'center',
               }}>
                 <Checkbox
+                  testID="tapTOC"
                   status={isChecked ? "checked" : "unchecked"}
                   onPress={() => setIsChecked(!isChecked)}
                   color="#006400"
@@ -1033,6 +1048,7 @@ const SignUp = () => {
               </View>
 
               <CustomButton
+                testID="signinButton"
                 title="Sign Up"
                 handlePress={handleSignUp}
                 containerStyles={{
