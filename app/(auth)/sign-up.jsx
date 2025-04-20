@@ -20,17 +20,17 @@ import { Checkbox, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
 import { images } from "../../constants";
 import CustomButton from "../../components/CustomButton";
-import { AUTH_KEY, API_URL_BCNKEND } from '@env';
+import { AUTH_KEY, API_URL_BCNKEND } from "@env";
 import {
   getAllRegions,
   getProvincesByRegion,
   getMunicipalitiesByProvince,
   getBarangaysByMunicipality,
 } from "@aivangogh/ph-address";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const API_URL = API_URL_BCNKEND;
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -85,25 +85,28 @@ const SignUp = () => {
     const fetchRegions = async () => {
       if (addressData.regions.length === 0) {
         try {
-          setIsLoading(prev => ({ ...prev, regions: true }));
-          setAddressErrors(prev => ({ ...prev, regions: "" }));
+          setIsLoading((prev) => ({ ...prev, regions: true }));
+          setAddressErrors((prev) => ({ ...prev, regions: "" }));
           const regionsData = getAllRegions();
           if (isMounted) {
-            const formattedRegions = regionsData.map(region => ({
+            const formattedRegions = regionsData.map((region) => ({
               label: region.name,
               value: region.name,
-              code: region.psgcCode
+              code: region.psgcCode,
             }));
-            setAddressData(prev => ({ ...prev, regions: formattedRegions }));
+            setAddressData((prev) => ({ ...prev, regions: formattedRegions }));
           }
         } catch (error) {
           console.error("Error fetching regions:", error);
           if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, regions: "Failed to load regions. Please try again." }));
+            setAddressErrors((prev) => ({
+              ...prev,
+              regions: "Failed to load regions. Please try again.",
+            }));
           }
         } finally {
           if (isMounted) {
-            setIsLoading(prev => ({ ...prev, regions: false }));
+            setIsLoading((prev) => ({ ...prev, regions: false }));
           }
         }
       }
@@ -119,40 +122,58 @@ const SignUp = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchProvinces = async () => {
-      if (form.region && !addressData.provinces.some(p => p.code === form.regionCode)) {
+      if (
+        form.region &&
+        !addressData.provinces.some((p) => p.code === form.regionCode)
+      ) {
         try {
-          setIsLoading(prev => ({ ...prev, provinces: true }));
-          setAddressErrors(prev => ({ ...prev, provinces: "" }));
-          const selectedRegion = addressData.regions.find(r => r.value === form.region);
+          setIsLoading((prev) => ({ ...prev, provinces: true }));
+          setAddressErrors((prev) => ({ ...prev, provinces: "" }));
+          const selectedRegion = addressData.regions.find(
+            (r) => r.value === form.region
+          );
           if (selectedRegion) {
             const regionCode = selectedRegion.code;
             if (isMounted) {
-              setForm(prev => ({ ...prev, regionCode }));
+              setForm((prev) => ({ ...prev, regionCode }));
             }
 
             const provincesData = getProvincesByRegion(regionCode);
             if (isMounted) {
-              const formattedProvinces = provincesData.map(province => ({
+              const formattedProvinces = provincesData.map((province) => ({
                 label: province.name,
                 value: province.name,
-                code: province.psgcCode
+                code: province.psgcCode,
               }));
-              setAddressData(prev => ({ ...prev, provinces: formattedProvinces }));
-              setForm(prev => ({ ...prev, province: "", provinceCode: "", city: "", cityCode: "", barangay: "" }));
+              setAddressData((prev) => ({
+                ...prev,
+                provinces: formattedProvinces,
+              }));
+              setForm((prev) => ({
+                ...prev,
+                province: "",
+                provinceCode: "",
+                city: "",
+                cityCode: "",
+                barangay: "",
+              }));
             }
           }
         } catch (error) {
           console.error("Error fetching provinces:", error);
           if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, provinces: "Failed to load provinces. Please try again." }));
+            setAddressErrors((prev) => ({
+              ...prev,
+              provinces: "Failed to load provinces. Please try again.",
+            }));
           }
         } finally {
           if (isMounted) {
-            setIsLoading(prev => ({ ...prev, provinces: false }));
+            setIsLoading((prev) => ({ ...prev, provinces: false }));
           }
         }
       } else if (!form.region) {
-        setAddressData(prev => ({ ...prev, provinces: [] }));
+        setAddressData((prev) => ({ ...prev, provinces: [] }));
       }
     };
 
@@ -166,40 +187,53 @@ const SignUp = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchCities = async () => {
-      if (form.province && !addressData.cities.some(c => c.code === form.provinceCode)) {
+      if (
+        form.province &&
+        !addressData.cities.some((c) => c.code === form.provinceCode)
+      ) {
         try {
-          setIsLoading(prev => ({ ...prev, cities: true }));
-          setAddressErrors(prev => ({ ...prev, cities: "" }));
-          const selectedProvince = addressData.provinces.find(p => p.value === form.province);
+          setIsLoading((prev) => ({ ...prev, cities: true }));
+          setAddressErrors((prev) => ({ ...prev, cities: "" }));
+          const selectedProvince = addressData.provinces.find(
+            (p) => p.value === form.province
+          );
           if (selectedProvince) {
             const provinceCode = selectedProvince.code;
             if (isMounted) {
-              setForm(prev => ({ ...prev, provinceCode }));
+              setForm((prev) => ({ ...prev, provinceCode }));
             }
 
             const citiesData = getMunicipalitiesByProvince(provinceCode);
             if (isMounted) {
-              const formattedCities = citiesData.map(city => ({
+              const formattedCities = citiesData.map((city) => ({
                 label: city.name,
                 value: city.name,
-                code: city.psgcCode
+                code: city.psgcCode,
               }));
-              setAddressData(prev => ({ ...prev, cities: formattedCities }));
-              setForm(prev => ({ ...prev, city: "", cityCode: "", barangay: "" }));
+              setAddressData((prev) => ({ ...prev, cities: formattedCities }));
+              setForm((prev) => ({
+                ...prev,
+                city: "",
+                cityCode: "",
+                barangay: "",
+              }));
             }
           }
         } catch (error) {
           console.error("Error fetching cities:", error);
           if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, cities: "Failed to load cities. Please try again." }));
+            setAddressErrors((prev) => ({
+              ...prev,
+              cities: "Failed to load cities. Please try again.",
+            }));
           }
         } finally {
           if (isMounted) {
-            setIsLoading(prev => ({ ...prev, cities: false }));
+            setIsLoading((prev) => ({ ...prev, cities: false }));
           }
         }
       } else if (!form.province) {
-        setAddressData(prev => ({ ...prev, cities: [] }));
+        setAddressData((prev) => ({ ...prev, cities: [] }));
       }
     };
 
@@ -213,40 +247,51 @@ const SignUp = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchBarangays = async () => {
-      if (form.city && !addressData.barangays.some(b => b.code === form.cityCode)) {
+      if (
+        form.city &&
+        !addressData.barangays.some((b) => b.code === form.cityCode)
+      ) {
         try {
-          setIsLoading(prev => ({ ...prev, barangays: true }));
-          setAddressErrors(prev => ({ ...prev, barangays: "" }));
-          const selectedCity = addressData.cities.find(c => c.value === form.city);
+          setIsLoading((prev) => ({ ...prev, barangays: true }));
+          setAddressErrors((prev) => ({ ...prev, barangays: "" }));
+          const selectedCity = addressData.cities.find(
+            (c) => c.value === form.city
+          );
           if (selectedCity) {
             const cityCode = selectedCity.code;
             if (isMounted) {
-              setForm(prev => ({ ...prev, cityCode }));
+              setForm((prev) => ({ ...prev, cityCode }));
             }
 
             const barangaysData = getBarangaysByMunicipality(cityCode);
             if (isMounted) {
-              const formattedBarangays = barangaysData.map(barangay => ({
+              const formattedBarangays = barangaysData.map((barangay) => ({
                 label: barangay.name,
                 value: barangay.name,
-                code: barangay.psgcCode
+                code: barangay.psgcCode,
               }));
-              setAddressData(prev => ({ ...prev, barangays: formattedBarangays }));
-              setForm(prev => ({ ...prev, barangay: "" }));
+              setAddressData((prev) => ({
+                ...prev,
+                barangays: formattedBarangays,
+              }));
+              setForm((prev) => ({ ...prev, barangay: "" }));
             }
           }
         } catch (error) {
           console.error("Error fetching barangays:", error);
           if (isMounted) {
-            setAddressErrors(prev => ({ ...prev, barangays: "Failed to load barangays. Please try again." }));
+            setAddressErrors((prev) => ({
+              ...prev,
+              barangays: "Failed to load barangays. Please try again.",
+            }));
           }
         } finally {
           if (isMounted) {
-            setIsLoading(prev => ({ ...prev, barangays: false }));
+            setIsLoading((prev) => ({ ...prev, barangays: false }));
           }
         }
       } else if (!form.city) {
-        setAddressData(prev => ({ ...prev, barangays: [] }));
+        setAddressData((prev) => ({ ...prev, barangays: [] }));
       }
     };
 
@@ -318,7 +363,7 @@ const SignUp = () => {
     if (!dateRegex.test(birthdate)) return false;
 
     // Convert string to Date object
-    const [month, day, year] = birthdate.split('/').map(Number);
+    const [month, day, year] = birthdate.split("/").map(Number);
     const date = new Date(year, month - 1, day);
 
     // Check if it's a valid date (e.g., not 02/31/2024)
@@ -349,7 +394,7 @@ const SignUp = () => {
   // Separate useEffect for form validation
   useEffect(() => {
     const validateForm = () => {
-      const isValid = 
+      const isValid =
         form.firstname.trim() !== "" &&
         form.lastname.trim() !== "" &&
         validateText(form.firstname) &&
@@ -376,7 +421,7 @@ const SignUp = () => {
 
   // Simplified form update function
   const updateForm = (updates) => {
-    setForm(prev => {
+    setForm((prev) => {
       const newForm = { ...prev, ...updates };
       return newForm;
     });
@@ -386,7 +431,9 @@ const SignUp = () => {
   const handleChangeFirstName = (e) => {
     updateForm({ firstname: e });
     if (!validateText(e)) {
-      setFirstNameError("Firstname can only contain letters, spaces, hyphens, and apostrophes");
+      setFirstNameError(
+        "Firstname can only contain letters, spaces, hyphens, and apostrophes"
+      );
     } else {
       setFirstNameError("");
     }
@@ -395,7 +442,9 @@ const SignUp = () => {
   const handleChangeLastName = (e) => {
     updateForm({ lastname: e });
     if (!validateText(e)) {
-      setLastNameError("Lastname can only contain letters, spaces, hyphens, and apostrophes");
+      setLastNameError(
+        "Lastname can only contain letters, spaces, hyphens, and apostrophes"
+      );
     } else {
       setLastNameError("");
     }
@@ -404,7 +453,9 @@ const SignUp = () => {
   const handleChangeUsername = (e) => {
     updateForm({ username: e });
     if (!validateText(e)) {
-      setUsernameError("Username can only contain letters, spaces, hyphens, and apostrophes");
+      setUsernameError(
+        "Username can only contain letters, spaces, hyphens, and apostrophes"
+      );
     } else {
       setUsernameError("");
     }
@@ -469,17 +520,17 @@ const SignUp = () => {
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || selectedDate;
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(Platform.OS === "ios");
     setSelectedDate(currentDate);
-    
+
     // Format the date as MM/DD/YYYY
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getDate()).padStart(2, "0");
     const year = currentDate.getFullYear();
     const formattedDate = `${month}/${day}/${year}`;
-    
+
     updateForm({ birthdate: formattedDate });
-    
+
     if (formattedDate.length === 10) {
       if (!validateBirthdate(formattedDate)) {
         setBirthdateError("Invalid birthdate. Must be at least 18 years old.");
@@ -492,7 +543,8 @@ const SignUp = () => {
   const handleSignUp = async () => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`${API_URL}/signup/pre-signup`,
+      const response = await axios.post(
+        `${API_URL}/signup/pre-signup`,
         {
           username: form.username,
           email: form.email,
@@ -510,8 +562,8 @@ const SignUp = () => {
         },
         {
           headers: {
-            'X-API-Key': AUTH_KEY
-          }
+            "X-API-Key": AUTH_KEY,
+          },
         }
       );
 
@@ -530,15 +582,17 @@ const SignUp = () => {
   };
 
   return (
-    <SafeAreaView style={{
-      flex: 1,
-    }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+      }}
+    >
       <ImageBackground
         source={images.background_signup}
         style={{
           flex: 1,
-          width: '100%',
-          height: '100%',
+          width: "100%",
+          height: "100%",
         }}
         resizeMode="cover"
       >
@@ -546,24 +600,28 @@ const SignUp = () => {
           <ScrollView
             contentContainerStyle={{
               flexGrow: 1,
-              justifyContent: 'center',
+              justifyContent: "center",
               paddingVertical: height * 0.04,
             }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View style={{
-              width: '100%',
-              paddingHorizontal: width * 0.05,
-              maxWidth: 500,
-              alignSelf: 'center',
-            }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: height * 0.01,
-                marginTop: height * 0.03,
-              }}>
+            <View
+              style={{
+                width: "100%",
+                paddingHorizontal: width * 0.05,
+                maxWidth: 500,
+                alignSelf: "center",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: height * 0.01,
+                  marginTop: height * 0.03,
+                }}
+              >
                 <Image
                   source={images.logo}
                   resizeMode="contain"
@@ -575,39 +633,56 @@ const SignUp = () => {
                     marginRight: 10,
                   }}
                 />
-                <Text style={{
-                  fontSize: Math.min(width * 0.06, 28),
-                  fontWeight: '700',
-                }}>PAL-AI</Text>
+                <Text
+                  style={{
+                    fontSize: Math.min(width * 0.06, 28),
+                    fontWeight: "700",
+                  }}
+                >
+                  PAL-AI
+                </Text>
               </View>
-              <Text style={{
-                fontSize: Math.min(width * 0.8, 28),
-                fontWeight: '600',
-                marginBottom: 2,
-              }}>Sign-Up</Text>
-              <Text style={{
-                fontSize: Math.min(width * 0.04, 18),
-                marginBottom: height * 0.02,
-              }}>Please enter the details.</Text>
+              <Text
+                style={{
+                  fontSize: Math.min(width * 0.8, 28),
+                  fontWeight: "600",
+                  marginBottom: 2,
+                }}
+              >
+                Sign-Up
+              </Text>
+              <Text
+                style={{
+                  fontSize: Math.min(width * 0.04, 18),
+                  marginBottom: height * 0.02,
+                }}
+              >
+                Please enter the details.
+              </Text>
 
-              <Text style={{
-                fontSize: Math.min(width * 0.045, 18),
-                fontWeight: '600',
-                marginTop: 5,
-                marginBottom: 5,
-              }}>User Information</Text>
+              <Text
+                style={{
+                  fontSize: Math.min(width * 0.045, 18),
+                  fontWeight: "600",
+                  marginTop: 5,
+                  marginBottom: 5,
+                }}
+              >
+                User Information
+              </Text>
 
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
                 <TextInput
                   label="First Name"
                   value={form.firstname}
                   onChangeText={handleChangeFirstName}
-                  style={{ width: '48%' }}
+                  style={{ width: "48%" }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -619,7 +694,7 @@ const SignUp = () => {
                   label="Last Name"
                   value={form.lastname}
                   onChangeText={handleChangeLastName}
-                  style={{ width: '48%' }}
+                  style={{ width: "48%" }}
                   mode="outlined"
                   activeOutlineColor="#006400"
                   outlineColor="#CBD2E0"
@@ -630,35 +705,45 @@ const SignUp = () => {
               </View>
 
               {firstNameError && form.firstname.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{firstNameError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {firstNameError}
+                </Text>
               )}
 
               {lastNameError && form.lastname.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{lastNameError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {lastNameError}
+                </Text>
               )}
 
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-                <TouchableOpacity 
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  style={{ width: '48%' }}
+                  style={{ width: "48%" }}
                 >
                   <TextInput
                     label="Birthdate"
                     value={form.birthdate}
                     editable={false}
-                    style={{ width: '100%' }}
+                    style={{ width: "100%" }}
                     mode="outlined"
                     activeOutlineColor="#006400"
                     outlineColor="#CBD2E0"
@@ -678,20 +763,24 @@ const SignUp = () => {
                   />
                 )}
 
-                <View style={{
-                  width: '48%',
-                  backgroundColor: 'white',
-                  borderWidth: 1,
-                  borderColor: '#CBD2E0',
-                  borderRadius: 5,
-                  padding: 8,
-                  justifyContent: 'center',
-                  height: width < 360 ? 48 : 56,
-                }}>
+                <View
+                  style={{
+                    width: "48%",
+                    backgroundColor: "white",
+                    borderWidth: 1,
+                    borderColor: "#CBD2E0",
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: "center",
+                    height: width < 360 ? 48 : 56,
+                  }}
+                >
                   <Dropdown
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{
+                      fontSize: Math.min(width * 0.035, 16),
+                    }}
                     inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     iconStyle={{ marginRight: 8 }}
                     data={data}
@@ -708,18 +797,22 @@ const SignUp = () => {
               </View>
 
               {birthdateError && form.birthdate.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{birthdateError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {birthdateError}
+                </Text>
               )}
 
               <TextInput
                 label="Email"
                 value={form.email}
                 onChangeText={handleChangeEmail}
-                style={{ width: '100%', marginBottom: 8 }}
+                style={{ width: "100%", marginBottom: 8 }}
                 mode="outlined"
                 activeOutlineColor="#006400"
                 outlineColor="#CBD2E0"
@@ -729,11 +822,15 @@ const SignUp = () => {
               />
 
               {error && form.email.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{error}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {error}
+                </Text>
               )}
 
               <TextInput
@@ -741,7 +838,7 @@ const SignUp = () => {
                 value={form.mobilenumber}
                 keyboardType="numeric"
                 onChangeText={handleChangeMobile}
-                style={{ width: '100%', marginBottom: 8 }}
+                style={{ width: "100%", marginBottom: 8 }}
                 mode="outlined"
                 activeOutlineColor="#006400"
                 outlineColor="#CBD2E0"
@@ -751,18 +848,22 @@ const SignUp = () => {
               />
 
               {mobileError && form.mobilenumber.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{mobileError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {mobileError}
+                </Text>
               )}
 
               <TextInput
                 label="Username"
                 value={form.username}
                 onChangeText={handleChangeUsername}
-                style={{ width: '100%', marginBottom: 8 }}
+                style={{ width: "100%", marginBottom: 8 }}
                 mode="outlined"
                 activeOutlineColor="#006400"
                 outlineColor="#CBD2E0"
@@ -772,11 +873,15 @@ const SignUp = () => {
               />
 
               {usernameError && form.username.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{usernameError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {usernameError}
+                </Text>
               )}
 
               <TextInput
@@ -784,7 +889,7 @@ const SignUp = () => {
                 value={form.yearsOfExperience}
                 onChangeText={handleChangeYearsOfExperience}
                 keyboardType="numeric"
-                style={{ width: '100%', marginBottom: 8 }}
+                style={{ width: "100%", marginBottom: 8 }}
                 mode="outlined"
                 activeOutlineColor="#006400"
                 outlineColor="#CBD2E0"
@@ -794,39 +899,53 @@ const SignUp = () => {
               />
 
               {yearsOfExperienceError && form.yearsOfExperience.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{yearsOfExperienceError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {yearsOfExperienceError}
+                </Text>
               )}
 
-              <Text style={{
-                fontSize: Math.min(width * 0.045, 18),
-                fontWeight: '600',
-                marginTop: 16,
-                marginBottom: 12,
-              }}>Address Information</Text>
+              <Text
+                style={{
+                  fontSize: Math.min(width * 0.045, 18),
+                  fontWeight: "600",
+                  marginTop: 16,
+                  marginBottom: 12,
+                }}
+              >
+                Address Information
+              </Text>
 
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-                <View style={{
-                  width: '48%',
-                  backgroundColor: 'white',
-                  borderWidth: 1,
-                  borderColor: '#CBD2E0',
-                  borderRadius: 5,
-                  padding: 8,
-                  justifyContent: 'center',
-                  height: width < 360 ? 48 : 56,
-                }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: "48%",
+                    backgroundColor: "white",
+                    borderWidth: 1,
+                    borderColor: "#CBD2E0",
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: "center",
+                    height: width < 360 ? 48 : 56,
+                  }}
+                >
                   <Dropdown
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{
+                      fontSize: Math.min(width * 0.035, 16),
+                    }}
                     inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     iconStyle={{ marginRight: 8 }}
                     data={addressData.regions}
@@ -835,7 +954,14 @@ const SignUp = () => {
                     placeholder={isLoading.regions ? "Loading..." : "Region"}
                     value={form.region}
                     onChange={(item) => {
-                      setForm({ ...form, region: item.value, regionCode: item.code, province: "", provinceCode: "", city: "" });
+                      setForm({
+                        ...form,
+                        region: item.value,
+                        regionCode: item.code,
+                        province: "",
+                        provinceCode: "",
+                        city: "",
+                      });
                     }}
                     disable={isLoading.regions}
                     loading={isLoading.regions}
@@ -843,29 +969,40 @@ const SignUp = () => {
                   />
                 </View>
 
-                <View style={{
-                  width: '48%',
-                  backgroundColor: 'white',
-                  borderWidth: 1,
-                  borderColor: '#CBD2E0',
-                  borderRadius: 5,
-                  padding: 8,
-                  justifyContent: 'center',
-                  height: width < 360 ? 48 : 56,
-                }}>
+                <View
+                  style={{
+                    width: "48%",
+                    backgroundColor: "white",
+                    borderWidth: 1,
+                    borderColor: "#CBD2E0",
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: "center",
+                    height: width < 360 ? 48 : 56,
+                  }}
+                >
                   <Dropdown
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{
+                      fontSize: Math.min(width * 0.035, 16),
+                    }}
                     inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     iconStyle={{ marginRight: 8 }}
                     data={addressData.provinces}
                     labelField="label"
                     valueField="value"
-                    placeholder={isLoading.provinces ? "Loading..." : "Province"}
+                    placeholder={
+                      isLoading.provinces ? "Loading..." : "Province"
+                    }
                     value={form.province}
                     onChange={(item) => {
-                      setForm({ ...form, province: item.value, provinceCode: item.code, city: "" });
+                      setForm({
+                        ...form,
+                        province: item.value,
+                        provinceCode: item.code,
+                        city: "",
+                      });
                     }}
                     disabled={!form.region || isLoading.provinces}
                     loading={isLoading.provinces}
@@ -874,34 +1011,46 @@ const SignUp = () => {
                 </View>
               </View>
 
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 8,
-              }}>
-                <View style={{
-                  width: '48%',
-                  backgroundColor: 'white',
-                  borderWidth: 1,
-                  borderColor: '#CBD2E0',
-                  borderRadius: 5,
-                  padding: 8,
-                  justifyContent: 'center',
-                  height: width < 360 ? 48 : 56,
-                }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: "48%",
+                    backgroundColor: "white",
+                    borderWidth: 1,
+                    borderColor: "#CBD2E0",
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: "center",
+                    height: width < 360 ? 48 : 56,
+                  }}
+                >
                   <Dropdown
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{
+                      fontSize: Math.min(width * 0.035, 16),
+                    }}
                     inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     iconStyle={{ marginRight: 8 }}
                     data={addressData.cities}
                     labelField="label"
                     valueField="value"
-                    placeholder={isLoading.cities ? "Loading..." : "City/Municipality"}
+                    placeholder={
+                      isLoading.cities ? "Loading..." : "City/Municipality"
+                    }
                     value={form.city}
                     onChange={(item) => {
-                      setForm({ ...form, city: item.value, cityCode: item.code });
+                      setForm({
+                        ...form,
+                        city: item.value,
+                        cityCode: item.code,
+                      });
                     }}
                     disabled={!form.province || isLoading.cities}
                     loading={isLoading.cities}
@@ -909,26 +1058,32 @@ const SignUp = () => {
                   />
                 </View>
 
-                <View style={{
-                  width: '48%',
-                  backgroundColor: 'white',
-                  borderWidth: 1,
-                  borderColor: '#CBD2E0',
-                  borderRadius: 5,
-                  padding: 8,
-                  justifyContent: 'center',
-                  height: width < 360 ? 48 : 56,
-                }}>
+                <View
+                  style={{
+                    width: "48%",
+                    backgroundColor: "white",
+                    borderWidth: 1,
+                    borderColor: "#CBD2E0",
+                    borderRadius: 5,
+                    padding: 8,
+                    justifyContent: "center",
+                    height: width < 360 ? 48 : 56,
+                  }}
+                >
                   <Dropdown
                     style={{ flex: 1 }}
                     placeholderStyle={{ fontSize: Math.min(width * 0.035, 16) }}
-                    selectedTextStyle={{ fontSize: Math.min(width * 0.035, 16) }}
+                    selectedTextStyle={{
+                      fontSize: Math.min(width * 0.035, 16),
+                    }}
                     inputSearchStyle={{ fontSize: Math.min(width * 0.035, 16) }}
                     iconStyle={{ marginRight: 8 }}
                     data={addressData.barangays}
                     labelField="label"
                     valueField="value"
-                    placeholder={isLoading.barangays ? "Loading..." : "Barangay"}
+                    placeholder={
+                      isLoading.barangays ? "Loading..." : "Barangay"
+                    }
                     value={form.barangay}
                     onChange={(item) => {
                       setForm({ ...form, barangay: item.value });
@@ -940,12 +1095,16 @@ const SignUp = () => {
                 </View>
               </View>
 
-              <Text style={{
-                fontSize: Math.min(width * 0.045, 18),
-                fontWeight: '600',
-                marginTop: 16,
-                marginBottom: 5,
-              }}>User Password</Text>
+              <Text
+                style={{
+                  fontSize: Math.min(width * 0.045, 18),
+                  fontWeight: "600",
+                  marginTop: 16,
+                  marginBottom: 5,
+                }}
+              >
+                User Password
+              </Text>
 
               <TextInput
                 label="Password"
@@ -959,7 +1118,7 @@ const SignUp = () => {
                     onPress={() => setPasswordVisible(!passwordVisible)}
                   />
                 }
-                style={{ width: '100%', marginBottom: 8 }}
+                style={{ width: "100%", marginBottom: 8 }}
                 mode="outlined"
                 activeOutlineColor="#006400"
                 outlineColor="#CBD2E0"
@@ -969,11 +1128,15 @@ const SignUp = () => {
               />
 
               {passwordError && form.password.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{passwordError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {passwordError}
+                </Text>
               )}
 
               <TextInput
@@ -988,7 +1151,7 @@ const SignUp = () => {
                     onPress={() => setConPasswordVisible(!conPasswordVisible)}
                   />
                 }
-                style={{ width: '100%', marginBottom: 20 }}
+                style={{ width: "100%", marginBottom: 20 }}
                 mode="outlined"
                 activeOutlineColor="#006400"
                 outlineColor="#CBD2E0"
@@ -998,33 +1161,42 @@ const SignUp = () => {
               />
 
               {confirmPasswordError && form.confirmpassword.length > 0 && (
-                <Text style={{
-                  color: 'red',
-                  fontSize: Math.min(width * 0.03, 14),
-                  marginBottom: 8,
-                }}>{confirmPasswordError}</Text>
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: Math.min(width * 0.03, 14),
+                    marginBottom: 8,
+                  }}
+                >
+                  {confirmPasswordError}
+                </Text>
               )}
 
-              <View style={{
-                marginTop: 8,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
+              <View
+                style={{
+                  marginTop: 8,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
                 <Checkbox
+                  testID="tncCheckbox"
                   status={isChecked ? "checked" : "unchecked"}
                   onPress={() => setIsChecked(!isChecked)}
                   color="#006400"
                 />
-                <Text style={{
-                  marginLeft: 8,
-                  fontSize: Math.min(width * 0.035, 16),
-                }}>
+                <Text
+                  style={{
+                    marginLeft: 8,
+                    fontSize: Math.min(width * 0.035, 16),
+                  }}
+                >
                   I agree to the{" "}
                   <Link
                     href="/terms-and-condition"
                     style={{
-                      color: '#006400',
-                      fontWeight: '500',
+                      color: "#006400",
+                      fontWeight: "500",
                     }}
                   >
                     Terms and Conditions
@@ -1033,10 +1205,11 @@ const SignUp = () => {
               </View>
 
               <CustomButton
+                testID={!isFormValid ? "signUpButton" : "disabledSignUpButton"}
                 title="Sign Up"
                 handlePress={handleSignUp}
                 containerStyles={{
-                  width: '100%',
+                  width: "100%",
                   marginTop: height * 0.03,
                   height: Math.min(height * 0.06, 50),
                 }}
@@ -1044,20 +1217,24 @@ const SignUp = () => {
                 disabled={!isFormValid}
               />
 
-              <View style={{
-                alignItems: 'center',
-                marginTop: height * 0.02,
-              }}>
-                <Text style={{
-                  fontSize: Math.min(width * 0.035, 16),
-                  color: '#4B4B4B',
-                }}>
+              <View
+                style={{
+                  alignItems: "center",
+                  marginTop: height * 0.02,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: Math.min(width * 0.035, 16),
+                    color: "#4B4B4B",
+                  }}
+                >
                   Already a user?{" "}
                   <Link
                     href="/sign-in"
                     style={{
-                      fontWeight: '600',
-                      color: '#006400',
+                      fontWeight: "600",
+                      color: "#006400",
                     }}
                   >
                     Log in
