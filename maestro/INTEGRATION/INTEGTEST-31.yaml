@@ -1,0 +1,37 @@
+# User views store recommendations without enabling location
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "joemarygot@gmail.com"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Chaesessional0#"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on No thanks
+- tapOn: "No thanks"
+
+# Tap on Maps
+- tapOn: "Maps"
+
+# Check if Maps needs to be enabled
+- assertVisible: "For a better experience, your device will need to use Location Accuracy"

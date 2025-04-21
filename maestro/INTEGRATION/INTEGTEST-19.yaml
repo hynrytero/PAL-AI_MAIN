@@ -1,0 +1,57 @@
+# User saves profile with empty required fields
+
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "joemarygot@gmail.com"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Chaesessional0#"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on Profile
+- tapOn: "Profile"
+
+-scrollUntilVisible:
+    element:
+      text: "Edit Profile"
+    direction: DOWN
+    speed: 40
+
+# Tap on Edit Profile
+- tapOn: "Edit Profile"
+
+# Tap on First Name
+- tapOn: "Joemar"
+- inputText: ""
+
+# Scroll until the Save button
+-scrollUntilVisible:
+    element:
+      text: "Apply Changes"
+    direction: DOWN
+    speed: 40
+
+# Check if the Apply Changes button is disabled
+- assertVisible:
+    text: "Apply Changes"
+    enabled: false

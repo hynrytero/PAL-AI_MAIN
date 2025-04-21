@@ -1,0 +1,45 @@
+# User clicks for treatment info after detection
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "joemarygot@gmail.com"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Chaesessional0#"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on Camera
+- tapOn:
+    id: "cameraBtn"
+
+# Tap on Take Photo
+- tapOn:
+    id: "capture"
+
+# Tap on Check
+- tapOn:
+    id: "check"
+
+# Tap on Treatments
+- tapOn: "Treatments"
+
+- assertVisible: "Treatments"
