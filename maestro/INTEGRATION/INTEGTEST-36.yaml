@@ -1,0 +1,41 @@
+# Admin filters user list by name or email
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "Admin"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Admin@123"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on Users
+- tapOn: "Users"
+
+# Search for user by name or email
+- tapOn: "Search by name, email, or phone..."
+- inputText: "Joemar"
+
+- hideKeyboard
+
+# Check if user is found
+- assertVisible: "Joemar Ygot"
+- assertVisible: "Joemar Togy"

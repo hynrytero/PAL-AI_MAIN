@@ -1,0 +1,41 @@
+# User marks notification as unread
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "joemarygot@gmail.com"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Chaesessional0#"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on Notification
+- tapOn: "Notification"
+
+# Tap on Mark Menu
+- tapOn:
+    id: "markAllMenu"
+
+# Tap on Mark as unread
+- tapOn: "Mark all as unread"
+
+# Check if notification is marked as read
+- assertVisible: "All notifications marked as unread"

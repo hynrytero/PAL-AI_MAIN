@@ -1,0 +1,34 @@
+# User clicks a store in recommended list
+
+appId: host.exp.exponent
+
+---
+- launchApp
+
+# Tap on PAL-AI
+- tapOn: "PAL-AI"
+
+# Navigate to Login
+- tapOn:
+    id: "login"
+
+# Tap on Username / Email
+- tapOn: "Username / Email"
+- inputText: "joemarygot@gmail.com"
+
+- hideKeyboard
+
+# Tap on Password
+- tapOn: "Password"
+- inputText: "Chaesessional0#"
+
+- hideKeyboard
+
+# Tap on Login button
+- tapOn: "login"
+
+# Tap on Maps
+- tapOn: "Maps"
+
+# Check if store is visible in the recommended list
+- assertVisible: "Silver Grains Agrivet"
