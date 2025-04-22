@@ -433,22 +433,14 @@ useEffect(() => {
               );
 
               if (updateResponse.data.success) {
-                 // Update the local userData state to reflect changes, including address and image
+                 // Update the userData state with new address information
                  setUserData(prev => ({
-                   ...prev,
-                   firstname: firstName,
-                   lastname: lastName,
-                   birthdate: birthDate, 
-                   contactNumber: contactNumber,
-                   image: imageUrl, 
-                   addressId: updateResponse.data.data.addressId, 
-                   yearsExperience: parseInt(yearsExperience) || null,
-                   region: region,
-                   province: province,
-                   city: city,
-                   barangay: barangay
-                 }));
-                 setProfileImage(imageUrl);
+                  ...prev,
+                  region: region,
+                  province: province,
+                  city: city,
+                  barangay: barangay
+                }));
 
 
                 Alert.alert(
@@ -583,10 +575,9 @@ useEffect(() => {
                   </View>
                 </TouchableOpacity>
               }
-               // Adjust contentStyle for menu positioning
               contentStyle={{
-                 marginTop: 10, // Adjust vertical position relative to anchor
-                 marginLeft: 20, // Adjust horizontal position
+                 marginTop: 10, 
+                 marginLeft: 20, 
                  width: 180,
                  paddingVertical: 4,
                  backgroundColor: 'white',

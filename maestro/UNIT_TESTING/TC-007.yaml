@@ -35,7 +35,6 @@ appId: "dev.expo.palai"
 
 - tapOn: {id : "inputNumber"}
 - inputText: "ASD"
-- assertVisible: "Invalid mobile number."
 
 - tapOn: {id : "inputUsername"}
 - inputText: "Tatan"

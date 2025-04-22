@@ -208,7 +208,6 @@ const SignIn = () => {
             </Text>
           </View>
           <CustomButton
-            testID="inputLOGIN"
             title="Log in"
             handlePress={handleLogin}
             containerStyles="w-full mt-5"

@@ -304,6 +304,7 @@ export default function App() {
 
       const currentDate = new Date().toLocaleString();
 
+      // SEND TO ADMIN
       // For each admin, store notification and send push notification
       for (const admin of adminUsers) {
         // 1. Store notification in database
@@ -350,6 +351,49 @@ export default function App() {
           }),
         });
       }
+
+      // SEND TO USERS
+       // 1. Store notification in database
+       await fetch(`${API_URL}/notifications/store-notification-all`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": AUTH_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Urgent: Possible Tungro Disease Detected",
+          body: `Farmer ${user.username} (${user.email}) has detected a ${disease} in their field on ${currentDate}. Immediate attention required.`,
+          icon: "warning",
+          icon_bg_color: "red",
+          type: "alert",
+          data: {
+            imageUrl: imageUrl,
+            disease: disease,
+            detectedAt: currentDate,
+            scanBy: user.id,
+          },
+        }),
+      });
+
+      // 2. Send push notification
+      await fetch(`${API_URL}/push-notify/broadcast`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": AUTH_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Urgent: Possible Tungro Disease Detected",
+          body: `A farmer has detected ${disease} in their field. Immediate attention required.`,
+          data: {
+            type: "Disease Alert",
+            imageUrl: imageUrl,
+            disease: disease,
+            detectedAt: currentDate,
+            scanBy: user.id,
+          },
+        }),
+      });
 
       console.log(`Tungro notification sent to ${adminUsers.length} admins`);
     } catch (error) {

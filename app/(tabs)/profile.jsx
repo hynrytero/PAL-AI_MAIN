@@ -98,11 +98,25 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       setLoading(true);
+      // First, clear the push token using our new endpoint
+      const tokenResponse = await fetch(`${API_URL}/auth/pushToken/${user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          "X-API-Key": AUTH_KEY
+        }
+      });
+      
+      if (!tokenResponse.ok) {
+        console.warn("Failed to clear push token, continuing with logout");
+      }
+      
       await logout();
-      console.log("Logged out");
+      console.log("Logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
       Alert.alert("Error", "Failed to logout. Please try again.");
+    } finally {
       setLoading(false);
     }
   };

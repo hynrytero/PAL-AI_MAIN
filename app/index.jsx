@@ -62,7 +62,7 @@ export default function Index() {
               />
               <Text className="mt-3 font-pmedium text-sm text-[#4B4B4B]">
                 Have an account?{" "}
-                <Link href="/sign-in" className="font-pbold text-secondary">
+                <Link testID="toLOGIN" href="/sign-in" className="font-pbold text-secondary">
                   Login
                 </Link>
               </Text>

@@ -19,13 +19,13 @@ appId: "dev.expo.palai"
 - assertVisible: ".*Login.*"
 
 # Test the GET STARTED button flow
-- tapOn: "Login"
+- tapOn: 'Login'
 # assertVisible will wait for the "Sign Up"
-- assertVisible: "Log in.*"
+- assertVisible: "PAL-AI.*"
 
 # Test Values
 - tapOn: {id : "inputUsername"}
-- inputText: "meme"
+- inputText: "johnhenrytero18@gmail.com"
 
 - tapOn: {id : "inputPassword"}
 - inputText: "Admin@123"
