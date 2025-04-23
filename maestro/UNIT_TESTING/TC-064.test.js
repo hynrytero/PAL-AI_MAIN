@@ -27,7 +27,7 @@ describe('Index Screen', () => {
     useAuth.mockReturnValue({ user: { isAuthenticated: false, roleId: null } });
   });
 
-  test('System collects activity logs and user interaction data', async () => {
+  test('User has not scanned any disease yet', async () => {
     render(<Index />);
 
     // Wait for the loading state to clear and the buttons to appear

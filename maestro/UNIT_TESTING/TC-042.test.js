@@ -27,7 +27,7 @@ describe('Index Screen', () => {
     useAuth.mockReturnValue({ user: { isAuthenticated: false, roleId: null } });
   });
 
-  test('User inputs invalid email format', async () => {
+  test('Verify that nearby stores are recommended based on the users current location.', async () => {
     render(<Index />);
 
     // Wait for the loading state to clear and the buttons to appear

@@ -27,7 +27,7 @@ describe('Index Screen', () => {
     useAuth.mockReturnValue({ user: { isAuthenticated: false, roleId: null } });
   });
 
-  test('User inputs invalid email format', async () => {
+  test(' System generates charts based on processed data', async () => {
     render(<Index />);
 
     // Wait for the loading state to clear and the buttons to appear

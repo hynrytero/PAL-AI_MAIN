@@ -27,7 +27,7 @@ describe('Index Screen', () => {
     useAuth.mockReturnValue({ user: { isAuthenticated: false, roleId: null } });
   });
 
-  test('User inputs invalid email format', async () => {
+  test('Admin clicks on a user to view detailed profile', async () => {
     render(<Index />);
 
     // Wait for the loading state to clear and the buttons to appear
