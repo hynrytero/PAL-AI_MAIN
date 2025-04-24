@@ -29,7 +29,7 @@ const History = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterType, setFilterType] = useState("all"); 
+  const [filterType, setFilterType] = useState("all"); // Filter types: all, recent, oldest, tungro, blast, blight
   const { user } = useAuth();
   const router = useRouter();
 
@@ -97,7 +97,7 @@ const History = () => {
       );
     }
     
-    // Apply sort filter
+    // Apply disease and sort filters
     switch (filterType) {
       case "recent":
         result.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -105,11 +105,17 @@ const History = () => {
       case "oldest":
         result.sort((a, b) => new Date(a.date) - new Date(b.date));
         break;
-      case "highest":
-        result.sort((a, b) => parseFloat(b.confidence) - parseFloat(a.confidence));
+      case "tungro":
+        result = result.filter(scan => scan.disease.toLowerCase().includes('tungro'));
+        result.sort((a, b) => new Date(b.date) - new Date(a.date));
         break;
-      case "lowest":
-        result.sort((a, b) => parseFloat(a.confidence) - parseFloat(b.confidence));
+      case "blast":
+        result = result.filter(scan => scan.disease.toLowerCase().includes('rice blast'));
+        result.sort((a, b) => new Date(b.date) - new Date(a.date));
+        break;
+      case "blight":
+        result = result.filter(scan => scan.disease.toLowerCase().includes('leaf blight'));
+        result.sort((a, b) => new Date(b.date) - new Date(a.date));
         break;
       default:
         // Default is recent first
@@ -242,16 +248,22 @@ const History = () => {
                 <Text className={filterType === "oldest" ? "text-white" : "text-gray-700"}>Oldest</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`px-4 py-2 rounded-full mr-2 ${filterType === "highest" ? "bg-[#228B22]" : "bg-gray-200"}`}
-                onPress={() => setFilterType("highest")}
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "tungro" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("tungro")}
               >
-                <Text className={filterType === "highest" ? "text-white" : "text-gray-700"}>Highest Confidence</Text>
+                <Text className={filterType === "tungro" ? "text-white" : "text-gray-700"}>Tungro</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`px-4 py-2 rounded-full mr-2 ${filterType === "lowest" ? "bg-[#228B22]" : "bg-gray-200"}`}
-                onPress={() => setFilterType("lowest")}
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "blast" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("blast")}
               >
-                <Text className={filterType === "lowest" ? "text-white" : "text-gray-700"}>Lowest Confidence</Text>
+                <Text className={filterType === "blast" ? "text-white" : "text-gray-700"}>Rice Blast</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`px-4 py-2 rounded-full mr-2 ${filterType === "blight" ? "bg-[#228B22]" : "bg-gray-200"}`}
+                onPress={() => setFilterType("blight")}
+              >
+                <Text className={filterType === "blight" ? "text-white" : "text-gray-700"}>Leaf Blight</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -278,7 +290,6 @@ const History = () => {
                     disease={scan.disease}
                     desc={scan.diseaseDescription}
                     date={formatDate(scan.date)}
-                    percent={scan.confidence.toString()}
                     color="bg-[#ADD8E6]"
                     image={{ uri: scan.image }}
                     medicines={scan.medicines}

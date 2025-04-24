@@ -138,9 +138,6 @@ const Viewresult = () => {
             <Text className="font-pregular text-sm ">{date}</Text>
           </View>
 
-          {/* Confidence */}
-          <Text className="font-pregular text-lg mb-6">{confidence}</Text>
-
           {/* Low Confidence Warning */}
           {parseFloat(confidence) < 50 && parseFloat(confidence) > 0 && (
             <View className="bg-yellow-100 p-3 rounded-lg mb-4">

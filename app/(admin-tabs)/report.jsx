@@ -24,8 +24,8 @@ const ReportScreen = () => {
   const { user } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [selectedDateFilter, setSelectedDateFilter] = useState("All Time");
-  const [selectedConfidenceFilter, setSelectedConfidenceFilter] = useState("All");
-  const [activeFilterType, setActiveFilterType] = useState("disease"); // 'disease', 'date', 'confidence'
+  const [selectedSeverityFilter, setSelectedSeverityFilter] = useState("All");
+  const [activeFilterType, setActiveFilterType] = useState("disease"); // 'disease', 'date', 'severity'
   const ITEMS_PER_PAGE = 5;
   const [refreshing, setRefreshing] = useState(false);
 
@@ -46,12 +46,12 @@ const ReportScreen = () => {
     "This Year"
   ];
 
-  // Confidence score filter options
-  const confidenceFilters = [
+  // Severity level filter options
+  const severityFilters = [
     "All",
-    "High (90-100%)",
-    "Medium (70-89%)",
-    "Low (0-69%)"
+    "Severe",
+    "Moderate",
+    "Mild"
   ];
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const ReportScreen = () => {
   useEffect(() => {
     // Apply filters whenever search query or any filter changes
     applyFilters();
-  }, [searchQuery, selectedFilter, selectedDateFilter, selectedConfidenceFilter, scanData]);
+  }, [searchQuery, selectedFilter, selectedDateFilter, selectedSeverityFilter, scanData]);
 
   const fetchReports = async () => {
     try {
@@ -159,25 +159,24 @@ const ReportScreen = () => {
       });
     }
 
-    // Apply confidence filter
-    if (selectedConfidenceFilter !== "All") {
+    // Apply severity filter
+    if (selectedSeverityFilter !== "All") {
       results = results.filter(scan => {
-        const confidenceScore = scan.disease_confidence_score * 100;
-
-        switch (selectedConfidenceFilter) {
-          case "High (90-100%)":
-            return confidenceScore >= 90;
-          case "Medium (70-89%)":
-            return confidenceScore >= 70 && confidenceScore < 90;
-          case "Low (0-69%)":
-            return confidenceScore < 70;
+        const disease = scan.rice_leaf_disease;
+        switch (selectedSeverityFilter) {
+          case "Severe":
+            return disease === "Possible Tungro"; 
+          case "Moderate":
+            return disease === "Rice Blast"; 
+          case "Mild":
+            return disease === "Leaf Blight"; 
           default:
             return true;
         }
       });
     }
 
-    // Apply search query filter (case insensitive)
+    // Apply search query filter 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       results = results.filter(scan => {
@@ -200,7 +199,7 @@ const ReportScreen = () => {
     setSearchQuery("");
     setSelectedFilter("All");
     setSelectedDateFilter("All Time");
-    setSelectedConfidenceFilter("All");
+    setSelectedSeverityFilter("All");
     setFilteredData(scanData);
     setCurrentPage(1);
   };
@@ -275,7 +274,7 @@ const ReportScreen = () => {
   const hasActiveFilters = searchQuery ||
     selectedFilter !== "All" ||
     selectedDateFilter !== "All Time" ||
-    selectedConfidenceFilter !== "All";
+    selectedSeverityFilter !== "All";
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -352,7 +351,7 @@ const ReportScreen = () => {
 
           {/* Filter Type Selection */}
           <View className="flex-row mb-3">
-            {["Disease", "Date", "Confidence"].map((type) => (
+            {["Disease", "Date", "Severity"].map((type) => (
               <TouchableOpacity
                 key={type}
                 onPress={() => setActiveFilterType(type.toLowerCase())}
@@ -415,22 +414,22 @@ const ReportScreen = () => {
               </TouchableOpacity>
             ))}
 
-            {activeFilterType === "confidence" && confidenceFilters.map((confidenceFilter) => (
+            {activeFilterType === "severity" && severityFilters.map((level) => (
               <TouchableOpacity
-                key={confidenceFilter}
-                onPress={() => setSelectedConfidenceFilter(confidenceFilter)}
-                className={`mr-2 px-3 py-1 rounded-full ${selectedConfidenceFilter === confidenceFilter
+                key={level}
+                onPress={() => setSelectedSeverityFilter(level)}
+                className={`mr-2 px-3 py-1 rounded-full ${selectedSeverityFilter === level
                   ? "bg-green-600"
                   : "bg-gray-200"
                   }`}
               >
                 <Text
-                  className={`font-pmedium ${selectedConfidenceFilter === confidenceFilter
+                  className={`font-pmedium ${selectedSeverityFilter === level
                     ? "text-white"
                     : "text-gray-700"
                     }`}
                 >
-                  {confidenceFilter}
+                  {level}
                 </Text>
               </TouchableOpacity>
             ))}{/* Clear Filters Button */}
@@ -467,10 +466,10 @@ const ReportScreen = () => {
                   </View>
                 )}
 
-                {selectedConfidenceFilter !== "All" && (
+                {selectedSeverityFilter !== "All" && (
                   <View className="bg-purple-100 mr-2 mb-1 px-2 py-1 rounded-full flex-row items-center">
-                    <Text className="text-xs font-pmedium text-purple-800">{selectedConfidenceFilter}</Text>
-                    <TouchableOpacity onPress={() => setSelectedConfidenceFilter("All")}>
+                    <Text className="text-xs font-pmedium text-purple-800">{selectedSeverityFilter}</Text>
+                    <TouchableOpacity onPress={() => setSelectedSeverityFilter("All")}>
                       <Icon name="close" size={14} color="#6b21a8" />
                     </TouchableOpacity>
                   </View>
@@ -559,7 +558,6 @@ const ReportScreen = () => {
                       disease={scan.rice_leaf_disease}
                       user={getUserName(scan)}
                       date={formatDate(scan.created_at)}
-                      percent={Math.round(scan.disease_confidence_score * 100)}
                       color="bg-[#ADD8E6]"
                       image={getImageSource(scan)}
                     />
