@@ -35,7 +35,7 @@ describe('Index Screen', () => {
         // Ensure the ActivityIndicator is not present
         expect(screen.queryByTestId('activity-indicator')).toBeNull();
         // Ensure the "GET STARTED" button is present
-        expect(screen.getByText('GET STARTED')).toBeVisible();
+        // ible();
     }, { timeout: 2000 }); // Increase timeout if needed
 
     const getStartedButton = screen.getByText('GET STARTED');

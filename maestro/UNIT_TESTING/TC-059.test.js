@@ -26,7 +26,6 @@ describe('Index Screen', () => {
     // Default mock implementation for useAuth - assume not authenticated initially
     useAuth.mockReturnValue({ user: { isAuthenticated: false, roleId: null } });
   });
-
   test(' System generates charts based on processed data', async () => {
     render(<Index />);
 
