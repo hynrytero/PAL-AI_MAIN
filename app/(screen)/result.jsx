@@ -167,27 +167,22 @@ const Result = () => {
           </View>
 
           {/* Confidence */}
-          <Text className="font-pregular text-lg mb-4">{confidence}</Text>
+          <Text className="font-pregular text-lg mb-2">{confidence}</Text>
 
-          {/* Low Confidence Warning */}
-          {parseFloat(confidence) < 50 && parseFloat(confidence) > 0 && (
-            <View className="bg-yellow-100 p-3 rounded-lg mb-4">
-              {parseFloat(confidence) < 40 ? (
-                <Text className="font-pbold text-yellow-800">Warning: Unknown Disease</Text>
-              ) : (
-                <Text className="font-pbold text-yellow-800">Warning: Low Confidence</Text>
-              )}
-              {parseFloat(confidence) < 40 ? (
-                <Text className="font-pregular text-yellow-800">
-                  The system detected a possible disease, but it may not be covered by our system's scope. Please consult with an expert for proper diagnosis.
-                </Text>
-              ) : (
-                <Text className="font-pregular text-yellow-800">
-                  The system is not very confident about this prediction. Please consult with an expert for verification.
-                </Text>
-              )}
-            </View>
-          )}
+          {/* Confidence Score decription */}
+          <View className="bg-yellow-100 p-3 rounded-lg mb-4">
+            <Text className="font-pbold text-yellow-800">
+              {(() => {
+                if (parseFloat(confidence) > 80) {
+                  return `High confidence prediction. The system is very confident this is ${disease} disease.`;
+                } else if (parseFloat(confidence) > 70 && parseFloat(confidence) != 0) {
+                  return `Moderate confidence prediction. The system is fairly confident this is a ${disease} disease.`;
+                } else {
+                  return "Our AI didn't detect any disease. No disease detected.";
+                }
+              })()}
+            </Text>
+          </View>
 
           {/* Description */}
           {isLoading ? (
