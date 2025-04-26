@@ -43,21 +43,21 @@ describe('Index Screen', () => {
     // Simulate a press on the button
     fireEvent.press(getStartedButton);
 
-    // Assert that router.push was called with the correct path
+   
     expect(router.push).toHaveBeenCalledTimes(1);
     expect(router.push).toHaveBeenCalledWith('/sign-up');
   });
 
   test('redirects to /home if user is authenticated and roleId is 1', async () => {
-    // Mock useAuth to return an authenticated user with roleId 1
+  
     useAuth.mockReturnValue({ user: { isAuthenticated: true, roleId: 1 } });
 
     render(<Index />);
 
-    // Wait for the useEffect to potentially trigger the redirect
+   
     await waitFor(() => {
         expect(router.replace).toHaveBeenCalledTimes(1);
         expect(router.replace).toHaveBeenCalledWith('/home');
-    }, { timeout: 1500 }); // Adjust timeout as needed
+    }, { timeout: 1500 }); 
   });
 });

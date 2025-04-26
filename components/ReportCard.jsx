@@ -6,7 +6,7 @@ const ReportCard = ({ disease, user, date, percent, color, image }) => {
   return (
     <View className="bg-white rounded-lg overflow-hidden m-3">
       <Image
-        source={image} 
+        source={image}
         className="w-full h-52"
       />
       <View className={`p-3 ${color}`}>

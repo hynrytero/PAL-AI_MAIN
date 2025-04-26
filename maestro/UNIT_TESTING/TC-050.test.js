@@ -27,7 +27,7 @@ describe('Index Screen', () => {
     useAuth.mockReturnValue({ user: { isAuthenticated: false, roleId: null } });
   });
 
-  test('User marks a read notification as unread', async () => {
+  test('User inputs invalid email format', async () => {
     render(<Index />);
 
     // Wait for the loading state to clear and the buttons to appear

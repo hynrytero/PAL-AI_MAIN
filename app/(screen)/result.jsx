@@ -167,10 +167,10 @@ const Result = () => {
           </View>
 
           {/* Confidence */}
-          <Text className="font-pregular text-lg mb-2">{confidence}</Text>
+          <Text className="font-pregular text-lg mb-4">{confidence}</Text>
 
-          {/* Confidence Score decription */}
-          <View className="bg-yellow-100 p-3 rounded-lg mb-4">
+         {/* Confidence Score decription */}
+         <View className="bg-yellow-100 p-3 rounded-lg mb-2">
             <Text className="font-pbold text-yellow-800">
               {(() => {
                 if (parseFloat(confidence) > 80) {
