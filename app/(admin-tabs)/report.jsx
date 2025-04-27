@@ -246,7 +246,7 @@ const ReportScreen = () => {
       params: {
         imageUri: scan.scan_image || null,
         disease: scan.rice_leaf_disease || "Unknown Disease",
-        confidence: `${Math.round(scan.disease_confidence_score * 100)}%`,
+        confidence: `${scan.disease_confidence_score.toFixed(2)}%`,
         date: formatDate(scan.created_at),
         description: scan.disease_description || "No description available",
         treatments: scan.medicine_description || "No treatments available",
@@ -559,7 +559,7 @@ const ReportScreen = () => {
                       disease={scan.rice_leaf_disease}
                       user={getUserName(scan)}
                       date={formatDate(scan.created_at)}
-                      percent={Math.round(scan.disease_confidence_score * 100)}
+                      percent={parseFloat(scan.disease_confidence_score.toFixed(2))}
                       color="bg-[#ADD8E6]"
                       image={getImageSource(scan)}
                     />

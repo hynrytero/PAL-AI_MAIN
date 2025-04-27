@@ -199,29 +199,23 @@ const TreatmentDetailScreen = () => {
       Alert.alert('Error', 'Treatment name is required');
       return;
     }
-
+  
     try {
       setLoading(true);
       const formData = new FormData();
-
+  
       // Add text fields
       formData.append('rice_plant_medicine', editedName);
       formData.append('description', editedDescription);
-
-      // Add image if selected
+  
       if (imageUri) {
-        const localUri = imageUri;
-        const filename = localUri.split('/').pop();
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image';
-
         formData.append('image', {
-          uri: localUri,
-          name: filename,
-          type
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'medicine-image.jpg'
         });
       }
-
+  
       const response = await axios.put(
         `${API_URL_BCNKEND}/admin/disease/edit/${treatmentDetails.medicine_id}`,
         formData,
@@ -232,13 +226,13 @@ const TreatmentDetailScreen = () => {
           }
         }
       );
-
+  
       if (response.data.success) {
         await fetchTreatmentDetails();
         setIsEditing(false);
         setIsEdited(true);
       }
-
+  
     } catch (error) {
       console.error('Update error:', error.response ? error.response.data : error);
       Alert.alert('Error', 'Failed to update treatment');

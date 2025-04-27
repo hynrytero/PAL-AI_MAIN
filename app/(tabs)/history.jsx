@@ -62,7 +62,7 @@ const History = () => {
       const transformedData = data.map(scan => ({
         ...scan,
         diseaseDescription: scan.disease_description, 
-        confidence: scan.confidence.toString(), 
+        confidence: parseFloat(scan.confidence).toFixed(2),
         treatments: scan.treatments.map(treatment => ({
           ...treatment,
           treatment: treatment.name 

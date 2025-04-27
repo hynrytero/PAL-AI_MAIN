@@ -169,13 +169,13 @@ const Result = () => {
           {/* Confidence */}
           <Text className="font-pregular text-lg mb-4">{confidence}</Text>
 
-         {/* Confidence Score decription */}
-         <View className="bg-yellow-100 p-3 rounded-lg mb-2">
-            <Text className="font-pbold text-yellow-800">
+          {/* Confidence Score decription */}
+          <View className="bg-green-100 p-4 rounded-lg mb-2">
+            <Text className="font-pbold text-green-800">
               {(() => {
                 if (parseFloat(confidence) > 80) {
-                  return `High confidence prediction. The system is very confident this is ${disease} disease.`;
-                } else if (parseFloat(confidence) > 70 && parseFloat(confidence) != 0) {
+                  return `High confidence prediction. The system is confident that this is ${disease} disease.`;
+                } else if (parseFloat(confidence) < 80 && parseFloat(confidence) != 0) {
                   return `Moderate confidence prediction. The system is fairly confident this is a ${disease} disease.`;
                 } else {
                   return "Our AI didn't detect any disease. No disease detected.";
